@@ -94,8 +94,7 @@ register, phase-3 mode selection, and post-hoc re-classification.
   `EventEmitter`, no Redis)
 - Zod at every LLM response boundary
 
-See [`tech-spec.md`](../tech-spec.md) for the full architectural breakdown and
-[`prd.md`](../prd.md) for the MVP contract.
+The full PRD, tech spec, and 7-phase execution plan are maintained separately.
 
 ---
 
@@ -139,8 +138,6 @@ This is a capability demonstration, not a production system.
 
 ```
 maieutic/
-├── prd.md / tech-spec.md / project-description.md  ← design documents (parent dir)
-├── execution-plan.md                                ← the 7-phase build plan
 ├── DEMO_SCRIPT.md                                   ← 5-scene walkthrough
 ├── prisma/schema.prisma
 ├── src/

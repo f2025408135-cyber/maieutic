@@ -1,59 +1,60 @@
-# ── Secrets ────────────────────────────────────────────────────────────────
-# All .env files are excluded. Use .env.example as a template.
+# ── Dependencies ───────────────────────────────────────────────────────────
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ── Next.js / build artifacts ──────────────────────────────────────────────
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# ── TypeScript ─────────────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── Env / secrets ──────────────────────────────────────────────────────────
+# All .env* files are excluded except the committable template .env.example.
 .env
 .env.*
 !.env.example
 
-# ── Dependencies ───────────────────────────────────────────────────────────
-**/node_modules
-**/.pnp
-**/.pnp.*
-**/.yarn/*
-!**/.yarn/patches
-!**/.yarn/plugins
-!**/.yarn/releases
-!**/.yarn/versions
-
-# ── Next.js ────────────────────────────────────────────────────────────────
-**/.next
-**/out
-**/build
-**/next-env.d.ts
-
-# ── TypeScript ─────────────────────────────────────────────────────────────
-**/*.tsbuildinfo
-**/.tsbuildinfo
-
 # ── Prisma ─────────────────────────────────────────────────────────────────
-# Local SQLite database and its WAL files; generated Prisma client.
-**/prisma/dev.db
-**/prisma/dev.db-journal
-**/prisma/*.db-shm
-**/prisma/*.db-wal
-**/generated/prisma
+prisma/dev.db
+prisma/dev.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
+/src/generated/prisma
 
 # ── Testing ────────────────────────────────────────────────────────────────
-**/coverage
-**/test-results
-**/playwright-report
-**/blob-report
-**/playwright/.cache
-
-# ── Editor / OS ────────────────────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-**/.vscode
-**/.idea
-**/*.swp
-
-# ── Logs ───────────────────────────────────────────────────────────────────
-**/npm-debug.log*
-**/yarn-debug.log*
-**/yarn-error.log*
-**/.pnpm-debug.log*
+/coverage
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
 
 # ── Local Claude Code state ────────────────────────────────────────────────
 .claude
 
+# ── Editor / OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+
+# ── Logs ───────────────────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
 # ── Vercel ─────────────────────────────────────────────────────────────────
 .vercel
+
+# ── Misc ───────────────────────────────────────────────────────────────────
+*.pem
