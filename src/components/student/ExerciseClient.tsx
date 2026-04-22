@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Workbench } from "@/components/editor/Workbench";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +11,6 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PythonEditor } from "@/components/student/PythonEditor";
 import type {
   OpusMode,
@@ -52,10 +49,7 @@ interface DivergenceQuestion {
   studentFacingQuestion: string;
   answer: string | null;
   submitting: boolean;
-  result: {
-    alignment: string;
-    finalClassification: string;
-  } | null;
+  result: { alignment: string; finalClassification: string } | null;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────
@@ -70,7 +64,6 @@ export function ExerciseClient({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Phase 3 — editor, chat, submit.
   const [code, setCode] = useState(initialSession.phase3.currentCode);
   const [exchanges, setExchanges] = useState<Phase3Exchange[]>(
     initialSession.phase3.opusExchanges,
@@ -79,7 +72,6 @@ export function ExerciseClient({
   const [chatBusy, setChatBusy] = useState(false);
   const [finalSubmitting, setFinalSubmitting] = useState(false);
 
-  // Phase 4 — divergences.
   const [divergences, setDivergences] = useState<DivergenceQuestion[]>([]);
   const [divergenceIndex, setDivergenceIndex] = useState(0);
 
@@ -89,7 +81,6 @@ export function ExerciseClient({
   const inPhase4 = session.currentPhase === 4;
   const closed = session.currentPhase >= 5;
 
-  // ── Phase 1: submit spec ──────────────────────────────────────────────
   async function submitSpec() {
     if (!specDraft.trim()) return;
     setSubmitting(true);
@@ -131,7 +122,6 @@ export function ExerciseClient({
     }
   }
 
-  // ── Phase 2: submit plan ──────────────────────────────────────────────
   async function submitPlan() {
     if (!planDraft.trim()) return;
     setSubmitting(true);
@@ -155,7 +145,6 @@ export function ExerciseClient({
     }
   }
 
-  // ── Phase 3: autosave (debounced) ─────────────────────────────────────
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!inPhase3) return;
@@ -165,22 +154,18 @@ export function ExerciseClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
-      }).catch(() => {
-        /* best-effort; next save will retry */
-      });
+      }).catch(() => {});
     }, 1500);
     return () => {
       if (autosaveRef.current) clearTimeout(autosaveRef.current);
     };
   }, [code, session.id, inPhase3]);
 
-  // ── Phase 3: send chat message ────────────────────────────────────────
   async function sendChat() {
     if (!chatInput.trim() || chatBusy) return;
     const message = chatInput;
     setChatBusy(true);
     setError(null);
-    // Optimistically show the student message; Opus response appears after.
     const pending: Phase3Exchange = {
       timestamp: new Date().toISOString(),
       studentMessage: message,
@@ -201,13 +186,12 @@ export function ExerciseClient({
     } catch (err) {
       setError(err instanceof Error ? err.message : "chat failed");
       setExchanges((prev) => prev.slice(0, -1));
-      setChatInput(message); // restore input so they can retry
+      setChatInput(message);
     } finally {
       setChatBusy(false);
     }
   }
 
-  // ── Phase 3: submit final code ────────────────────────────────────────
   async function submitFinalCode() {
     if (finalSubmitting) return;
     setFinalSubmitting(true);
@@ -221,7 +205,6 @@ export function ExerciseClient({
       if (!res.ok) throw new Error(await readError(res));
       const body = (await res.json()) as {
         divergences: { divergenceId: string; studentFacingQuestion: string }[];
-        count: number;
       };
       setDivergences(
         body.divergences.map((d) => ({
@@ -241,7 +224,6 @@ export function ExerciseClient({
     }
   }
 
-  // ── Phase 4: answer a divergence question ────────────────────────────
   async function answerDivergence(i: number, answer: string) {
     const d = divergences[i];
     if (!d || d.result || d.submitting) return;
@@ -250,11 +232,14 @@ export function ExerciseClient({
     );
     setError(null);
     try {
-      const res = await fetch(`/api/session/${session.id}/divergence-response`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ divergenceId: d.divergenceId, response: answer }),
-      });
+      const res = await fetch(
+        `/api/session/${session.id}/divergence-response`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ divergenceId: d.divergenceId, response: answer }),
+        },
+      );
       if (!res.ok) throw new Error(await readError(res));
       const body = (await res.json()) as {
         allAnswered: boolean;
@@ -289,29 +274,52 @@ export function ExerciseClient({
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────────
-  return (
-    <main className="min-h-screen flex flex-col">
-      <header className="border-b bg-background px-6 py-3 flex items-center justify-between">
-        <div className="min-w-0">
-          <div className="text-xs text-muted-foreground font-mono">
-            /exercise/{exercise.id} · session {session.id.slice(0, 8)}…
-          </div>
-          <h1 className="text-lg font-semibold truncate">{exercise.title}</h1>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Badge variant="secondary">{exercise.studentLevel}</Badge>
-          <PhaseBadge phase={session.currentPhase} />
-          {!closed && (
-            <AskForHelpDialog sessionId={session.id} phase={session.currentPhase} />
-          )}
-        </div>
-      </header>
+  const phaseLabel: Record<number, string> = {
+    1: "spec gate",
+    2: "plan",
+    3: "writing",
+    4: "review",
+    5: "closed",
+  };
 
-      <div className="px-6 py-3 border-b bg-muted/30">
-        <p className="text-sm">
-          <strong>Exercise:</strong> {exercise.instructorPromptText}
-        </p>
+  return (
+    <Workbench
+      tabs={[
+        {
+          fileName: `${exercise.id}.py`,
+          active: true,
+          dirty: inPhase3 && code.length > 0,
+        },
+      ]}
+      statusLeft={
+        <>
+          <span className="font-mono">{exercise.studentLevel}</span>
+          <span>
+            phase {session.currentPhase} ·{" "}
+            {phaseLabel[session.currentPhase] ?? ""}
+          </span>
+          {inPhase1 && session.phase1.iterations.length > 0 && (
+            <span>iter {session.phase1.iterations.length}</span>
+          )}
+        </>
+      }
+      statusRight={
+        <>
+          {!closed && (
+            <AskForHelpDialog
+              sessionId={session.id}
+              phase={session.currentPhase}
+            />
+          )}
+          <span>Student · {exercise.title}</span>
+        </>
+      }
+    >
+      <div className="px-6 py-3 border-b border-[#3e3e42] bg-[#252526] text-sm">
+        <span className="text-[#858585] mr-2 font-mono text-xs uppercase tracking-wider">
+          exercise
+        </span>
+        <span>{exercise.instructorPromptText}</span>
       </div>
 
       {inPhase1 && (
@@ -389,11 +397,11 @@ export function ExerciseClient({
       )}
 
       {closed && <Phase5Closed divergences={divergences} />}
-    </main>
+    </Workbench>
   );
 }
 
-// ─── Layout primitives ────────────────────────────────────────────────────
+// ─── Primitives ────────────────────────────────────────────────────────
 
 function TwoColumn({
   left,
@@ -404,13 +412,64 @@ function TwoColumn({
 }) {
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] overflow-hidden">
-      <section className="border-r overflow-y-auto p-6 space-y-4">{left}</section>
-      <section className="h-[60vh] lg:h-auto">{right}</section>
+      <section className="border-r border-[#3e3e42] overflow-y-auto p-6 space-y-4">
+        {left}
+      </section>
+      <section className="h-[60vh] lg:h-auto bg-[#1e1e1e]">{right}</section>
     </div>
   );
 }
 
-// ─── Phase 1 panel ────────────────────────────────────────────────────────
+function Panel({
+  title,
+  children,
+}: {
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border border-[#3e3e42] bg-[#252526] rounded">
+      {title && (
+        <div className="px-4 py-2.5 border-b border-[#3e3e42]">
+          <h2 className="text-[11px] font-semibold tracking-wider uppercase text-[#858585]">
+            {title}
+          </h2>
+        </div>
+      )}
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function StudentTextarea({
+  value,
+  onChange,
+  rows = 4,
+  placeholder,
+  disabled,
+  onKeyDown,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  rows?: number;
+  placeholder?: string;
+  disabled?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      rows={rows}
+      placeholder={placeholder}
+      disabled={disabled}
+      onKeyDown={onKeyDown}
+      className="w-full bg-[#3c3c3c] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-2 text-sm placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 resize-y"
+    />
+  );
+}
+
+// ─── Phase 1 ──────────────────────────────────────────────────────────
 
 function Phase1Panel({
   iterations,
@@ -434,21 +493,16 @@ function Phase1Panel({
   const addressedSet = new Set(addressed);
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Your specification (round {iterations.length + 1})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
+      <Panel title={`Your specification · round ${iterations.length + 1}`}>
+        <div className="space-y-3">
+          <p className="text-sm text-[#858585]">
             Write, in natural language, what the program must do: inputs,
-            outputs, edge cases, behavior on bad input. The editor unlocks once
-            the spec is specific enough to implement without guesswork.
+            outputs, edge cases, behavior on bad input. The editor unlocks
+            once the spec is specific enough to implement without guesswork.
           </p>
-          <Textarea
+          <StudentTextarea
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={setDraft}
             rows={6}
             placeholder="The function takes a string and returns..."
             disabled={submitting}
@@ -457,86 +511,81 @@ function Phase1Panel({
             <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
               {submitting ? "Reviewing…" : "Submit spec for review"}
             </Button>
-            {error && <span className="text-sm text-red-600">{error}</span>}
+            {error && (
+              <span className="text-sm text-[#f48771] font-mono">{error}</span>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Panel>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Checklist ({addressedSet.size}/{dimensions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-1 text-sm">
-            {dimensions.map((d) => (
-              <li
-                key={d.id}
-                className={`flex items-start gap-2 ${
-                  addressedSet.has(d.id) ? "text-green-700" : "text-muted-foreground"
-                }`}
-              >
-                <span className="mt-0.5">
-                  {addressedSet.has(d.id) ? "✓" : "○"}
-                </span>
-                <span className="font-mono text-xs">{d.id}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-xs text-muted-foreground mt-2">
-            Item names only — Opus will ask the concrete questions.
-          </p>
-        </CardContent>
-      </Card>
+      <Panel title={`Checklist · ${addressedSet.size}/${dimensions.length}`}>
+        <ul className="space-y-1 text-sm font-mono">
+          {dimensions.map((d) => (
+            <li
+              key={d.id}
+              className={`flex items-start gap-2 ${
+                addressedSet.has(d.id) ? "text-[#89d185]" : "text-[#858585]"
+              }`}
+            >
+              <span className="mt-0.5">
+                {addressedSet.has(d.id) ? "✓" : "○"}
+              </span>
+              <span className="text-xs">{d.id}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-xs text-[#858585] mt-3">
+          Item names only — Opus will ask the concrete questions.
+        </p>
+      </Panel>
 
       {iterations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[55vh]">
-              <div className="space-y-4">
-                {iterations.map((it, i) => (
-                  <div key={i} className="border-l-2 pl-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">Round {i + 1}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(it.timestamp).toLocaleTimeString()}
-                      </span>
-                      {it.passed && <Badge>Passed</Badge>}
+        <Panel title="History">
+          <div className="space-y-4 max-h-[55vh] overflow-y-auto">
+            {iterations.map((it, i) => (
+              <div
+                key={i}
+                className="border-l-2 border-[#3e3e42] pl-3 space-y-2"
+              >
+                <div className="flex items-center gap-2">
+                  <RoundBadge n={i + 1} />
+                  <span className="text-xs text-[#858585] font-mono">
+                    {new Date(it.timestamp).toLocaleTimeString()}
+                  </span>
+                  {it.passed && (
+                    <span className="text-xs text-[#89d185] font-mono">
+                      ✓ passed
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+                  {it.studentSpecText}
+                </div>
+                {it.opusQuestions.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                      Opus asked
                     </div>
-                    <div className="text-sm whitespace-pre-wrap bg-muted/40 rounded p-2">
-                      {it.studentSpecText}
-                    </div>
-                    {it.opusQuestions.length > 0 && (
-                      <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">
-                          Opus asked:
-                        </div>
-                        <ul className="text-sm space-y-1">
-                          {it.opusQuestions.map((q, qi) => (
-                            <li key={qi} className="flex gap-2">
-                              <span className="text-muted-foreground">•</span>
-                              <span>{q}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <ul className="text-sm space-y-1">
+                      {it.opusQuestions.map((q, qi) => (
+                        <li key={qi} className="flex gap-2">
+                          <span className="text-[#858585]">·</span>
+                          <span>{q}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ))}
+                )}
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </Panel>
       )}
     </>
   );
 }
 
-// ─── Phase 2 panel ────────────────────────────────────────────────────────
+// ─── Phase 2 ──────────────────────────────────────────────────────────
 
 function Phase2Panel({
   finalSpec,
@@ -555,30 +604,23 @@ function Phase2Panel({
 }) {
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Your spec (frozen)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm whitespace-pre-wrap bg-muted/40 rounded p-3">
-            {finalSpec}
-          </div>
-        </CardContent>
-      </Card>
+      <Panel title="Your spec · frozen">
+        <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
+          {finalSpec}
+        </div>
+      </Panel>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Implementation plan</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Before the editor unlocks, write down the data structures you&apos;ll
-            use, the order of operations, and the functions you&apos;ll define.
-            This is your prediction — your code will be diffed against it later.
+      <Panel title="Implementation plan">
+        <div className="space-y-3">
+          <p className="text-sm text-[#858585]">
+            Before the editor unlocks, write down the data structures
+            you&apos;ll use, the order of operations, and the functions
+            you&apos;ll define. This is your prediction — your code will be
+            diffed against it later.
           </p>
-          <Textarea
+          <StudentTextarea
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={setDraft}
             rows={8}
             placeholder="I'll use a single loop over the characters..."
             disabled={submitting}
@@ -587,15 +629,17 @@ function Phase2Panel({
             <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
               {submitting ? "Submitting…" : "Submit plan"}
             </Button>
-            {error && <span className="text-sm text-red-600">{error}</span>}
+            {error && (
+              <span className="text-sm text-[#f48771] font-mono">{error}</span>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Panel>
     </>
   );
 }
 
-// ─── Phase 3 layout — editor + chat ──────────────────────────────────────
+// ─── Phase 3 ──────────────────────────────────────────────────────────
 
 function Phase3Layout({
   finalSpec,
@@ -628,23 +672,27 @@ function Phase3Layout({
 }) {
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_24rem] overflow-hidden">
-      <section className="flex flex-col border-r">
-        <div className="px-6 py-3 border-b flex items-center justify-between gap-3 bg-muted/20">
+      <section className="flex flex-col border-r border-[#3e3e42]">
+        <div className="px-6 py-2.5 border-b border-[#3e3e42] flex items-center justify-between gap-3 bg-[#252526]">
           <details className="text-sm min-w-0 flex-1">
-            <summary className="cursor-pointer text-muted-foreground">
-              Spec & plan (frozen)
+            <summary className="cursor-pointer text-[#858585] hover:text-white transition-colors font-mono text-xs uppercase tracking-wider">
+              spec &amp; plan · frozen
             </summary>
-            <div className="mt-2 space-y-2">
+            <div className="mt-3 space-y-2">
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Spec</div>
-                <div className="whitespace-pre-wrap bg-background border rounded p-2">
+                <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                  Spec
+                </div>
+                <div className="whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
                   {finalSpec}
                 </div>
               </div>
               {plan && (
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Plan</div>
-                  <div className="whitespace-pre-wrap bg-background border rounded p-2">
+                  <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                    Plan
+                  </div>
+                  <div className="whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
                     {plan}
                   </div>
                 </div>
@@ -665,23 +713,25 @@ function Phase3Layout({
           <PythonEditor value={code} onChange={setCode} readOnly={false} />
         </div>
         {finalSubmitting && (
-          <div className="px-6 py-2 text-xs text-muted-foreground border-t">
-            Opus is comparing your code against your spec and plan — this takes
-            15–25 seconds.
+          <div className="px-6 py-2 text-xs text-[#858585] border-t border-[#3e3e42]">
+            Opus is comparing your code against your spec and plan — this
+            takes 15–25 seconds.
           </div>
         )}
         {error && (
-          <div className="px-6 py-2 text-sm text-red-600 border-t">{error}</div>
+          <div className="px-6 py-2 text-sm text-[#f48771] border-t border-[#3e3e42] font-mono">
+            {error}
+          </div>
         )}
       </section>
 
-      <aside className="flex flex-col h-[60vh] lg:h-auto">
-        <div className="px-4 py-2 border-b text-sm font-medium bg-muted/20">
+      <aside className="flex flex-col h-[60vh] lg:h-auto bg-[#252526]">
+        <div className="px-4 py-2.5 border-b border-[#3e3e42] text-[11px] font-semibold tracking-wider uppercase text-[#858585]">
           Chat with Opus
         </div>
-        <ScrollArea className="flex-1 px-4 py-3">
+        <div className="flex-1 px-4 py-3 overflow-y-auto">
           {exchanges.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-[#858585]">
               Ask about your code or about Python syntax. Opus will answer
               directly for syntax questions, and with counter-questions when
               you ask about your own approach.
@@ -691,27 +741,30 @@ function Phase3Layout({
               {exchanges.map((ex, i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-full bg-muted border flex items-center justify-center text-xs font-mono shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-[#3c3c3c] border border-[#3e3e42] flex items-center justify-center text-[11px] font-mono text-[#858585] shrink-0">
                       you
                     </div>
-                    <div className="flex-1 text-sm bg-muted/50 rounded-lg px-3 py-2 whitespace-pre-wrap">
+                    <div className="flex-1 text-sm bg-[#1e1e1e] border border-[#3e3e42] rounded px-3 py-2 whitespace-pre-wrap">
                       {ex.studentMessage}
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[10px] font-semibold shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-[#007acc] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
                       OP
                     </div>
                     <div className="flex-1 space-y-1">
-                      <div className="text-xs text-muted-foreground">
-                        opus{" "}
+                      <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                        opus
                         {ex.opusResponse !== "__pending__" && (
-                          <span className="font-mono">· {ex.opusMode}</span>
+                          <span className="font-mono text-[#4ec9b0]">
+                            {" · "}
+                            {ex.opusMode}
+                          </span>
                         )}
                       </div>
-                      <div className="text-sm bg-background border rounded-lg px-3 py-2 whitespace-pre-wrap">
+                      <div className="text-sm bg-[#1e3a5c] border border-[#007acc] rounded px-3 py-2 whitespace-pre-wrap">
                         {ex.opusResponse === "__pending__" ? (
-                          <span className="italic text-muted-foreground">
+                          <span className="italic text-[#75beff]">
                             thinking…
                           </span>
                         ) : (
@@ -724,11 +777,11 @@ function Phase3Layout({
               ))}
             </div>
           )}
-        </ScrollArea>
-        <div className="border-t p-3 space-y-2">
-          <Textarea
+        </div>
+        <div className="border-t border-[#3e3e42] p-3 space-y-2">
+          <StudentTextarea
             value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
+            onChange={setChatInput}
             rows={3}
             placeholder="Ask a question…"
             disabled={chatBusy}
@@ -740,10 +793,14 @@ function Phase3Layout({
             }}
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-[#858585] font-mono">
               ⌘/Ctrl + Enter to send
             </span>
-            <Button size="sm" onClick={sendChat} disabled={chatBusy || !chatInput.trim()}>
+            <Button
+              size="sm"
+              onClick={sendChat}
+              disabled={chatBusy || !chatInput.trim()}
+            >
               {chatBusy ? "…" : "Send"}
             </Button>
           </div>
@@ -753,7 +810,7 @@ function Phase3Layout({
   );
 }
 
-// ─── Phase 4 panel — divergence review ────────────────────────────────
+// ─── Phase 4 ──────────────────────────────────────────────────────────
 
 function Phase4Panel({
   divergences,
@@ -776,12 +833,12 @@ function Phase4Panel({
   if (divergences.length === 0) {
     return (
       <div className="flex-1 p-8">
-        <Card>
-          <CardContent className="text-sm">
+        <Panel>
+          <div className="text-sm">
             Opus found no meaningful divergences between your spec/plan and
             your code. Nicely done.
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
       </div>
     );
   }
@@ -790,42 +847,41 @@ function Phase4Panel({
   const answered = d.result !== null;
 
   return (
-    <div className="flex-1 flex items-start justify-center p-8">
+    <div className="flex-1 flex items-start justify-center p-8 overflow-y-auto">
       <div className="max-w-2xl w-full space-y-4">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-[#858585] font-mono">
           <span>
-            Divergence {currentIndex + 1} of {divergences.length}
+            divergence {currentIndex + 1} of {divergences.length}
           </span>
           <span>
-            Answered: {divergences.filter((x) => x.result).length} /{" "}
+            answered {divergences.filter((x) => x.result).length} /{" "}
             {divergences.length}
           </span>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Opus asks</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="whitespace-pre-wrap">{d.studentFacingQuestion}</p>
+        <Panel title="Opus asks">
+          <div className="space-y-4">
+            <p className="whitespace-pre-wrap text-[#d4d4d4]">
+              {d.studentFacingQuestion}
+            </p>
             {answered ? (
               <div className="space-y-2">
                 <div className="text-sm">
-                  <div className="text-xs text-muted-foreground">
-                    Your answer
+                  <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                    your answer
                   </div>
-                  <div className="bg-muted/40 rounded p-2 whitespace-pre-wrap">
+                  <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 whitespace-pre-wrap">
                     {d.answer}
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-[#858585]">
                   Recorded. Your instructor can see the full reasoning trail.
                 </div>
               </div>
             ) : (
               <>
-                <Textarea
+                <StudentTextarea
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={setDraft}
                   rows={5}
                   placeholder={`Answering "I don't know" is valid and often the most useful thing you can say.`}
                   disabled={d.submitting}
@@ -842,20 +898,22 @@ function Phase4Panel({
                 </Button>
               </>
             )}
-            {error && <div className="text-sm text-red-600">{error}</div>}
-          </CardContent>
-        </Card>
-        <div className="flex gap-2 text-xs">
+            {error && (
+              <div className="text-sm text-[#f48771] font-mono">{error}</div>
+            )}
+          </div>
+        </Panel>
+        <div className="flex gap-2 text-xs font-mono">
           {divergences.map((x, i) => (
             <button
               key={x.divergenceId}
               onClick={() => setIndex(i)}
-              className={`px-2 py-1 rounded border ${
+              className={`px-2 py-1 rounded border transition-colors ${
                 i === currentIndex
-                  ? "bg-blue-100 border-blue-300"
+                  ? "bg-[#007acc] border-[#007acc] text-white"
                   : x.result
-                    ? "bg-green-50 border-green-200 text-green-800"
-                    : "bg-muted/30 border-muted"
+                    ? "bg-[#1e3a2a] border-[#1e3a2a] text-[#89d185]"
+                    : "bg-[#252526] border-[#3e3e42] text-[#858585] hover:border-[#007acc]"
               }`}
             >
               {i + 1}
@@ -867,17 +925,18 @@ function Phase4Panel({
   );
 }
 
-// ─── Phase 5 — closed ─────────────────────────────────────────────────
+// ─── Phase 5 ──────────────────────────────────────────────────────────
 
-function Phase5Closed({ divergences }: { divergences: DivergenceQuestion[] }) {
+function Phase5Closed({
+  divergences,
+}: {
+  divergences: DivergenceQuestion[];
+}) {
   return (
-    <div className="flex-1 flex items-start justify-center p-8">
+    <div className="flex-1 flex items-start justify-center p-8 overflow-y-auto">
       <div className="max-w-xl w-full">
-        <Card>
-          <CardHeader>
-            <CardTitle>Session complete</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+        <Panel title="Session complete">
+          <div className="space-y-3 text-sm">
             <p>
               You answered {divergences.length} divergence{" "}
               {divergences.length === 1 ? "question" : "questions"}. Your
@@ -885,11 +944,11 @@ function Phase5Closed({ divergences }: { divergences: DivergenceQuestion[] }) {
               your plan, your code, the chat, and the reasoning behind each
               divergence.
             </p>
-            <p className="text-muted-foreground">
+            <p className="text-[#858585]">
               Nothing more to do here. Close this tab or open a new exercise.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </Panel>
       </div>
     </div>
   );
@@ -897,16 +956,13 @@ function Phase5Closed({ divergences }: { divergences: DivergenceQuestion[] }) {
 
 // ─── Misc UI ──────────────────────────────────────────────────────────
 
-function PhaseBadge({ phase }: { phase: number }) {
-  const labels = {
-    1: "Phase 1 · spec gate",
-    2: "Phase 2 · plan",
-    3: "Phase 3 · writing",
-    4: "Phase 4 · review",
-    5: "Closed",
-  } as const;
-  const label = labels[phase as keyof typeof labels] ?? `Phase ${phase}`;
-  return <Badge>{label}</Badge>;
+function RoundBadge({ n }: { n: number }) {
+  return (
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
+      <span className="text-[#858585]">round</span>{" "}
+      <span className="text-[#569cd6] ml-1">{n}</span>
+    </span>
+  );
 }
 
 function AskForHelpDialog({
@@ -945,9 +1001,12 @@ function AskForHelpDialog({
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <button
+        onClick={() => setOpen(true)}
+        className="text-[12px] px-2 py-0.5 rounded bg-[#2d2d30] text-white hover:bg-[#3e3e42] transition-colors"
+      >
         Ask for help
-      </Button>
+      </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -957,9 +1016,9 @@ function AskForHelpDialog({
               current session state.
             </DialogDescription>
           </DialogHeader>
-          <Textarea
+          <StudentTextarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={setMessage}
             rows={4}
             placeholder="What are you stuck on?"
             disabled={sending || sent}
@@ -1001,9 +1060,12 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <button
+        onClick={() => setOpen(true)}
+        className="text-sm px-3 py-1.5 rounded border border-[#3e3e42] bg-[#2d2d30] text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors"
+      >
         Revise plan
-      </Button>
+      </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1015,26 +1077,26 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
           </DialogHeader>
           {question ? (
             <div className="space-y-3">
-              <div className="text-sm text-muted-foreground">Opus asks:</div>
-              <div className="text-sm bg-blue-50 border border-blue-100 rounded p-3">
+              <div className="text-sm text-[#858585]">Opus asks:</div>
+              <div className="text-sm bg-[#1e3a5c] border border-[#007acc] rounded p-3">
                 {question}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-[#858585]">
                 This revision is saved. Close this dialog and keep coding.
               </p>
             </div>
           ) : (
             <>
-              <Textarea
+              <StudentTextarea
                 value={amendment}
-                onChange={(e) => setAmendment(e.target.value)}
+                onChange={setAmendment}
                 rows={3}
                 placeholder="What are you changing?"
                 disabled={sending}
               />
-              <Textarea
+              <StudentTextarea
                 value={justification}
-                onChange={(e) => setJustification(e.target.value)}
+                onChange={setJustification}
                 rows={3}
                 placeholder="Why — faster, simpler, or more correct?"
                 disabled={sending}

@@ -7,7 +7,7 @@ import type { ComponentProps } from "react";
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
   loading: () => (
-    <div className="h-full w-full bg-muted/40 flex items-center justify-center text-sm text-muted-foreground">
+    <div className="h-full w-full bg-[#1e1e1e] flex items-center justify-center text-sm text-[#858585]">
       loading editor…
     </div>
   ),
@@ -51,11 +51,11 @@ export function PythonEditor({
   lockNotice,
 }: PythonEditorProps) {
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full bg-[#1e1e1e]">
       <MonacoEditor
         language="python"
         value={value}
-        theme="vs"
+        theme="vs-dark"
         onChange={(v) => onChange?.(v ?? "")}
         height={height}
         options={{
@@ -65,8 +65,8 @@ export function PythonEditor({
         }}
       />
       {readOnly && lockNotice && (
-        <div className="absolute inset-0 bg-muted/60 backdrop-blur-[1px] flex items-center justify-center pointer-events-none">
-          <div className="bg-background/95 border rounded-md px-4 py-3 text-sm text-muted-foreground shadow-sm max-w-sm text-center">
+        <div className="absolute inset-0 bg-[#1e1e1e]/70 backdrop-blur-[1px] flex items-center justify-center pointer-events-none">
+          <div className="bg-[#252526]/95 border border-[#3e3e42] rounded px-4 py-3 text-sm text-[#858585] shadow-sm max-w-sm text-center">
             {lockNotice}
           </div>
         </div>

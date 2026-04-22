@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Workbench } from "@/components/editor/Workbench";
 import type { CohortAggregate } from "@/lib/opus/prompts/cohort-narrative";
 import type { CohortNarrativeOutput, SpecDimension } from "@/lib/opus/schemas";
 
@@ -21,7 +19,9 @@ export function CohortView({
   exerciseId: string;
   aggregate: AugmentedAggregate;
 }) {
-  const [narrative, setNarrative] = useState<CohortNarrativeOutput | null>(null);
+  const [narrative, setNarrative] = useState<CohortNarrativeOutput | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +35,10 @@ export function CohortView({
           method: "POST",
         });
         if (!res.ok) {
-          const body = (await res.json()) as { error?: string; message?: string };
+          const body = (await res.json()) as {
+            error?: string;
+            message?: string;
+          };
           throw new Error(body.message || body.error || `HTTP ${res.status}`);
         }
         const body = (await res.json()) as { narrative: CohortNarrativeOutput };
@@ -66,193 +69,229 @@ export function CohortView({
         ];
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <Link
-          href="/live"
-          className="text-sm underline text-muted-foreground"
-        >
-          ← live
-        </Link>
+    <Workbench
+      tabs={[
+        { fileName: "live-dashboard", href: "/live" },
+        { fileName: `cohort/${exerciseId}`, active: true },
+      ]}
+      statusLeft={
+        <>
+          <span>
+            {aggregate.sessionCount} session
+            {aggregate.sessionCount === 1 ? "" : "s"} completed
+          </span>
+          <span>{divTotal} divergences</span>
+        </>
+      }
+      statusRight={<span>Instructor · cohort</span>}
+    >
+      <main className="flex-1 overflow-y-auto p-6 space-y-4">
+        <header className="flex items-center gap-3 text-sm">
+          <Link
+            href="/live"
+            className="text-[#858585] hover:text-white transition-colors"
+          >
+            ← live
+          </Link>
+          <span className="text-[#858585]">/</span>
+          <span className="text-[#858585] font-mono">{exerciseId}</span>
+        </header>
         <h1 className="text-xl font-semibold">How did this exercise go?</h1>
-      </div>
-      <div className="text-sm text-muted-foreground">
-        <span className="font-mono">{exerciseId}</span> · {aggregate.exerciseTitle}
-      </div>
+        <p className="text-sm text-[#858585]">{aggregate.exerciseTitle}</p>
 
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-sm">
-            <strong>Prompt:</strong> {aggregate.exercisePrompt}
-          </p>
-        </CardContent>
-      </Card>
+        <Panel>
+          <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-2">
+            Exercise prompt
+          </div>
+          <p className="text-sm text-[#d4d4d4]">{aggregate.exercisePrompt}</p>
+        </Panel>
 
-      {aggregate.sessionCount < 3 && hasAny && (
-        <div className="text-sm border border-yellow-300 bg-yellow-50 text-yellow-900 rounded p-3">
-          Only {aggregate.sessionCount} session
-          {aggregate.sessionCount === 1 ? "" : "s"} completed — the narrative
-          below will say so and the recommendation should be taken provisionally.
-        </div>
-      )}
+        {aggregate.sessionCount < 3 && hasAny && (
+          <div className="text-sm border border-[#4f3b17] bg-[#2a2411] text-[#dcdcaa] rounded p-3">
+            Only {aggregate.sessionCount} session
+            {aggregate.sessionCount === 1 ? "" : "s"} completed — the narrative
+            below will say so and the recommendation should be taken
+            provisionally.
+          </div>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Opus narrative</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+        <Panel>
+          <div className="flex items-start justify-between mb-2">
+            <div className="text-[11px] uppercase tracking-wider text-[#858585]">
+              Opus narrative
+            </div>
+            {narrative && (
+              <span
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                style={{
+                  backgroundColor: narrative.provisional ? "#4f3b17" : "#1e3a2a",
+                  color: narrative.provisional ? "#dcdcaa" : "#89d185",
+                }}
+              >
+                {narrative.provisional ? "provisional" : "confirmed"}
+              </span>
+            )}
+          </div>
           {loading && (
-            <div className="text-sm text-muted-foreground italic">
+            <div className="text-sm text-[#858585] italic">
               Reading cohort data…
             </div>
           )}
-          {error && (
-            <div className="text-sm text-red-600">{error}</div>
-          )}
+          {error && <div className="text-sm text-[#f48771]">{error}</div>}
           {!hasAny && !loading && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-[#858585]">
               No completed sessions yet. The narrative runs once at least one
               student finishes Phase 4.
             </div>
           )}
           {narrative && (
             <>
-              <p className="text-sm whitespace-pre-wrap">{narrative.narrative}</p>
-              <div className="flex flex-wrap gap-4 text-xs">
-                <div>
-                  <div className="text-muted-foreground">Pattern</div>
-                  <div>{narrative.pattern_summary}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Recommendation</div>
-                  <div>{narrative.recommendation}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Provisional</div>
-                  <div>{narrative.provisional ? "yes" : "no"}</div>
-                </div>
+              <p className="text-sm leading-relaxed text-[#d4d4d4]">
+                {narrative.narrative}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <MetaRow label="Pattern" value={narrative.pattern_summary} />
+                <MetaRow
+                  label="Recommendation"
+                  value={narrative.recommendation}
+                />
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </Panel>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Divergences ({divTotal})</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Panel>
+            <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-3">
+              Divergences ({divTotal})
+            </div>
             <DistributionBar
               items={[
                 {
                   label: "drift",
                   value: aggregate.divergenceCategoryCounts.drift,
-                  color: "bg-red-400",
+                  color: "#f48771",
                 },
                 {
                   label: "revision",
                   value: aggregate.divergenceCategoryCounts.revision,
-                  color: "bg-blue-400",
+                  color: "#75beff",
                 },
                 {
                   label: "bug",
                   value: aggregate.divergenceCategoryCounts.bug,
-                  color: "bg-amber-400",
+                  color: "#dcdcaa",
                 },
               ]}
             />
-          </CardContent>
-        </Card>
+          </Panel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Spec iterations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{iterMedian || "—"}</div>
-            <div className="text-xs text-muted-foreground">
+          <Panel>
+            <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-3">
+              Spec iterations
+            </div>
+            <div className="text-3xl font-semibold text-[#dcdcaa]">
+              {iterMedian || "—"}
+            </div>
+            <div className="text-xs text-[#858585] mt-1">
               median across {aggregate.sessionCount} session
               {aggregate.sessionCount === 1 ? "" : "s"}
             </div>
             {aggregate.specIterations.length > 0 && (
-              <div className="text-xs mt-2 text-muted-foreground">
+              <div className="text-xs mt-2 text-[#858585]">
                 range: {Math.min(...aggregate.specIterations)} –{" "}
                 {Math.max(...aggregate.specIterations)}
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </Panel>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Panel>
+            <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-3">
               Most-missed dimensions (first pass)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </div>
             {aggregate.mostMissedDimensions.length === 0 ? (
-              <div className="text-sm text-muted-foreground">(none yet)</div>
+              <div className="text-sm text-[#858585]">(none yet)</div>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {aggregate.mostMissedDimensions.map((d) => (
-                  <li key={d.id} className="text-sm flex justify-between">
-                    <span className="font-mono">{d.id}</span>
-                    <Badge variant="outline">{d.count}×</Badge>
+                  <li
+                    key={d.id}
+                    className="text-sm flex items-center justify-between"
+                  >
+                    <span className="font-mono text-[#4ec9b0]">{d.id}</span>
+                    <span className="text-xs font-mono text-[#858585]">
+                      {d.count}×
+                    </span>
                   </li>
                 ))}
               </ul>
             )}
-          </CardContent>
-        </Card>
+          </Panel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
+          <Panel>
+            <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-3">
               Most-flagged divergences
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </div>
             {aggregate.mostFlaggedDivergences.length === 0 ? (
-              <div className="text-sm text-muted-foreground">(none yet)</div>
+              <div className="text-sm text-[#858585]">(none yet)</div>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {aggregate.mostFlaggedDivergences.map((d) => (
                   <li key={d.key} className="text-sm flex items-start gap-2">
-                    <Badge variant="outline">{d.count}×</Badge>
-                    <span>{d.key}</span>
+                    <span className="text-xs font-mono text-[#858585] shrink-0 pt-0.5">
+                      {d.count}×
+                    </span>
+                    <span className="text-[#d4d4d4]">{d.key}</span>
                   </li>
                 ))}
               </ul>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </Panel>
+        </div>
 
-      <div className="grid grid-cols-3 gap-4 text-sm">
-        <MetricCard
-          label="Alignment failures"
-          value={aggregate.alignmentFailures}
-        />
-        <MetricCard
-          label="Proactive revisions"
-          value={aggregate.proactiveRevisions}
-        />
-        <MetricCard label="Unresolved" value={aggregate.unresolvedCount} />
-      </div>
+        <div className="grid grid-cols-3 gap-3 text-sm">
+          <MetricCard
+            label="Alignment failures"
+            value={aggregate.alignmentFailures}
+          />
+          <MetricCard
+            label="Proactive revisions"
+            value={aggregate.proactiveRevisions}
+          />
+          <MetricCard label="Unresolved" value={aggregate.unresolvedCount} />
+        </div>
 
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.location.reload()}
-        >
-          Refresh narrative
-        </Button>
+        <div className="flex justify-end pb-8">
+          <button
+            className="text-xs text-[#858585] hover:text-white transition-colors"
+            onClick={() => window.location.reload()}
+          >
+            ↻ refresh narrative
+          </button>
+        </div>
+      </main>
+    </Workbench>
+  );
+}
+
+function Panel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
+      {children}
+    </div>
+  );
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-l-2 border-[#3e3e42] pl-3">
+      <div className="text-[11px] uppercase tracking-wider text-[#858585]">
+        {label}
       </div>
-    </main>
+      <div className="text-sm mt-0.5">{value}</div>
+    </div>
   );
 }
 
@@ -263,24 +302,30 @@ function DistributionBar({
 }) {
   const total = items.reduce((a, b) => a + b.value, 0);
   if (total === 0)
-    return <div className="text-sm text-muted-foreground">(none)</div>;
+    return <div className="text-sm text-[#858585]">(none)</div>;
   return (
-    <div className="space-y-2">
-      <div className="h-3 w-full rounded-full overflow-hidden flex bg-muted">
+    <div className="space-y-3">
+      <div className="h-3 w-full rounded-full overflow-hidden flex bg-[#1e1e1e]">
         {items.map((it) => (
           <div
             key={it.label}
-            style={{ width: `${(it.value / total) * 100}%` }}
-            className={it.color}
+            style={{
+              width: `${(it.value / total) * 100}%`,
+              backgroundColor: it.color,
+            }}
           />
         ))}
       </div>
       <div className="flex gap-4 text-xs">
         {items.map((it) => (
-          <div key={it.label} className="flex items-center gap-1">
-            <span className={`inline-block w-3 h-3 rounded ${it.color}`} />
-            <span>
-              {it.label} {it.value}
+          <div key={it.label} className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-sm"
+              style={{ backgroundColor: it.color }}
+            />
+            <span className="text-[#858585]">
+              {it.label}{" "}
+              <span className="text-[#d4d4d4] font-mono">{it.value}</span>
             </span>
           </div>
         ))}
@@ -291,9 +336,11 @@ function DistributionBar({
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border rounded p-3 bg-background">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-2xl font-semibold">{value}</div>
+    <div className="border border-[#3e3e42] bg-[#252526] rounded p-3">
+      <div className="text-[11px] uppercase tracking-wider text-[#858585]">
+        {label}
+      </div>
+      <div className="text-2xl font-semibold text-[#dcdcaa] mt-1">{value}</div>
     </div>
   );
 }

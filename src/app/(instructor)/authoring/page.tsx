@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Workbench } from "@/components/editor/Workbench";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import type {
   ScaffoldingOutput,
   SpecDimension,
@@ -29,17 +25,6 @@ function slugify(s: string): string {
 
 const LEVELS: StudentLevel[] = ["week_1_2", "week_3_6", "week_7_plus"];
 const CATEGORIES: DivergenceCategory[] = ["drift", "revision", "bug"];
-
-function SourceBadge({ source }: { source: Source }) {
-  const label =
-    source === "opus"
-      ? "Opus"
-      : source === "instructor_edited"
-        ? "Edited"
-        : "Added";
-  const variant = source === "opus" ? "secondary" : "default";
-  return <Badge variant={variant}>{label}</Badge>;
-}
 
 export default function AuthoringPage() {
   const [title, setTitle] = useState("");
@@ -180,7 +165,9 @@ export default function AuthoringPage() {
     originalScaffolding !== null &&
     !publishing &&
     (hasReviewed || anyEdited) &&
-    dimensions.every((d) => d.description.trim() && d.rationale.trim() && d.id.trim()) &&
+    dimensions.every(
+      (d) => d.description.trim() && d.rationale.trim() && d.id.trim(),
+    ) &&
     divergences.every((d) => d.pattern.trim());
 
   async function publish() {
@@ -230,265 +217,395 @@ export default function AuthoringPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-8 space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Maieutic — exercise authoring</h1>
-        <p className="text-sm text-muted-foreground">
-          Write a prompt. Opus generates the spec-gate scaffolding. You review,
-          edit if needed, then publish.
-        </p>
-      </header>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Prompt</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Count vowels"
-              disabled={generating}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Exercise prompt
-            </label>
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={4}
-              placeholder='e.g. "Write a function that counts vowels in a string."'
-              disabled={generating}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={generate}
-              disabled={generating || !title.trim() || !prompt.trim()}
-            >
-              {generating ? "Generating…" : "Generate scaffolding"}
-            </Button>
-            {latencyMs !== null && (
-              <span className="text-xs text-muted-foreground">
-                last call: {(latencyMs / 1000).toFixed(1)}s
-              </span>
-            )}
-          </div>
-          {errorMsg && (
-            <div className="text-sm text-red-600 border border-red-200 bg-red-50 rounded p-3">
-              {errorMsg}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {originalScaffolding && (
+    <Workbench
+      tabs={[
+        { fileName: "live-dashboard", href: "/live" },
+        {
+          fileName: title ? `new-exercise (${slugify(title)})` : "new-exercise",
+          active: true,
+          dirty: originalScaffolding !== null && !publishedId,
+        },
+      ]}
+      statusLeft={
         <>
-          {promptQualityNote && (
-            <div className="text-sm border border-yellow-300 bg-yellow-50 text-yellow-900 rounded p-3">
-              <strong>Prompt quality note:</strong> {promptQualityNote}
-            </div>
+          <span>Author</span>
+          {latencyMs !== null && (
+            <span>scaffold {(latencyMs / 1000).toFixed(1)}s</span>
           )}
+        </>
+      }
+      statusRight={<span>Instructor · author</span>}
+    >
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl p-8 space-y-5">
+          <header>
+            <h1 className="text-2xl font-semibold">Author an exercise</h1>
+            <p className="text-sm text-[#858585] mt-1">
+              Write a prompt. Opus generates the spec-gate scaffolding. You
+              review, edit if needed, then publish.
+            </p>
+          </header>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Spec-gate dimensions ({dimensions.length})</CardTitle>
-              <Button size="sm" variant="outline" onClick={addDimension}>
-                + Add
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {dimensions.map((d, i) => (
-                <div
-                  key={i}
-                  className="border rounded p-3 space-y-2 bg-muted/30"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <Input
-                      value={d.id}
-                      onChange={(e) =>
-                        updateDimension(i, { id: e.target.value })
-                      }
-                      className="max-w-xs text-xs font-mono"
-                      placeholder="id (snake_case)"
-                    />
-                    <div className="flex items-center gap-2">
-                      <SourceBadge source={d.source} />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeDimension(i)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                  <Textarea
-                    rows={2}
-                    value={d.description}
-                    onChange={(e) =>
-                      updateDimension(i, { description: e.target.value })
-                    }
-                    placeholder="Concrete question the student's spec must answer"
-                  />
-                  <Textarea
-                    rows={2}
-                    value={d.rationale}
-                    onChange={(e) =>
-                      updateDimension(i, { rationale: e.target.value })
-                    }
-                    placeholder="Why this matters (used by Opus when asking, not shown verbatim)"
-                    className="text-sm"
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Expected divergences ({divergences.length})</CardTitle>
-              <Button size="sm" variant="outline" onClick={addDivergence}>
-                + Add
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {divergences.map((d, i) => (
-                <div
-                  key={i}
-                  className="border rounded p-3 space-y-2 bg-muted/30"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <select
-                      value={d.category}
-                      onChange={(e) =>
-                        updateDivergence(i, {
-                          category: e.target.value as DivergenceCategory,
-                        })
-                      }
-                      className="border rounded px-2 py-1 text-sm bg-background"
-                    >
-                      {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="flex items-center gap-2">
-                      <SourceBadge source={d.source} />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeDivergence(i)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                  <Textarea
-                    rows={2}
-                    value={d.pattern}
-                    onChange={(e) =>
-                      updateDivergence(i, { pattern: e.target.value })
-                    }
-                    placeholder="Specific pattern (not 'student makes a mistake')"
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Student level & Phase 2</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Student level
-                </label>
-                <div className="flex gap-4">
-                  {LEVELS.map((lvl) => (
-                    <label
-                      key={lvl}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="radio"
-                        name="student_level"
-                        checked={studentLevel === lvl}
-                        onChange={() => setStudentLevel(lvl)}
-                      />
-                      {lvl}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={phase2Required}
-                    onChange={(e) => setPhase2Required(e.target.checked)}
-                  />
-                  Require Phase 2 (intent declaration)
-                </label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  On for exercises with non-trivial implementation decisions.
-                  Off when the spec essentially determines the code.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Publish</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={hasReviewed}
-                  onChange={(e) => setHasReviewed(e.target.checked)}
+          <Panel title="Prompt">
+            <div className="space-y-4">
+              <Field label="Title">
+                <TextInput
+                  value={title}
+                  onChange={setTitle}
+                  placeholder="e.g. Count vowels"
+                  disabled={generating}
                 />
-                I&apos;ve reviewed the scaffolding above.
-              </label>
-              <p className="text-xs text-muted-foreground">
-                The Publish button is enabled once you&apos;ve either edited at
-                least one field or explicitly confirmed review.
-              </p>
+              </Field>
+              <Field label="Exercise prompt">
+                <TextArea
+                  value={prompt}
+                  onChange={setPrompt}
+                  rows={4}
+                  placeholder='e.g. "Write a function that counts vowels in a string."'
+                  disabled={generating}
+                />
+              </Field>
               <div className="flex items-center gap-3">
                 <Button
-                  onClick={publish}
-                  disabled={!canPublish}
-                  variant="default"
+                  onClick={generate}
+                  disabled={generating || !title.trim() || !prompt.trim()}
                 >
-                  {publishing ? "Publishing…" : "Publish exercise"}
+                  {generating ? "Generating…" : "Generate scaffolding"}
                 </Button>
-                {publishedId && (
-                  <span className="text-sm text-green-700">
-                    Published as <code className="font-mono">{publishedId}</code>.
-                    Student view:{" "}
-                    <a
-                      href={`/exercise/${publishedId}`}
-                      className="underline text-blue-700"
-                    >
-                      /exercise/{publishedId}
-                    </a>
+                {latencyMs !== null && (
+                  <span className="text-xs text-[#858585]">
+                    last call: {(latencyMs / 1000).toFixed(1)}s
                   </span>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
-    </main>
+              {errorMsg && <ErrorBox>{errorMsg}</ErrorBox>}
+            </div>
+          </Panel>
+
+          {originalScaffolding && (
+            <>
+              {promptQualityNote && (
+                <div className="text-sm border border-[#4f3b17] bg-[#2a2411] text-[#dcdcaa] rounded p-3">
+                  <strong>Prompt quality note:</strong> {promptQualityNote}
+                </div>
+              )}
+
+              <Panel
+                title={`Spec-gate dimensions (${dimensions.length})`}
+                action={
+                  <button
+                    onClick={addDimension}
+                    className="text-xs text-[#569cd6] hover:text-white transition-colors"
+                  >
+                    + add
+                  </button>
+                }
+              >
+                <div className="space-y-3">
+                  {dimensions.map((d, i) => (
+                    <div
+                      key={i}
+                      className="border border-[#3e3e42] rounded p-3 space-y-2 bg-[#1e1e1e]"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <TextInput
+                          value={d.id}
+                          onChange={(v) => updateDimension(i, { id: v })}
+                          className="max-w-xs font-mono text-xs"
+                          placeholder="id (snake_case)"
+                        />
+                        <div className="flex items-center gap-2">
+                          <SourceBadge source={d.source} />
+                          <button
+                            onClick={() => removeDimension(i)}
+                            className="text-xs text-[#858585] hover:text-[#f48771]"
+                          >
+                            remove
+                          </button>
+                        </div>
+                      </div>
+                      <TextArea
+                        rows={2}
+                        value={d.description}
+                        onChange={(v) => updateDimension(i, { description: v })}
+                        placeholder="Concrete question the student's spec must answer"
+                      />
+                      <TextArea
+                        rows={2}
+                        value={d.rationale}
+                        onChange={(v) => updateDimension(i, { rationale: v })}
+                        placeholder="Why this matters (used by Opus when asking, not shown verbatim)"
+                        small
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel
+                title={`Expected divergences (${divergences.length})`}
+                action={
+                  <button
+                    onClick={addDivergence}
+                    className="text-xs text-[#569cd6] hover:text-white transition-colors"
+                  >
+                    + add
+                  </button>
+                }
+              >
+                <div className="space-y-3">
+                  {divergences.map((d, i) => (
+                    <div
+                      key={i}
+                      className="border border-[#3e3e42] rounded p-3 space-y-2 bg-[#1e1e1e]"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <select
+                          value={d.category}
+                          onChange={(e) =>
+                            updateDivergence(i, {
+                              category: e.target.value as DivergenceCategory,
+                            })
+                          }
+                          className="border border-[#3e3e42] bg-[#3c3c3c] text-[#d4d4d4] rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#007acc]"
+                        >
+                          {CATEGORIES.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex items-center gap-2">
+                          <SourceBadge source={d.source} />
+                          <button
+                            onClick={() => removeDivergence(i)}
+                            className="text-xs text-[#858585] hover:text-[#f48771]"
+                          >
+                            remove
+                          </button>
+                        </div>
+                      </div>
+                      <TextArea
+                        rows={2}
+                        value={d.pattern}
+                        onChange={(v) => updateDivergence(i, { pattern: v })}
+                        placeholder="Specific pattern (not 'student makes a mistake')"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel title="Student level & planning step">
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-xs text-[#858585] mb-2">
+                      Student level
+                    </div>
+                    <div className="flex gap-4">
+                      {LEVELS.map((lvl) => (
+                        <label
+                          key={lvl}
+                          className="flex items-center gap-2 text-sm font-mono cursor-pointer"
+                        >
+                          <input
+                            type="radio"
+                            name="student_level"
+                            checked={studentLevel === lvl}
+                            onChange={() => setStudentLevel(lvl)}
+                            className="accent-[#007acc]"
+                          />
+                          <span
+                            className={
+                              studentLevel === lvl
+                                ? "text-[#4ec9b0]"
+                                : "text-[#d4d4d4]"
+                            }
+                          >
+                            {lvl}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={phase2Required}
+                        onChange={(e) => setPhase2Required(e.target.checked)}
+                        className="accent-[#007acc]"
+                      />
+                      Require a planning step (Phase 2)
+                    </label>
+                    <p className="text-xs text-[#858585] mt-1 ml-6">
+                      On for exercises with non-trivial implementation
+                      decisions. Off when the spec essentially determines the
+                      code.
+                    </p>
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel title="Publish">
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={hasReviewed}
+                      onChange={(e) => setHasReviewed(e.target.checked)}
+                      className="accent-[#007acc]"
+                    />
+                    I&apos;ve reviewed the scaffolding above.
+                  </label>
+                  <p className="text-xs text-[#858585] ml-6">
+                    The Publish button is enabled once you&apos;ve either
+                    edited at least one field or explicitly confirmed review.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Button onClick={publish} disabled={!canPublish}>
+                      {publishing ? "Publishing…" : "Publish exercise"}
+                    </Button>
+                    {publishedId && (
+                      <span className="text-sm text-[#89d185]">
+                        Published as{" "}
+                        <code className="font-mono bg-[#1e3a2a] px-1 py-0.5 rounded">
+                          {publishedId}
+                        </code>
+                        {" · "}
+                        <a
+                          href={`/exercise/${publishedId}`}
+                          className="underline hover:text-white"
+                        >
+                          open student view
+                        </a>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Panel>
+            </>
+          )}
+        </div>
+      </main>
+    </Workbench>
+  );
+}
+
+// ─── Form primitives ─────────────────────────────────────────────────────
+
+function Panel({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border border-[#3e3e42] bg-[#252526] rounded">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#3e3e42]">
+        <h2 className="text-[11px] font-semibold tracking-wider uppercase text-[#858585]">
+          {title}
+        </h2>
+        {action}
+      </div>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold tracking-wider uppercase text-[#858585] mb-1.5">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  className = "",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={`w-full bg-[#3c3c3c] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-1.5 text-sm placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 ${className}`}
+    />
+  );
+}
+
+function TextArea({
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+  disabled,
+  small,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+  small?: boolean;
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={rows}
+      disabled={disabled}
+      className={`w-full bg-[#3c3c3c] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-2 ${small ? "text-xs" : "text-sm"} placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 resize-y`}
+    />
+  );
+}
+
+function SourceBadge({ source }: { source: Source }) {
+  const palette = {
+    opus: { bg: "#1f3a5c", fg: "#75beff", label: "Opus" },
+    instructor_edited: { bg: "#4f3b17", fg: "#dcdcaa", label: "Edited" },
+    instructor_added: { bg: "#1e3a2a", fg: "#89d185", label: "Added" },
+  } as const;
+  const { bg, fg, label } = palette[source];
+  return (
+    <span
+      className="text-[10px] px-1.5 py-0.5 rounded font-mono"
+      style={{ backgroundColor: bg, color: fg }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ErrorBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-sm border border-[#5a1d1d] bg-[#2a1111] text-[#f48771] rounded p-3 font-mono">
+      {children}
+    </div>
   );
 }

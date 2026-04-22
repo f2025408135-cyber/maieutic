@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Workbench } from "@/components/editor/Workbench";
 import {
   Divergence,
   LiveSummary,
@@ -11,9 +10,11 @@ import {
   Phase3Data,
 } from "@/lib/opus/schemas";
 
-export default async function Page(
-  { params }: { params: Promise<{ sid: string }> },
-) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ sid: string }>;
+}) {
   const { sid } = await params;
   const session = await prisma.session.findUnique({
     where: { id: sid },
@@ -25,207 +26,242 @@ export default async function Page(
   if (!session) notFound();
 
   const phase1 = Phase1Data.parse(session.phase1Data);
-  const phase2 = session.phase2Data ? Phase2Data.parse(session.phase2Data) : null;
+  const phase2 = session.phase2Data
+    ? Phase2Data.parse(session.phase2Data)
+    : null;
   const phase3 = Phase3Data.parse(session.phase3Data);
   const phase4 = session.phase4Data
-    ? (session.phase4Data as { divergences: Divergence[]; startedAt: string; completedAt: string | null })
+    ? (session.phase4Data as {
+        divergences: Divergence[];
+        startedAt: string;
+        completedAt: string | null;
+      })
     : null;
   const summaries = (session.liveSummaries as unknown as LiveSummary[]) ?? [];
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 space-y-4">
-      <div className="flex items-center gap-3">
-        <Link
-          href="/live"
-          className="text-sm underline text-muted-foreground"
-        >
-          ← live
-        </Link>
+    <Workbench
+      tabs={[
+        { fileName: "live-dashboard", href: "/live" },
+        { fileName: `reasoning/${sid.slice(0, 8)}`, active: true },
+      ]}
+      statusLeft={
+        <>
+          <span>student {session.studentId.slice(0, 8)}</span>
+          <span>phase {session.currentPhase}</span>
+          {session.completedAt && <span>closed</span>}
+        </>
+      }
+      statusRight={<span>Instructor · reasoning trail</span>}
+    >
+      <main className="flex-1 overflow-y-auto p-6 space-y-4">
+        <header className="flex items-center gap-3 text-sm">
+          <Link
+            href="/live"
+            className="text-[#858585] hover:text-white transition-colors"
+          >
+            ← live
+          </Link>
+          <span className="text-[#858585]">/</span>
+          <span className="text-[#858585] font-mono">
+            {session.id.slice(0, 12)}…
+          </span>
+        </header>
         <h1 className="text-xl font-semibold">Private reasoning</h1>
-      </div>
+        <p className="text-sm text-[#858585]">
+          Side-by-side: what the student saw vs. what Opus was thinking. Only
+          instructors see this page.
+        </p>
 
-      <Card>
-        <CardContent className="pt-6 space-y-1 text-sm">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-xs text-muted-foreground">
+        <Panel>
+          <div className="flex items-center gap-2 flex-wrap text-sm">
+            <span className="font-mono text-xs text-[#858585]">
               {session.id}
             </span>
-            <Badge variant="outline">student: {session.studentId.slice(0, 8)}</Badge>
-            <Badge variant="secondary">{session.exercise.studentLevel}</Badge>
-            <Badge>{session.exercise.title}</Badge>
-            <Badge variant="outline">Phase {session.currentPhase}</Badge>
-            {session.completedAt && <Badge>Closed</Badge>}
+            <span className="text-[#858585]">·</span>
+            <span className="font-mono text-xs text-[#4ec9b0]">
+              {session.exercise.studentLevel}
+            </span>
+            <span className="text-[#858585]">·</span>
+            <span>{session.exercise.title}</span>
+            <span className="text-[#858585]">·</span>
+            <span className="font-mono text-xs text-[#569cd6]">
+              phase {session.currentPhase}
+            </span>
+            {session.completedAt && (
+              <span className="ml-auto text-xs text-[#858585]">closed</span>
+            )}
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-[#858585] mt-2 font-mono">
             started {session.startedAt.toLocaleString()}
-            {session.completedAt && ` · closed ${session.completedAt.toLocaleString()}`}
+            {session.completedAt &&
+              ` · closed ${session.completedAt.toLocaleString()}`}
           </div>
-        </CardContent>
-      </Card>
+        </Panel>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <section className="space-y-4">
-          <SectionHeader title="What the student saw" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <section className="space-y-4">
+            <ColumnHeader>What the student saw</ColumnHeader>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Spec iterations</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            <Panel title="Spec iterations">
               {phase1.iterations.length === 0 ? (
-                <div className="text-sm text-muted-foreground">(no iterations)</div>
+                <Empty />
               ) : (
-                phase1.iterations.map((it, i) => (
-                  <div
-                    key={i}
-                    className="border rounded p-3 space-y-2 bg-muted/20"
-                  >
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Badge variant="outline">Round {i + 1}</Badge>
-                      <span>{new Date(it.timestamp).toLocaleTimeString()}</span>
-                      {it.passed && <Badge>passed</Badge>}
-                    </div>
-                    <div className="text-sm whitespace-pre-wrap">
-                      <div className="text-xs text-muted-foreground">student wrote</div>
-                      <div className="bg-background border rounded p-2">
-                        {it.studentSpecText}
+                <div className="space-y-3">
+                  {phase1.iterations.map((it, i) => (
+                    <div
+                      key={i}
+                      className="border border-[#3e3e42] rounded p-3 space-y-2 bg-[#1e1e1e]"
+                    >
+                      <div className="flex items-center gap-2 text-xs">
+                        <RoundBadge n={i + 1} />
+                        <span className="text-[#858585] font-mono">
+                          {new Date(it.timestamp).toLocaleTimeString()}
+                        </span>
+                        {it.passed && (
+                          <span className="text-[#89d185] text-xs">
+                            ✓ passed
+                          </span>
+                        )}
                       </div>
-                    </div>
-                    {it.opusQuestions.length > 0 && (
                       <div>
-                        <div className="text-xs text-muted-foreground">opus asked</div>
-                        <ul className="text-sm list-disc ml-5">
-                          {it.opusQuestions.map((q, qi) => (
-                            <li key={qi}>{q}</li>
-                          ))}
-                        </ul>
+                        <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                          student wrote
+                        </div>
+                        <div className="text-sm whitespace-pre-wrap bg-[#252526] border border-[#3e3e42] rounded p-2">
+                          {it.studentSpecText}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))
+                      {it.opusQuestions.length > 0 && (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                            opus asked
+                          </div>
+                          <ul className="text-sm list-disc ml-5 space-y-0.5">
+                            {it.opusQuestions.map((q, qi) => (
+                              <li key={qi}>{q}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </Panel>
 
-          {phase2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Plan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm whitespace-pre-wrap bg-muted/20 border rounded p-2">
+            {phase2 && (
+              <Panel title="Plan">
+                <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
                   {phase2.planText}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </Panel>
+            )}
 
-          {phase3.opusExchanges.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Chat (Phase 3)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {phase3.opusExchanges.map((ex, i) => (
-                  <div key={i} className="space-y-1 text-sm">
-                    <div className="bg-muted/30 rounded p-2">
-                      <div className="text-xs text-muted-foreground">student</div>
-                      <div className="whitespace-pre-wrap">
-                        {ex.studentMessage}
-                      </div>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-100 rounded p-2">
-                      <div className="text-xs text-muted-foreground">
-                        opus ({ex.opusMode})
-                      </div>
-                      <div className="whitespace-pre-wrap">{ex.opusResponse}</div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {phase3.finalCode && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Final code</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs bg-muted/30 border rounded p-2 overflow-x-auto whitespace-pre-wrap">
-                  {phase3.finalCode}
-                </pre>
-              </CardContent>
-            </Card>
-          )}
-
-          {phase4 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Divergence questions (as shown)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {phase4.divergences.map((d) => (
-                  <div
-                    key={d.divergenceId}
-                    className="border rounded p-3 bg-muted/20"
-                  >
-                    <div className="text-xs text-muted-foreground">
-                      {d.divergenceId}
-                    </div>
-                    <div className="text-sm mt-1">{d.studentFacingQuestion}</div>
-                    {d.studentResponse && (
-                      <div className="text-sm mt-2 bg-background border rounded p-2">
-                        <div className="text-xs text-muted-foreground">
-                          student answered
+            {phase3.opusExchanges.length > 0 && (
+              <Panel title="Chat (Phase 3)">
+                <div className="space-y-3">
+                  {phase3.opusExchanges.map((ex, i) => (
+                    <div key={i} className="space-y-2 text-sm">
+                      <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+                        <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                          student
                         </div>
                         <div className="whitespace-pre-wrap">
-                          {d.studentResponse}
+                          {ex.studentMessage}
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </section>
-
-        <section className="space-y-4">
-          <SectionHeader
-            title="What Opus was thinking"
-            subtitle="Private — never shown to the student."
-          />
-
-          {phase1.iterations.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">
-                  Spec-gate reasoning per round
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {phase1.iterations.map((it, i) => (
-                  <div
-                    key={i}
-                    className="border rounded p-3 bg-blue-50/30 text-xs"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">Round {i + 1}</Badge>
-                      <span className="text-muted-foreground">
-                        {new Date(it.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <div className="mt-2 space-y-1">
-                      <div>
-                        addressed this round: [
-                        {it.gapsAddressedThisRound.join(", ")}]
+                      <div className="bg-[#1e3a5c] border border-[#007acc] rounded p-2">
+                        <div className="text-[10px] uppercase tracking-wider text-[#75beff] mb-1">
+                          opus · {ex.opusMode}
+                        </div>
+                        <div className="whitespace-pre-wrap">
+                          {ex.opusResponse}
+                        </div>
                       </div>
-                      <div>still open: [{it.gapsIdentified.join(", ")}]</div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            )}
+
+            {phase3.finalCode && (
+              <Panel title="Final code">
+                <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-3 overflow-x-auto font-mono text-[#d4d4d4]">
+                  {phase3.finalCode}
+                </pre>
+              </Panel>
+            )}
+
+            {phase4 && (
+              <Panel title="Divergence questions (as shown)">
+                <div className="space-y-3">
+                  {phase4.divergences.map((d) => (
+                    <div
+                      key={d.divergenceId}
+                      className="border border-[#3e3e42] rounded p-3 bg-[#1e1e1e]"
+                    >
+                      <div className="text-xs text-[#858585] font-mono mb-2">
+                        {d.divergenceId}
+                      </div>
+                      <div className="text-sm mb-2">
+                        {d.studentFacingQuestion}
+                      </div>
+                      {d.studentResponse && (
+                        <div className="mt-2 bg-[#252526] border border-[#3e3e42] rounded p-2">
+                          <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+                            student answered
+                          </div>
+                          <div className="text-sm whitespace-pre-wrap">
+                            {d.studentResponse}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            )}
+          </section>
+
+          <section className="space-y-4">
+            <ColumnHeader
+              subtitle="Private — never shown to the student."
+              color="#dcdcaa"
+            >
+              What Opus was thinking
+            </ColumnHeader>
+
+            {phase1.iterations.length > 0 && (
+              <Panel title="Spec-gate reasoning per round">
+                <div className="space-y-3">
+                  {phase1.iterations.map((it, i) => (
+                    <div
+                      key={i}
+                      className="border border-[#3e3e42] rounded p-3 bg-[#2a2411] text-xs space-y-1"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RoundBadge n={i + 1} />
+                        <span className="text-[#858585] font-mono">
+                          {new Date(it.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#858585]">addressed:</span>{" "}
+                        <span className="font-mono text-[#89d185]">
+                          [{it.gapsAddressedThisRound.join(", ") || "—"}]
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#858585]">still open:</span>{" "}
+                        <span className="font-mono text-[#f48771]">
+                          [{it.gapsIdentified.join(", ") || "—"}]
+                        </span>
+                      </div>
                       {it.emergentGaps.length > 0 && (
                         <div>
-                          emergent gaps:
-                          <ul className="ml-4 list-disc">
+                          <span className="text-[#858585]">emergent:</span>
+                          <ul className="ml-4 list-disc text-[#d4d4d4] mt-0.5">
                             {it.emergentGaps.map((g, gi) => (
                               <li key={gi}>{g.description}</li>
                             ))}
@@ -233,157 +269,250 @@ export default async function Page(
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  ))}
+                </div>
+              </Panel>
+            )}
 
-          {phase4 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Divergence classifications</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {phase4.divergences.map((d) => (
-                  <div
-                    key={d.divergenceId}
-                    className="border rounded p-3 bg-blue-50/30 text-xs space-y-2"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge>{d.initialClassification}</Badge>
-                      <Badge variant="outline">
-                        confidence: {d.initialConfidence}
-                      </Badge>
-                      {d.finalClassification &&
-                        d.finalClassification !== d.initialClassification && (
-                          <Badge variant="secondary">
-                            final: {d.finalClassification}
-                          </Badge>
-                        )}
-                      {d.alignment && (
-                        <Badge
-                          className={
-                            d.alignment === "aligned"
-                              ? "bg-green-100 text-green-800"
-                              : d.alignment === "partial"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-red-100 text-red-800"
-                          }
-                          variant="outline"
-                        >
-                          alignment: {d.alignment}
-                        </Badge>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">
-                        predicted justification
-                      </div>
-                      <div className="bg-background border rounded p-2">
-                        {d.predictedJustification}
-                      </div>
-                    </div>
-                    {d.finalClassificationReason && (
-                      <div>
-                        <div className="text-muted-foreground">
-                          final classification reason
-                        </div>
-                        <div className="bg-background border rounded p-2">
-                          {d.finalClassificationReason}
-                        </div>
-                      </div>
-                    )}
-                    <div>
-                      <div className="text-muted-foreground">evidence</div>
-                      <ul className="ml-4 list-disc">
-                        <li>spec: {d.evidenceFromSpec}</li>
-                        {d.evidenceFromPlan && <li>plan: {d.evidenceFromPlan}</li>}
-                        <li>code: {d.evidenceFromCode}</li>
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {summaries.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Live summaries (history)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {summaries
-                  .slice()
-                  .reverse()
-                  .map((s, i) => (
+            {phase4 && (
+              <Panel title="Divergence classifications">
+                <div className="space-y-3">
+                  {phase4.divergences.map((d) => (
                     <div
-                      key={i}
-                      className="border rounded p-2 text-xs bg-muted/20"
+                      key={d.divergenceId}
+                      className="border border-[#3e3e42] rounded p-3 bg-[#2a2411] text-xs space-y-2"
                     >
-                      <div className="text-muted-foreground">
-                        {new Date(s.timestamp).toLocaleTimeString()}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <CategoryBadge
+                          category={d.initialClassification}
+                          prefix="initial"
+                        />
+                        <ConfidenceBadge confidence={d.initialConfidence} />
+                        {d.finalClassification &&
+                          d.finalClassification !== d.initialClassification && (
+                            <CategoryBadge
+                              category={d.finalClassification}
+                              prefix="final"
+                            />
+                          )}
+                        {d.alignment && <AlignmentBadge a={d.alignment} />}
                       </div>
-                      <div>{s.summaryText}</div>
-                      {s.flags.length > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {s.flags.map((f) => (
-                            <Badge key={f} variant="outline">
-                              {f}
-                            </Badge>
-                          ))}
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                          predicted justification
+                        </div>
+                        <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 mt-1 text-[#d4d4d4]">
+                          {d.predictedJustification}
+                        </div>
+                      </div>
+                      {d.finalClassificationReason && (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                            final classification reason
+                          </div>
+                          <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 mt-1 text-[#d4d4d4]">
+                            {d.finalClassificationReason}
+                          </div>
                         </div>
                       )}
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                          evidence
+                        </div>
+                        <ul className="ml-4 list-disc text-[#d4d4d4] mt-0.5 space-y-0.5">
+                          <li>
+                            <span className="text-[#858585]">spec:</span>{" "}
+                            {d.evidenceFromSpec}
+                          </li>
+                          {d.evidenceFromPlan && (
+                            <li>
+                              <span className="text-[#858585]">plan:</span>{" "}
+                              {d.evidenceFromPlan}
+                            </li>
+                          )}
+                          <li>
+                            <span className="text-[#858585]">code:</span>{" "}
+                            <code className="font-mono text-[#ce9178]">
+                              {d.evidenceFromCode}
+                            </code>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   ))}
-              </CardContent>
-            </Card>
-          )}
+                </div>
+              </Panel>
+            )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Events timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
+            {summaries.length > 0 && (
+              <Panel title="Live summaries (history)">
+                <div className="space-y-2">
+                  {summaries
+                    .slice()
+                    .reverse()
+                    .map((s, i) => (
+                      <div
+                        key={i}
+                        className="border border-[#3e3e42] rounded p-2 text-xs bg-[#1e1e1e]"
+                      >
+                        <div className="text-[#858585] font-mono">
+                          {new Date(s.timestamp).toLocaleTimeString()}
+                        </div>
+                        <div className="mt-1 text-[#d4d4d4]">
+                          {s.summaryText}
+                        </div>
+                        {s.flags.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {s.flags.map((f) => (
+                              <span
+                                key={f}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-[#2d2d30] text-[#dcdcaa] font-mono"
+                              >
+                                {f.replace(/_/g, " ")}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </Panel>
+            )}
+
+            <Panel title="Events timeline">
               {session.events.length === 0 ? (
-                <div className="text-sm text-muted-foreground">(none)</div>
+                <Empty />
               ) : (
                 <ul className="space-y-1 font-mono text-xs">
                   {session.events.map((e) => (
                     <li key={e.id} className="flex gap-2">
-                      <span className="text-muted-foreground">
+                      <span className="text-[#858585] shrink-0">
                         {e.createdAt.toLocaleTimeString()}
                       </span>
-                      <span>{e.kind}</span>
-                      <span className="text-muted-foreground truncate">
+                      <span className="text-[#569cd6] shrink-0">{e.kind}</span>
+                      <span className="text-[#858585] truncate">
                         {JSON.stringify(e.payload).slice(0, 100)}
                       </span>
                     </li>
                   ))}
                 </ul>
               )}
-            </CardContent>
-          </Card>
-        </section>
-      </div>
-    </main>
+            </Panel>
+          </section>
+        </div>
+      </main>
+    </Workbench>
   );
 }
 
-function SectionHeader({
+function Panel({
   title,
-  subtitle,
+  children,
 }: {
-  title: string;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
+      {title && (
+        <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-3 font-semibold">
+          {title}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function ColumnHeader({
+  children,
+  subtitle,
+  color,
+}: {
+  children: React.ReactNode;
   subtitle?: string;
+  color?: string;
 }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2
+        className="text-lg font-semibold"
+        style={color ? { color } : undefined}
+      >
+        {children}
+      </h2>
       {subtitle && (
-        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        <p className="text-xs text-[#858585] mt-0.5">{subtitle}</p>
       )}
     </div>
   );
+}
+
+function RoundBadge({ n }: { n: number }) {
+  return (
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
+      <span className="text-[#858585]">round</span>{" "}
+      <span className="text-[#569cd6] ml-1">{n}</span>
+    </span>
+  );
+}
+
+function CategoryBadge({
+  category,
+  prefix,
+}: {
+  category: "drift" | "revision" | "bug";
+  prefix: string;
+}) {
+  const palette = {
+    drift: { bg: "#5a1d1d", fg: "#f48771" },
+    revision: { bg: "#1f3a5c", fg: "#75beff" },
+    bug: { bg: "#4f3b17", fg: "#dcdcaa" },
+  } as const;
+  const { bg, fg } = palette[category];
+  return (
+    <span
+      className="text-[10px] px-1.5 py-0.5 rounded font-mono"
+      style={{ backgroundColor: bg, color: fg }}
+    >
+      {prefix}: {category}
+    </span>
+  );
+}
+
+function ConfidenceBadge({
+  confidence,
+}: {
+  confidence: "high" | "medium" | "low";
+}) {
+  return (
+    <span className="text-[10px] px-1.5 py-0.5 rounded font-mono border border-[#3e3e42] bg-[#1e1e1e] text-[#858585]">
+      {confidence}
+    </span>
+  );
+}
+
+function AlignmentBadge({
+  a,
+}: {
+  a: "aligned" | "partial" | "diverged";
+}) {
+  const palette = {
+    aligned: { bg: "#1e3a2a", fg: "#89d185" },
+    partial: { bg: "#4f3b17", fg: "#dcdcaa" },
+    diverged: { bg: "#5a1d1d", fg: "#f48771" },
+  } as const;
+  const { bg, fg } = palette[a];
+  return (
+    <span
+      className="text-[10px] px-1.5 py-0.5 rounded font-mono"
+      style={{ backgroundColor: bg, color: fg }}
+    >
+      alignment: {a}
+    </span>
+  );
+}
+
+function Empty() {
+  return <div className="text-sm text-[#858585]">(none)</div>;
 }
