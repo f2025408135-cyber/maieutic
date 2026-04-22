@@ -1,0 +1,120 @@
+{
+  "id": "cmoal9uwq0015czdr4ud8ttoz",
+  "studentId": "cohort_student_2",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-22T21:52:59.834Z",
+  "completedAt": "2026-04-22T21:53:10.845Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-22T21:53:01.612Z",
+        "studentSpecText": "Takes a string. Returns count of aeiou and AEIOU. y is not counted. For empty string return 0.",
+        "opusQuestions": [],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "empty_string"
+        ],
+        "emergentGaps": [],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "Takes a string. Returns count of aeiou and AEIOU. y is not counted. For empty string return 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "empty_string"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "def count_vowels(s):\n    return sum(1 for ch in s if ch in 'aeiou')\n",
+    "finalCode": "def count_vowels(s):\n    return sum(1 for ch in s if ch in 'aeiou')\n",
+    "submittedAt": "2026-04-22T21:53:01.621Z"
+  },
+  "phase4Data": {
+    "divergences": [
+      {
+        "divergenceId": "uppercase_not_counted",
+        "initialClassification": "drift",
+        "initialConfidence": "high",
+        "predictedJustification": "I forgot about the uppercase letters.",
+        "studentFacingQuestion": "Your spec said the function counts AEIOU as well as aeiou. I noticed the check is `ch in 'aeiou'`. Can you tell me about that?",
+        "evidenceFromSpec": "Returns count of aeiou and AEIOU",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "if ch in 'aeiou' — only lowercase",
+        "studentResponse": "I guess I forgot to add the uppercase ones.",
+        "alignment": "aligned",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student explicitly confirmed they forgot to include the uppercase letters, indicating unintended divergence.",
+        "respondedAt": "2026-04-22T21:53:08.960Z"
+      },
+      {
+        "divergenceId": "loop_to_sum_generator",
+        "initialClassification": "revision",
+        "initialConfidence": "medium",
+        "predictedJustification": "I thought using sum with a generator was shorter than writing out a counter.",
+        "studentFacingQuestion": "Can you walk me through how the `sum(1 for ch in s if ...)` part works?",
+        "evidenceFromSpec": "Returns count of aeiou",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "return sum(1 for ch in s if ch in 'aeiou')",
+        "studentResponse": "I guess I forgot to add the uppercase ones.",
+        "alignment": "diverged",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student explicitly said they forgot to include uppercase vowels, indicating the divergence was unintentional.",
+        "respondedAt": "2026-04-22T21:53:10.837Z"
+      }
+    ],
+    "startedAt": "2026-04-22T21:53:07.176Z",
+    "completedAt": "2026-04-22T21:53:10.837Z"
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoal9wab0017czdrz19p2dlf",
+      "sessionId": "cmoal9uwq0015czdr4ud8ttoz",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-22T21:53:01.620Z"
+    },
+    {
+      "id": "cmoala0kv0019czdrac2egctw",
+      "sessionId": "cmoal9uwq0015czdr4ud8ttoz",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-22T21:53:07.183Z"
+    },
+    {
+      "id": "cmoala3eh001bczdrhfyxpfql",
+      "sessionId": "cmoal9uwq0015czdr4ud8ttoz",
+      "kind": "alignment_failure",
+      "payload": {
+        "divergenceId": "loop_to_sum_generator",
+        "prediction": "I thought using sum with a generator was shorter than writing out a counter.",
+        "response": "I guess I forgot to add the uppercase ones."
+      },
+      "createdAt": "2026-04-22T21:53:10.841Z"
+    },
+    {
+      "id": "cmoala3en001dczdrjfzdv2mc",
+      "sessionId": "cmoal9uwq0015czdr4ud8ttoz",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-22T21:53:10.847Z"
+    }
+  ]
+}

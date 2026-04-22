@@ -1,0 +1,97 @@
+{
+  "id": "vowels-demo",
+  "title": "Count vowels",
+  "instructorPromptText": "Write a function that counts vowels in a string.",
+  "authoredAt": "2026-04-22T21:51:15.396Z",
+  "publishedAt": "2026-04-22T21:51:15.394Z",
+  "specGateDimensions": [
+    {
+      "id": "case_sensitivity",
+      "description": "Does the function count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?",
+      "rationale": "Case handling is the most common unstated assumption in string-counting problems; forcing the student to commit surfaces whether they've thought about it.",
+      "source": "opus"
+    },
+    {
+      "id": "y_as_vowel",
+      "description": "Does 'y' count as a vowel?",
+      "rationale": "English teaches 'y is sometimes a vowel'; this has no objectively correct answer, so the spec must commit to one.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_string",
+      "description": "What should the function return when given an empty string?",
+      "rationale": "Empty input is the canonical missed case in CS1; surfacing it in the spec gate is cheaper than surfacing it in a failed test.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Student's spec commits to counting uppercase vowels but code only checks lowercase because they wrote `if c in 'aeiou'` without .lower()",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to excluding 'y' but the student writes `'aeiouy'` in the check string by habit",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses an accumulator variable and a for-loop; code uses `sum(1 for c in s if c.lower() in 'aeiou')` — coherent Pythonic refactor",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student initializes the counter inside the loop instead of before it, so the final count is always 0 or 1",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Function computes the count correctly but prints it instead of returning it, so callers get None",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "opusGeneratedDimensions": [
+    {
+      "id": "case_sensitivity",
+      "description": "Does the function count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?",
+      "rationale": "Case handling is the most common unstated assumption in string-counting problems; forcing the student to commit surfaces whether they've thought about it."
+    },
+    {
+      "id": "y_as_vowel",
+      "description": "Does 'y' count as a vowel?",
+      "rationale": "English teaches 'y is sometimes a vowel'; this has no objectively correct answer, so the spec must commit to one."
+    },
+    {
+      "id": "empty_string",
+      "description": "What should the function return when given an empty string?",
+      "rationale": "Empty input is the canonical missed case in CS1; surfacing it in the spec gate is cheaper than surfacing it in a failed test."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Student's spec commits to counting uppercase vowels but code only checks lowercase because they wrote `if c in 'aeiou'` without .lower()"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to excluding 'y' but the student writes `'aeiouy'` in the check string by habit"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses an accumulator variable and a for-loop; code uses `sum(1 for c in s if c.lower() in 'aeiou')` — coherent Pythonic refactor"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student initializes the counter inside the loop instead of before it, so the final count is always 0 or 1"
+    },
+    {
+      "category": "bug",
+      "pattern": "Function computes the count correctly but prints it instead of returning it, so callers get None"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

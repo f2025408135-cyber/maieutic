@@ -1,0 +1,101 @@
+{
+  "id": "cmoal9n5z000xczdrn2yjs3zv",
+  "studentId": "cohort_student_1",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-22T21:52:49.800Z",
+  "completedAt": "2026-04-22T21:52:59.830Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-22T21:52:53.887Z",
+        "studentSpecText": "Counts vowels (both lowercase aeiou and uppercase AEIOU). y not a vowel. empty -> 0.",
+        "opusQuestions": [
+          "Your spec covers the main cases clearly. One thing you might consider (optional): what should happen if the function is called with something that isn't a string, like a number or an empty value?"
+        ],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "empty_string"
+        ],
+        "emergentGaps": [
+          {
+            "description": "The spec does not say what should happen if the input is not a string (e.g., a number or null/undefined).",
+            "question": "What should the function do if it's given something that isn't a string at all?"
+          }
+        ],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "Counts vowels (both lowercase aeiou and uppercase AEIOU). y not a vowel. empty -> 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "empty_string"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "def count_vowels(s):\n    total = 0\n    vs = 'aeiou'\n    for ch in s:\n        if ch in vs:\n            total = total + 1\n    return total\n",
+    "finalCode": "def count_vowels(s):\n    total = 0\n    vs = 'aeiou'\n    for ch in s:\n        if ch in vs:\n            total = total + 1\n    return total\n",
+    "submittedAt": "2026-04-22T21:52:53.897Z"
+  },
+  "phase4Data": {
+    "divergences": [
+      {
+        "divergenceId": "uppercase_not_counted",
+        "initialClassification": "drift",
+        "initialConfidence": "high",
+        "predictedJustification": "I forgot about the uppercase letters.",
+        "studentFacingQuestion": "Your spec said the function counts both lowercase and uppercase vowels. I noticed your code checks against 'aeiou'. Can you tell me what happens when the input has a capital A?",
+        "evidenceFromSpec": "Counts vowels (both lowercase aeiou and uppercase AEIOU)",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "vs = 'aeiou' ... if ch in vs",
+        "studentResponse": "I didn't think about uppercase.",
+        "alignment": "aligned",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student confirmed they didn't consider the uppercase case, matching the predicted oversight.",
+        "respondedAt": "2026-04-22T21:52:59.826Z"
+      }
+    ],
+    "startedAt": "2026-04-22T21:52:57.728Z",
+    "completedAt": "2026-04-22T21:52:59.826Z"
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoal9qbr000zczdrdrya76fp",
+      "sessionId": "cmoal9n5z000xczdrn2yjs3zv",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-22T21:52:53.896Z"
+    },
+    {
+      "id": "cmoal9tad0011czdrcjhu1huh",
+      "sessionId": "cmoal9n5z000xczdrn2yjs3zv",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-22T21:52:57.733Z"
+    },
+    {
+      "id": "cmoal9uwo0013czdr3cv3zb1x",
+      "sessionId": "cmoal9n5z000xczdrn2yjs3zv",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-22T21:52:59.833Z"
+    }
+  ]
+}

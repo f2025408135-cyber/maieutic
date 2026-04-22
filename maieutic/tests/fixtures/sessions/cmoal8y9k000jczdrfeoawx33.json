@@ -1,0 +1,126 @@
+{
+  "id": "cmoal8y9k000jczdrfeoawx33",
+  "studentId": "carmen_student",
+  "exerciseId": "fibonacci-demo",
+  "startedAt": "2026-04-22T21:52:17.529Z",
+  "completedAt": null,
+  "currentPhase": 1,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-22T21:52:23.829Z",
+        "studentSpecText": "The function takes a number n and returns the nth Fibonacci number.",
+        "opusQuestions": [
+          "What should the function do if n is negative, like -3? Should it raise an error, return 0, or something else?",
+          "You say n is 'a number' — does that include floats like 3.0, or strings like \"5\"? What's the type contract, and what happens if the caller passes something outside it?",
+          "Does your spec care how fib(n) is computed (recursion, iteration, memoization), or only about the returned value? If a caller passes n=100, is a slow-but-correct answer acceptable?"
+        ],
+        "gapsIdentified": [
+          "negative_input",
+          "non_integer_input",
+          "implementation_approach"
+        ],
+        "gapsAddressedThisRound": [],
+        "emergentGaps": [
+          {
+            "description": "The spec doesn't restate the base cases from the prompt (fib(0)=0, fib(1)=1), so it's unclear whether the student has committed to them.",
+            "question": "Your spec says 'the nth Fibonacci number' but doesn't pin down where the sequence starts — what are fib(0) and fib(1) in your contract?"
+          }
+        ],
+        "passed": false
+      },
+      {
+        "timestamp": "2026-04-22T21:52:28.812Z",
+        "studentSpecText": "The function takes an integer n and returns the nth Fibonacci number. It handles negative input appropriately.",
+        "opusQuestions": [
+          "You say negative input is 'handled appropriately' — what does 'appropriately' mean concretely? Does the function raise an error, return 0, return a specific value, or something else for n = -3?",
+          "Your spec commits to n being an integer, but doesn't say what happens if a caller violates that contract (e.g. passes 3.0 or \"5\"). Does the function raise, coerce, or is the behavior simply undefined outside the contract?",
+          "Does your spec care how fib(n) is computed, or only about the returned value? If a caller passes n=100, is a slow-but-correct answer acceptable, or is performance part of the contract?"
+        ],
+        "gapsIdentified": [
+          "negative_input",
+          "implementation_approach"
+        ],
+        "gapsAddressedThisRound": [
+          "non_integer_input"
+        ],
+        "emergentGaps": [],
+        "passed": false
+      },
+      {
+        "timestamp": "2026-04-22T21:52:33.671Z",
+        "studentSpecText": "The function takes an integer n >= 0 and returns the nth Fibonacci number in the sequence where fib(0) = 0, fib(1) = 1. Negative inputs are handled.",
+        "opusQuestions": [
+          "You say 'negative inputs are handled' and also that n must be >= 0 — these pull in different directions. Concretely, for n = -3, does the function raise an exception (and if so, which one), return a specific value, or is calling it with n < 0 outside the contract (undefined behavior)?",
+          "Your spec still doesn't commit on how fib(n) is computed. For n = 50 or n = 100, is a slow-but-correct answer acceptable, or is the spec promising the caller something about performance?"
+        ],
+        "gapsIdentified": [
+          "negative_input",
+          "implementation_approach"
+        ],
+        "gapsAddressedThisRound": [
+          "non_integer_input"
+        ],
+        "emergentGaps": [],
+        "passed": false
+      }
+    ],
+    "finalSpecText": null,
+    "instructorConfiguredDimensionsAddressed": [
+      "non_integer_input"
+    ],
+    "helpRequests": [
+      {
+        "timestamp": "2026-04-22T21:52:33.676Z",
+        "stateAtRequest": {
+          "phase": 1,
+          "attemptNumber": 3
+        },
+        "message": "I don't understand what 'handles negative input appropriately' is supposed to mean. Can someone come explain?",
+        "resolution": null
+      }
+    ]
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "",
+    "finalCode": null,
+    "submittedAt": null
+  },
+  "phase4Data": null,
+  "liveSummaries": [
+    {
+      "timestamp": "2026-04-22T21:52:38.935Z",
+      "summaryText": "Spec iteration 3; student wrote 'n >= 0' and 'negative inputs are handled' in the same spec and has raised hand asking what 'handles negative input appropriately' means — they're confused about what committing to behavior looks like, not about Fibonacci.",
+      "flags": [
+        "help_requested"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "cmoal9aq8000lczdr295si0ly",
+      "sessionId": "cmoal8y9k000jczdrfeoawx33",
+      "kind": "help_request",
+      "payload": {
+        "message": "I don't understand what 'handles negative input appropriately' is supposed to mean. Can someone come explain?",
+        "phase": 1
+      },
+      "createdAt": "2026-04-22T21:52:33.681Z"
+    },
+    {
+      "id": "cmoal9esb000nczdroe247nn2",
+      "sessionId": "cmoal8y9k000jczdrfeoawx33",
+      "kind": "summary_refresh",
+      "payload": {
+        "summary": "Spec iteration 3; student wrote 'n >= 0' and 'negative inputs are handled' in the same spec and has raised hand asking what 'handles negative input appropriately' means — they're confused about what committing to behavior looks like, not about Fibonacci.",
+        "flags": [
+          "help_requested"
+        ]
+      },
+      "createdAt": "2026-04-22T21:52:38.940Z"
+    }
+  ]
+}

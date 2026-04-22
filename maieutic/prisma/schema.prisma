@@ -1,0 +1,66 @@
+// Maieutic — Prisma schema
+// Per Tech Spec §2. SQLite for MVP; migration to Postgres is mechanical.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Exercise {
+  id                   String   @id // slug
+  title                String
+  instructorPromptText String
+  authoredAt           DateTime @default(now())
+  publishedAt          DateTime?
+
+  // Final, post-edit
+  specGateDimensions   Json     // SpecDimension[]
+  expectedDivergences  Json     // ExpectedDivergence[]
+  phase2Required       Boolean
+  studentLevel         String   // "week_1_2" | "week_3_6" | "week_7_plus"
+
+  // Authoring trace — Opus first-pass output, preserved
+  opusGeneratedDimensions      Json
+  opusGeneratedDivergences     Json
+  opusGeneratedPhase2Required  Boolean
+  opusGeneratedStudentLevel    String
+
+  sessions             Session[]
+}
+
+model Session {
+  id            String   @id @default(cuid())
+  studentId     String   // free-form string for MVP; no auth
+  exerciseId    String
+  exercise      Exercise @relation(fields: [exerciseId], references: [id])
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  currentPhase  Int      // 1, 2, 3, 4, or 5 (closed)
+
+  phase1Data    Json     // Phase1Data
+  phase2Data    Json?    // Phase2Data
+  phase3Data    Json     // Phase3Data (starts empty)
+  phase4Data    Json?    // Phase4Data
+  liveSummaries Json     // LiveSummary[] (append-only)
+
+  events        SessionEvent[]
+
+  @@index([exerciseId])
+  @@index([completedAt])
+}
+
+model SessionEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  kind      String   // "phase_transition" | "alignment_failure" | "help_request" | "revision" | "summary_refresh"
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([sessionId, createdAt])
+}
