@@ -6,48 +6,54 @@
   "publishedAt": "2026-04-23T00:01:34.653Z",
   "specGateDimensions": [
     {
-      "id": "zero_classification",
-      "description": "Should 0 be classified as 'even', 'odd', or treated as a special case?",
-      "rationale": "Zero is the canonical edge case for parity; forcing the student to commit prevents an untested assumption.",
+      "id": "zero_handling",
+      "description": "Is zero considered even, odd, or a special case that prints something else?",
+      "rationale": "Zero is mathematically even but novices frequently forget to test it or treat it as a separate category; forcing a commitment surfaces whether the student knows the convention.",
       "source": "opus"
     },
     {
       "id": "negative_numbers",
-      "description": "How should negative integers be handled — classified normally, rejected, or treated specially?",
-      "rationale": "The prompt says 'integer' without qualification; negative parity often surprises novices who reason only about positives.",
+      "description": "Does the program handle negative integers correctly (e.g. -3 is odd, -4 is even), or does it assume non-negative input?",
+      "rationale": "Students often reason about evenness only for positive numbers; the modulo operator handles negatives fine in Python, but the spec should commit to whether negatives are in scope.",
       "source": "opus"
     },
     {
       "id": "invalid_input",
-      "description": "What should happen if the user enters something that isn't an integer (e.g. 'hello' or '3.5')?",
-      "rationale": "input() returns a string; the student must commit to whether to crash, reprompt, or print an error, since the spec implies int conversion.",
+      "description": "What should happen if the user types something that isn't an integer (e.g. 'hello' or '3.5')? Does the program assume valid input, crash naturally, or handle it with try/except?",
+      "rationale": "The unit 2 toolkit includes try/except from unit 1; 'assume valid input' is an acceptable commitment, but the student should name the choice rather than discover it via crash.",
+      "source": "opus"
+    },
+    {
+      "id": "output_format",
+      "description": "Should the output be exactly the lowercase word 'even' or 'odd' with no extra text, or is a fuller message like 'The number is even' acceptable?",
+      "rationale": "The prompt specifies exact strings in quotes; surfacing this prevents drift where the student prints a friendlier message that fails an exact-match test.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to rejecting non-integer input, but code calls int(input(...)) directly and crashes with a ValueError on bad input",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec says program prints 'even' or 'odd' as lowercase words, but code prints 'Even'/'Odd' or the boolean result of n % 2 == 0",
+      "category": "bug",
+      "pattern": "Student forgets to cast input() to int and compares the string to a number, e.g. `if input(...) % 2 == 0` — TypeError",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative integers in Python since -3 % 2 == 1 actually works, but the inverse `if n % 2 == -1` logic (sometimes attempted) does not",
+      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative odd integers in some languages (works in Python but reveals fragile reasoning); or uses `== 2` instead of `== 0`",
       "source": "opus"
     },
     {
-      "category": "bug",
-      "pattern": "Student forgets to convert input() to int and does string comparison or modulo on a string, raising TypeError",
+      "category": "drift",
+      "pattern": "Spec commits to printing exactly 'even'/'odd' but code prints 'Even' (capitalized) or 'The number is even'",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses if/else with explicit comparison; code uses a ternary or direct print of `'even' if n % 2 == 0 else 'odd'` — coherent simplification",
+      "pattern": "Plan describes if/else on `n % 2`; code uses a conditional expression like `print('even' if n % 2 == 0 else 'odd')` — coherent one-liner",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to handling non-integer input with try/except, but code omits the try/except and lets int() crash",
       "source": "opus"
     }
   ],
@@ -56,41 +62,46 @@
   "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
-      "id": "zero_classification",
-      "description": "Should 0 be classified as 'even', 'odd', or treated as a special case?",
-      "rationale": "Zero is the canonical edge case for parity; forcing the student to commit prevents an untested assumption."
+      "id": "zero_handling",
+      "description": "Is zero considered even, odd, or a special case that prints something else?",
+      "rationale": "Zero is mathematically even but novices frequently forget to test it or treat it as a separate category; forcing a commitment surfaces whether the student knows the convention."
     },
     {
       "id": "negative_numbers",
-      "description": "How should negative integers be handled — classified normally, rejected, or treated specially?",
-      "rationale": "The prompt says 'integer' without qualification; negative parity often surprises novices who reason only about positives."
+      "description": "Does the program handle negative integers correctly (e.g. -3 is odd, -4 is even), or does it assume non-negative input?",
+      "rationale": "Students often reason about evenness only for positive numbers; the modulo operator handles negatives fine in Python, but the spec should commit to whether negatives are in scope."
     },
     {
       "id": "invalid_input",
-      "description": "What should happen if the user enters something that isn't an integer (e.g. 'hello' or '3.5')?",
-      "rationale": "input() returns a string; the student must commit to whether to crash, reprompt, or print an error, since the spec implies int conversion."
+      "description": "What should happen if the user types something that isn't an integer (e.g. 'hello' or '3.5')? Does the program assume valid input, crash naturally, or handle it with try/except?",
+      "rationale": "The unit 2 toolkit includes try/except from unit 1; 'assume valid input' is an acceptable commitment, but the student should name the choice rather than discover it via crash."
+    },
+    {
+      "id": "output_format",
+      "description": "Should the output be exactly the lowercase word 'even' or 'odd' with no extra text, or is a fuller message like 'The number is even' acceptable?",
+      "rationale": "The prompt specifies exact strings in quotes; surfacing this prevents drift where the student prints a friendlier message that fails an exact-match test."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to rejecting non-integer input, but code calls int(input(...)) directly and crashes with a ValueError on bad input"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec says program prints 'even' or 'odd' as lowercase words, but code prints 'Even'/'Odd' or the boolean result of n % 2 == 0"
+      "category": "bug",
+      "pattern": "Student forgets to cast input() to int and compares the string to a number, e.g. `if input(...) % 2 == 0` — TypeError"
     },
     {
       "category": "bug",
-      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative integers in Python since -3 % 2 == 1 actually works, but the inverse `if n % 2 == -1` logic (sometimes attempted) does not"
+      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative odd integers in some languages (works in Python but reveals fragile reasoning); or uses `== 2` instead of `== 0`"
     },
     {
-      "category": "bug",
-      "pattern": "Student forgets to convert input() to int and does string comparison or modulo on a string, raising TypeError"
+      "category": "drift",
+      "pattern": "Spec commits to printing exactly 'even'/'odd' but code prints 'Even' (capitalized) or 'The number is even'"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses if/else with explicit comparison; code uses a ternary or direct print of `'even' if n % 2 == 0 else 'odd'` — coherent simplification"
+      "pattern": "Plan describes if/else on `n % 2`; code uses a conditional expression like `print('even' if n % 2 == 0 else 'odd')` — coherent one-liner"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to handling non-integer input with try/except, but code omits the try/except and lets int() crash"
     }
   ],
   "opusGeneratedPhase2Required": false,

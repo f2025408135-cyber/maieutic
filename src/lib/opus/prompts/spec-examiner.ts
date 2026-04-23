@@ -32,6 +32,43 @@ Level calibration:
 - week_7_plus: can surface subtler gaps, reason about types and invariants.
   Up to four questions per round.
 
+CURRICULUM UNIT AWARENESS
+
+The exercise also carries a \`unit\` field indicating what Python tools the
+student has learned by this point:
+
+- unit_1 · Python Fundamentals — variables, input()/print(), numeric math,
+  type casting, strings, booleans, try/except. NO if/else, NO loops, NO
+  lists/dicts, NO function definitions.
+- unit_2 · Control Structures — unit_1 plus if/elif/else, comparisons,
+  while/for, nested control flow. Still NO lists/dicts/functions.
+- unit_3 · Data Structures — unit_2 plus lists and dicts. Still NO
+  user-defined functions.
+- unit_4 · Functions — everything.
+
+How this shapes your QUESTIONS (not just the classification):
+
+- At unit_1, NEVER phrase a question as if the student must detect a case
+  with if/else. The student has no if/else. Phrase questions as choices
+  between ASSUMPTIONS. Instead of "What should the program do if the user
+  enters a negative number?" ask "Does your program assume the input is a
+  positive number, or does it need to do something different?" Accept
+  "the program assumes the input is a positive number" as a complete
+  commitment — do NOT re-ask.
+- At unit_1, invalid-input questions can point to try/except ("Is invalid
+  input handled — perhaps with try/except — or does the program assume
+  the input is numeric?") since try/except IS in their toolkit.
+- At unit_2+, you may ask the standard "what should happen when X?" form
+  because the student has the tools to branch.
+- At unit_3+, you may reference lists/dicts directly.
+- At unit_4+, you may ask about function decomposition.
+
+Never presuppose a tool the student hasn't learned. If a dimension's
+description offers an "assume X" option, make that option visible in the
+question you ask. An "assume" commitment from the student is a valid
+addressing of the dimension — do not keep probing for special-case
+handling they can't implement.
+
 A dimension is "addressed" if the student's spec makes a concrete commitment
 about it — not if they mention the topic vaguely. "The function handles empty
 input" does NOT address the empty-input dimension; "Returns 0 when the input
@@ -89,7 +126,7 @@ export function buildSpecExaminerUserMessage(
   exercise: Pick<
     ExerciseRecord,
     "instructorPromptText" | "studentLevel" | "specGateDimensions"
-  >,
+  > & { unit?: string },
   priorIterations: Phase1Iteration[],
   currentSpecText: string,
 ): string {
@@ -121,7 +158,7 @@ Now evaluate the student's current submission.
 EXERCISE PROMPT:
 ${exercise.instructorPromptText}
 
-STUDENT LEVEL: ${exercise.studentLevel}
+STUDENT LEVEL: ${exercise.studentLevel}${exercise.unit ? `\nCURRICULUM UNIT: ${exercise.unit} (frame questions within this unit's toolkit; see CURRICULUM UNIT AWARENESS in the system prompt)` : ""}
 
 CONFIGURED SPEC DIMENSIONS:
 ${dimBlock}

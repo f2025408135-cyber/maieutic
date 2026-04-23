@@ -27,6 +27,7 @@ interface Rewrite {
   id: string;
   title: string;
   prompt: string;
+  unit: "unit_1" | "unit_2" | "unit_3" | "unit_4";
 }
 
 const REWRITES: Rewrite[] = [
@@ -36,24 +37,28 @@ const REWRITES: Rewrite[] = [
     title: "Greet by name",
     prompt:
       "Write a program that asks the user for their name, then prints a friendly greeting like 'Hello, Alice!'.",
+    unit: "unit_1",
   },
   {
     id: "circle-area",
     title: "Area of a circle",
     prompt:
       "Write a program that asks the user for a circle's radius, then prints the area using the formula π × r². Use 3.14159 for π.",
+    unit: "unit_1",
   },
   {
     id: "rectangle-perimeter",
     title: "Perimeter of a rectangle",
     prompt:
       "Write a program that asks the user for the width and height of a rectangle, then prints its perimeter (2 × width + 2 × height).",
+    unit: "unit_1",
   },
   {
     id: "price-with-tax",
     title: "Price with tax",
     prompt:
       "Write a program that asks the user for a price and a tax rate (as a percentage, e.g. 19.0 for 19%), then prints the total price including tax.",
+    unit: "unit_1",
   },
 
   // ── Unit II · Control Structures ─────────────────────────────────────
@@ -62,30 +67,35 @@ const REWRITES: Rewrite[] = [
     title: "Count vowels",
     prompt:
       "Write a program that asks the user for a string, then prints how many vowels it contains.",
+    unit: "unit_2",
   },
   {
     id: "count-down-from-n",
     title: "Count down from N",
     prompt:
       "Write a program that asks the user for a positive integer n, then prints each number from n down to 1, one per line.",
+    unit: "unit_2",
   },
   {
     id: "sum-first-n",
     title: "Sum the first N integers",
     prompt:
       "Write a program that asks the user for a positive integer n, then prints the sum of the integers from 1 to n.",
+    unit: "unit_2",
   },
   {
     id: "even-or-odd",
     title: "Even or odd",
     prompt:
       "Write a program that asks the user for an integer, then prints 'even' or 'odd'.",
+    unit: "unit_2",
   },
   {
     id: "max-of-three",
     title: "Maximum of three",
     prompt:
       "Write a program that asks the user for three numbers, then prints the largest one. Do not use the built-in max() — decide with conditionals.",
+    unit: "unit_2",
   },
 
   // ── Unit III · Data Structures ───────────────────────────────────────
@@ -94,30 +104,35 @@ const REWRITES: Rewrite[] = [
     title: "Nth Fibonacci number",
     prompt:
       "Write a program that asks the user for a non-negative integer n, then prints the nth Fibonacci number, where fib(0) = 0 and fib(1) = 1.",
+    unit: "unit_3",
   },
   {
     id: "palindrome-check",
     title: "Palindrome check",
     prompt:
       "Write a program that asks the user for a string, then prints True if it's a palindrome (ignoring case and non-letter characters) and False otherwise.",
+    unit: "unit_3",
   },
   {
     id: "most-common-word",
     title: "Most common word",
     prompt:
       "Write a program that asks the user for a line of space-separated words, then prints the word that appears most often. If there is a tie, print the word that appears first in the input.",
+    unit: "unit_3",
   },
   {
     id: "find-duplicates",
     title: "Find duplicates in a list",
     prompt:
       "Write a program that asks the user for a comma-separated list of values, then prints each value that appears more than once. Each duplicate value should be printed only once.",
+    unit: "unit_3",
   },
   {
     id: "fizzbuzz",
     title: "FizzBuzz",
     prompt:
       "Write a program that asks the user for a positive integer n, then prints one line per number from 1 through n. For multiples of 3 print 'Fizz'. For multiples of 5 print 'Buzz'. For multiples of both print 'FizzBuzz'. For other numbers, print the number.",
+    unit: "unit_3",
   },
 ];
 
@@ -137,7 +152,7 @@ async function rescaffoldOne(r: Rewrite) {
     messages: [
       {
         role: "user",
-        content: buildScaffoldingUserMessage(r.prompt, r.title),
+        content: buildScaffoldingUserMessage(r.prompt, r.title, r.unit),
       },
     ],
     maxTokens: 4096,

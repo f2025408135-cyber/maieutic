@@ -6,43 +6,43 @@
   "publishedAt": "2026-04-23T00:18:14.490Z",
   "specGateDimensions": [
     {
-      "id": "prompt_text",
-      "description": "What exact text should the program display when asking the user for their name?",
-      "rationale": "Students often skip committing to the input prompt wording and then produce a bare `input()` with no visible cue, which confuses users running the program.",
-      "source": "opus"
-    },
-    {
       "id": "greeting_format",
-      "description": "What is the exact format of the greeting — does it use a comma, an exclamation mark, the literal word 'Hello', and where does the name appear?",
-      "rationale": "The example 'Hello, Alice!' is illustrative; the spec must commit to a concrete template before the student chooses between concatenation, f-strings, or commas in print.",
+      "description": "What exact text surrounds the name in the output — is it 'Hello, <name>!' with a comma and exclamation, or some other phrasing?",
+      "rationale": "The prompt says 'like Hello, Alice!' which is illustrative, not prescriptive. Forcing the student to commit to the exact string they will produce makes Phase 4 diffing possible.",
       "source": "opus"
     },
     {
-      "id": "whitespace_handling",
-      "description": "If the user types leading/trailing spaces or hits enter without typing anything, should the program strip the input, reject it, or greet as-is?",
-      "rationale": "Novices rarely think about whitespace from `input()`; surfacing it prevents greetings like 'Hello,  !' without forcing them to handle it — they just have to commit.",
+      "id": "input_prompt_text",
+      "description": "What text does the program display when asking for the name (e.g. 'What is your name? ')?",
+      "rationale": "Students often leave input() empty and then can't tell if the program is hung. Committing to a prompt string is a small but real interface decision.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_or_whitespace_input",
+      "description": "If the user just presses Enter or types spaces, does the program greet them anyway ('Hello, !') or is the program allowed to assume the user types a real name?",
+      "rationale": "At unit_1 the student has no if/else, so 'assume the user types a real name' is an acceptable commitment — but naming that assumption explicitly is the pedagogical point.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to a specific greeting format (e.g. 'Hello, {name}!') but code prints 'Hello ' + name with no comma or exclamation",
+      "pattern": "Spec commits to the format 'Hello, <name>!' but code prints 'Hello <name>' (missing comma or exclamation) because the student eyeballed the example",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student concatenates with + but forgets to include the space/comma, producing 'Hello,Alice!' or 'HelloAlice!'",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses string concatenation with `+`; code uses an f-string — coherent Pythonic refactor",
+      "pattern": "Plan describes string concatenation with +; code uses an f-string instead — coherent stylistic choice within unit_1 tooling",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student calls `input` without parentheses or assigns `input` to the variable instead of `input()`, so the name variable holds the function object",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `print('Hello, name!')` with the variable name inside the string literal rather than interpolating it",
+      "pattern": "Student stores the name but prints a literal variable name or the raw input prompt return value without using it",
       "source": "opus"
     }
   ],
@@ -51,37 +51,37 @@
   "unit": "unit_1",
   "opusGeneratedDimensions": [
     {
-      "id": "prompt_text",
-      "description": "What exact text should the program display when asking the user for their name?",
-      "rationale": "Students often skip committing to the input prompt wording and then produce a bare `input()` with no visible cue, which confuses users running the program."
-    },
-    {
       "id": "greeting_format",
-      "description": "What is the exact format of the greeting — does it use a comma, an exclamation mark, the literal word 'Hello', and where does the name appear?",
-      "rationale": "The example 'Hello, Alice!' is illustrative; the spec must commit to a concrete template before the student chooses between concatenation, f-strings, or commas in print."
+      "description": "What exact text surrounds the name in the output — is it 'Hello, <name>!' with a comma and exclamation, or some other phrasing?",
+      "rationale": "The prompt says 'like Hello, Alice!' which is illustrative, not prescriptive. Forcing the student to commit to the exact string they will produce makes Phase 4 diffing possible."
     },
     {
-      "id": "whitespace_handling",
-      "description": "If the user types leading/trailing spaces or hits enter without typing anything, should the program strip the input, reject it, or greet as-is?",
-      "rationale": "Novices rarely think about whitespace from `input()`; surfacing it prevents greetings like 'Hello,  !' without forcing them to handle it — they just have to commit."
+      "id": "input_prompt_text",
+      "description": "What text does the program display when asking for the name (e.g. 'What is your name? ')?",
+      "rationale": "Students often leave input() empty and then can't tell if the program is hung. Committing to a prompt string is a small but real interface decision."
+    },
+    {
+      "id": "empty_or_whitespace_input",
+      "description": "If the user just presses Enter or types spaces, does the program greet them anyway ('Hello, !') or is the program allowed to assume the user types a real name?",
+      "rationale": "At unit_1 the student has no if/else, so 'assume the user types a real name' is an acceptable commitment — but naming that assumption explicitly is the pedagogical point."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to a specific greeting format (e.g. 'Hello, {name}!') but code prints 'Hello ' + name with no comma or exclamation"
+      "pattern": "Spec commits to the format 'Hello, <name>!' but code prints 'Hello <name>' (missing comma or exclamation) because the student eyeballed the example"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student concatenates with + but forgets to include the space/comma, producing 'Hello,Alice!' or 'HelloAlice!'"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses string concatenation with `+`; code uses an f-string — coherent Pythonic refactor"
+      "pattern": "Plan describes string concatenation with +; code uses an f-string instead — coherent stylistic choice within unit_1 tooling"
     },
     {
       "category": "bug",
-      "pattern": "Student calls `input` without parentheses or assigns `input` to the variable instead of `input()`, so the name variable holds the function object"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `print('Hello, name!')` with the variable name inside the string literal rather than interpolating it"
+      "pattern": "Student stores the name but prints a literal variable name or the raw input prompt return value without using it"
     }
   ],
   "opusGeneratedPhase2Required": false,

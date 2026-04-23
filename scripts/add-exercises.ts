@@ -192,7 +192,7 @@ async function publishOne(seed: Seed) {
     messages: [
       {
         role: "user",
-        content: buildScaffoldingUserMessage(seed.prompt, seed.title),
+        content: buildScaffoldingUserMessage(seed.prompt, seed.title, seed.unit),
       },
     ],
     maxTokens: 4096,

@@ -6,48 +6,64 @@
   "publishedAt": "2026-04-23T00:01:24.744Z",
   "specGateDimensions": [
     {
-      "id": "inclusive_range",
-      "description": "Does the sum include n itself (1+2+...+n) or stop at n-1?",
-      "rationale": "Off-by-one on the upper bound is the classic bug in range-sum problems; the spec must commit to inclusivity before any range() call is written.",
+      "id": "inclusive_endpoints",
+      "description": "Does the sum include both 1 and n (i.e., 1+2+...+n), or does it stop before n?",
+      "rationale": "Off-by-one on the upper bound of a range is the canonical loop bug; committing to inclusivity in the spec prevents it.",
       "source": "opus"
     },
     {
-      "id": "invalid_input_handling",
-      "description": "What should the program do if the user enters 0, a negative number, or something that isn't an integer?",
-      "rationale": "The prompt says 'positive integer' but doesn't say what happens when the user disobeys. Forcing a commitment (reprompt, crash, print error, treat as 0) prevents the student from claiming a crash is 'out of scope'.",
+      "id": "n_equals_one",
+      "description": "What should the program print when the user enters 1?",
+      "rationale": "Boundary case for the loop; forces the student to verify their loop runs at least once and produces 1, not 0.",
       "source": "opus"
     },
     {
-      "id": "output_format",
-      "description": "What exactly is printed — just the number, or a sentence like 'The sum is X'?",
-      "rationale": "Phase 4 needs something concrete to diff against; 'prints the sum' is ambiguous between bare integer and formatted string.",
+      "id": "non_positive_input",
+      "description": "What does the program do if the user enters 0 or a negative integer — does it assume input is positive per the prompt, reject it with a message, or just print 0?",
+      "rationale": "The prompt says 'positive integer' but does not specify enforcement. The student must commit to either trusting the user or validating, since both are defensible at this unit level (if/else is available).",
+      "source": "opus"
+    },
+    {
+      "id": "non_integer_input",
+      "description": "Does the program assume the user types a valid integer, or does it handle non-numeric input (e.g., 'hello')?",
+      "rationale": "Forcing a commitment here surfaces whether the student plans to use try/except or explicitly assume well-formed input.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student writes `range(1, n)` instead of `range(1, n+1)`, excluding n from the sum",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student forgets to cast input to int, so `input()` returns a string and either concatenation happens or a type error is raised",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes an accumulator loop; code uses `sum(range(1, n+1))` — coherent Pythonic simplification",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes a loop; code uses the closed-form `n*(n+1)//2` — coherent mathematical shortcut",
+      "category": "drift",
+      "pattern": "Spec says sum includes n, but code writes `for i in range(1, n)` and sums 1 to n-1",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to validating positive input but code accepts any integer without checking",
+      "pattern": "Spec commits to rejecting non-positive input, but code omits the validation and just runs the loop (which prints 0 for n<=0)",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses an accumulator with a for loop; code uses the closed-form formula n*(n+1)//2 — coherent but changes the implementation strategy",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses `for` loop; code uses `while` with a counter — coherent alternative",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Accumulator initialized inside the loop, so each iteration resets the sum and the final result is just n",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Forgets to convert input() to int, so the loop fails or string behavior occurs",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `range(n)` instead of `range(1, n+1)`, summing 0 to n-1",
       "source": "opus"
     }
   ],
@@ -56,41 +72,54 @@
   "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
-      "id": "inclusive_range",
-      "description": "Does the sum include n itself (1+2+...+n) or stop at n-1?",
-      "rationale": "Off-by-one on the upper bound is the classic bug in range-sum problems; the spec must commit to inclusivity before any range() call is written."
+      "id": "inclusive_endpoints",
+      "description": "Does the sum include both 1 and n (i.e., 1+2+...+n), or does it stop before n?",
+      "rationale": "Off-by-one on the upper bound of a range is the canonical loop bug; committing to inclusivity in the spec prevents it."
     },
     {
-      "id": "invalid_input_handling",
-      "description": "What should the program do if the user enters 0, a negative number, or something that isn't an integer?",
-      "rationale": "The prompt says 'positive integer' but doesn't say what happens when the user disobeys. Forcing a commitment (reprompt, crash, print error, treat as 0) prevents the student from claiming a crash is 'out of scope'."
+      "id": "n_equals_one",
+      "description": "What should the program print when the user enters 1?",
+      "rationale": "Boundary case for the loop; forces the student to verify their loop runs at least once and produces 1, not 0."
     },
     {
-      "id": "output_format",
-      "description": "What exactly is printed — just the number, or a sentence like 'The sum is X'?",
-      "rationale": "Phase 4 needs something concrete to diff against; 'prints the sum' is ambiguous between bare integer and formatted string."
+      "id": "non_positive_input",
+      "description": "What does the program do if the user enters 0 or a negative integer — does it assume input is positive per the prompt, reject it with a message, or just print 0?",
+      "rationale": "The prompt says 'positive integer' but does not specify enforcement. The student must commit to either trusting the user or validating, since both are defensible at this unit level (if/else is available)."
+    },
+    {
+      "id": "non_integer_input",
+      "description": "Does the program assume the user types a valid integer, or does it handle non-numeric input (e.g., 'hello')?",
+      "rationale": "Forcing a commitment here surfaces whether the student plans to use try/except or explicitly assume well-formed input."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student writes `range(1, n)` instead of `range(1, n+1)`, excluding n from the sum"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student forgets to cast input to int, so `input()` returns a string and either concatenation happens or a type error is raised"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes an accumulator loop; code uses `sum(range(1, n+1))` — coherent Pythonic simplification"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes a loop; code uses the closed-form `n*(n+1)//2` — coherent mathematical shortcut"
+      "category": "drift",
+      "pattern": "Spec says sum includes n, but code writes `for i in range(1, n)` and sums 1 to n-1"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to validating positive input but code accepts any integer without checking"
+      "pattern": "Spec commits to rejecting non-positive input, but code omits the validation and just runs the loop (which prints 0 for n<=0)"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses an accumulator with a for loop; code uses the closed-form formula n*(n+1)//2 — coherent but changes the implementation strategy"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses `for` loop; code uses `while` with a counter — coherent alternative"
+    },
+    {
+      "category": "bug",
+      "pattern": "Accumulator initialized inside the loop, so each iteration resets the sum and the final result is just n"
+    },
+    {
+      "category": "bug",
+      "pattern": "Forgets to convert input() to int, so the loop fails or string behavior occurs"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `range(n)` instead of `range(1, n+1)`, summing 0 to n-1"
     }
   ],
   "opusGeneratedPhase2Required": false,

@@ -6,53 +6,59 @@
   "publishedAt": "2026-04-22T21:51:45.534Z",
   "specGateDimensions": [
     {
-      "id": "input_validation",
-      "description": "What should the program do if the user enters a negative number, a non-integer string, or a float like 3.5?",
-      "rationale": "The prompt says 'non-negative integer' but doesn't specify enforcement; the student must commit to either trusting input, re-prompting, or raising/printing an error.",
+      "id": "base_case_values",
+      "description": "What exactly does the program print when n is 0, and when n is 1? The prompt fixes these (0 and 1 respectively) — does the spec acknowledge them as distinct base cases rather than falling through a loop?",
+      "rationale": "Students often write a loop that assumes n >= 2 and mishandles n=0 or n=1. Forcing commitment to the base outputs surfaces this before coding.",
       "source": "opus"
     },
     {
-      "id": "base_cases",
-      "description": "What does the program print for n=0 and n=1 specifically?",
-      "rationale": "The prompt defines fib(0)=0 and fib(1)=1; the spec should restate this so the student's base cases in code can be checked against an explicit commitment rather than re-derived.",
+      "id": "indexing_convention",
+      "description": "Under this spec, what is fib(2)? (With fib(0)=0, fib(1)=1, the answer is 1.) The student should commit to the sequence 0, 1, 1, 2, 3, 5, 8... so they can sanity-check their output.",
+      "rationale": "There are multiple common Fibonacci indexing conventions (some start 1,1,2,3...). Pinning the exact sequence prevents off-by-one confusion during implementation and testing.",
+      "source": "opus"
+    },
+    {
+      "id": "invalid_input_handling",
+      "description": "What does the program do if the user enters a negative number or something that isn't an integer at all? Does the program assume valid input, reject it with a message, or crash naturally?",
+      "rationale": "The prompt says 'non-negative integer' but doesn't say whether the program must enforce that. At unit_3 the student has if/else and try/except available, so 'assume valid' is a legitimate but explicit commitment rather than a default.",
       "source": "opus"
     },
     {
       "id": "output_format",
-      "description": "Should the output be just the number, or something like 'fib(10) = 55'?",
-      "rationale": "'Prints the nth Fibonacci number' is ambiguous about formatting; committing early prevents mismatches between planned output and actual output.",
+      "description": "Does the program print just the number (e.g. `55`), or a labeled message (e.g. `fib(10) = 55`)?",
+      "rationale": "Small formatting decisions are the most common source of silent spec-vs-output mismatch in Phase 4. Surfacing this commitment early makes verification trivial.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to validating input but code calls int(input(...)) directly and crashes on non-numeric input",
+      "pattern": "Spec commits to fib(0)=0 as a valid output, but the loop starts by printing fib(1) or assumes n>=1, so entering 0 prints the wrong value or nothing",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Student's loop computes fib(n+1) or fib(n-1) due to off-by-one in range bounds or initial values of a, b",
+      "pattern": "Off-by-one in the loop bound: `for i in range(n-1)` or `range(n+1)` when `range(n)` or its inverse was intended, producing fib(n-1) or fib(n+1) instead of fib(n)",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Swap bug in the iterative update: student writes `a = b; b = a + b` instead of `a, b = b, a + b`, so both variables converge incorrectly",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Forgets to cast input() to int, then tries arithmetic on a string and crashes",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes an iterative loop with a, b = 0, 1; code uses recursion instead (or vice versa) — coherent alternative strategy",
+      "pattern": "Plan describes an iterative two-variable loop; code builds a list `fibs = [0, 1]` and appends up to index n, then prints `fibs[n]` — coherent list-based alternative well-suited to unit_3",
       "source": "opus"
     },
     {
-      "category": "bug",
-      "pattern": "Recursive solution without memoization hangs or becomes extremely slow for moderately large n (e.g. n=40)",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Iterative loop updates a and b in the wrong order (a = b, then b = a + b, which makes b = 2*b instead of a + b)",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Handles n=0 correctly but returns 1 for n=1, or vice versa, because the loop starts from the wrong base",
+      "category": "revision",
+      "pattern": "Plan uses a while loop with a counter; code uses a for loop over range(n) — coherent restructure",
       "source": "opus"
     }
   ],
@@ -61,45 +67,50 @@
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "input_validation",
-      "description": "What should the program do if the user enters a negative number, a non-integer string, or a float like 3.5?",
-      "rationale": "The prompt says 'non-negative integer' but doesn't specify enforcement; the student must commit to either trusting input, re-prompting, or raising/printing an error."
+      "id": "base_case_values",
+      "description": "What exactly does the program print when n is 0, and when n is 1? The prompt fixes these (0 and 1 respectively) — does the spec acknowledge them as distinct base cases rather than falling through a loop?",
+      "rationale": "Students often write a loop that assumes n >= 2 and mishandles n=0 or n=1. Forcing commitment to the base outputs surfaces this before coding."
     },
     {
-      "id": "base_cases",
-      "description": "What does the program print for n=0 and n=1 specifically?",
-      "rationale": "The prompt defines fib(0)=0 and fib(1)=1; the spec should restate this so the student's base cases in code can be checked against an explicit commitment rather than re-derived."
+      "id": "indexing_convention",
+      "description": "Under this spec, what is fib(2)? (With fib(0)=0, fib(1)=1, the answer is 1.) The student should commit to the sequence 0, 1, 1, 2, 3, 5, 8... so they can sanity-check their output.",
+      "rationale": "There are multiple common Fibonacci indexing conventions (some start 1,1,2,3...). Pinning the exact sequence prevents off-by-one confusion during implementation and testing."
+    },
+    {
+      "id": "invalid_input_handling",
+      "description": "What does the program do if the user enters a negative number or something that isn't an integer at all? Does the program assume valid input, reject it with a message, or crash naturally?",
+      "rationale": "The prompt says 'non-negative integer' but doesn't say whether the program must enforce that. At unit_3 the student has if/else and try/except available, so 'assume valid' is a legitimate but explicit commitment rather than a default."
     },
     {
       "id": "output_format",
-      "description": "Should the output be just the number, or something like 'fib(10) = 55'?",
-      "rationale": "'Prints the nth Fibonacci number' is ambiguous about formatting; committing early prevents mismatches between planned output and actual output."
+      "description": "Does the program print just the number (e.g. `55`), or a labeled message (e.g. `fib(10) = 55`)?",
+      "rationale": "Small formatting decisions are the most common source of silent spec-vs-output mismatch in Phase 4. Surfacing this commitment early makes verification trivial."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to validating input but code calls int(input(...)) directly and crashes on non-numeric input"
+      "pattern": "Spec commits to fib(0)=0 as a valid output, but the loop starts by printing fib(1) or assumes n>=1, so entering 0 prints the wrong value or nothing"
     },
     {
       "category": "drift",
-      "pattern": "Student's loop computes fib(n+1) or fib(n-1) due to off-by-one in range bounds or initial values of a, b"
+      "pattern": "Off-by-one in the loop bound: `for i in range(n-1)` or `range(n+1)` when `range(n)` or its inverse was intended, producing fib(n-1) or fib(n+1) instead of fib(n)"
+    },
+    {
+      "category": "bug",
+      "pattern": "Swap bug in the iterative update: student writes `a = b; b = a + b` instead of `a, b = b, a + b`, so both variables converge incorrectly"
+    },
+    {
+      "category": "bug",
+      "pattern": "Forgets to cast input() to int, then tries arithmetic on a string and crashes"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes an iterative loop with a, b = 0, 1; code uses recursion instead (or vice versa) — coherent alternative strategy"
+      "pattern": "Plan describes an iterative two-variable loop; code builds a list `fibs = [0, 1]` and appends up to index n, then prints `fibs[n]` — coherent list-based alternative well-suited to unit_3"
     },
     {
-      "category": "bug",
-      "pattern": "Recursive solution without memoization hangs or becomes extremely slow for moderately large n (e.g. n=40)"
-    },
-    {
-      "category": "bug",
-      "pattern": "Iterative loop updates a and b in the wrong order (a = b, then b = a + b, which makes b = 2*b instead of a + b)"
-    },
-    {
-      "category": "bug",
-      "pattern": "Handles n=0 correctly but returns 1 for n=1, or vice versa, because the loop starts from the wrong base"
+      "category": "revision",
+      "pattern": "Plan uses a while loop with a counter; code uses a for loop over range(n) — coherent restructure"
     }
   ],
   "opusGeneratedPhase2Required": true,

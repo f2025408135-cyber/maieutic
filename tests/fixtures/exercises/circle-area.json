@@ -7,47 +7,47 @@
   "specGateDimensions": [
     {
       "id": "input_type",
-      "description": "Should the radius be read as an integer or a float, and what happens if the user enters a non-numeric value?",
-      "rationale": "`input()` returns a string; the student must commit to a conversion and decide whether to handle invalid input or assume well-formed input.",
+      "description": "Should the radius be read as a float (to allow decimals like 2.5) or as an int? The formula works with either, but the student must commit.",
+      "rationale": "Type casting is a core unit_1 skill; forcing the student to pick int() vs float() surfaces whether they've thought about realistic radius values.",
+      "source": "opus"
+    },
+    {
+      "id": "invalid_or_negative_input",
+      "description": "Does the program assume the user enters a positive number, or does it handle non-numeric input (via try/except) and/or zero/negative radius specially?",
+      "rationale": "At unit_1, 'assume valid positive input' is a legitimate commitment, but the student should name it rather than silently hope. try/except is in-curriculum if they want to handle bad input.",
       "source": "opus"
     },
     {
       "id": "output_format",
-      "description": "Should the printed area be a raw float, rounded to a specific number of decimal places, or accompanied by a label (e.g., 'Area: 12.566')?",
-      "rationale": "The prompt says 'prints the area' without specifying format; committing in the spec prevents vague output that can't be checked.",
-      "source": "opus"
-    },
-    {
-      "id": "negative_or_zero_radius",
-      "description": "What should the program do if the user enters 0 or a negative number?",
-      "rationale": "A negative radius is geometrically meaningless but mathematically computable; the student should decide whether to reject, warn, or compute anyway.",
+      "description": "How should the area be displayed — as a raw number, rounded to some number of decimals, or with a label like 'Area: '?",
+      "rationale": "Output presentation is the most common place students drift from spec; committing up front makes Phase 4 comparison meaningful.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student forgets to convert the input with float() and attempts to multiply a string by π, causing a TypeError",
+      "pattern": "Student forgets to cast input() to float/int and tries to multiply a string by 3.14159, causing a TypeError",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student writes `3.14159 * r^2` using `^` (XOR) instead of `**` for exponentiation, producing wildly wrong results without a crash",
+      "pattern": "Student writes 3.14159 * r * 2 instead of 3.14159 * r ** 2, computing circumference-like value instead of area",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to using 3.14159 but student imports `math.pi` instead, changing the expected output",
+      "pattern": "Spec commits to a labeled or formatted output (e.g. 'Area: 12.57') but code prints the raw float with full precision",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Student computes `r * r` instead of `r ** 2` — coherent equivalent",
+      "pattern": "Student uses an f-string for output where the plan described plain print() with concatenation — coherent Pythonic substitution",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Spec commits to a formatted output (e.g., 2 decimal places) but code prints the raw float",
+      "category": "bug",
+      "pattern": "Student uses ^ instead of ** for exponentiation, getting a bitwise-XOR result instead of r squared",
       "source": "opus"
     }
   ],
@@ -57,40 +57,40 @@
   "opusGeneratedDimensions": [
     {
       "id": "input_type",
-      "description": "Should the radius be read as an integer or a float, and what happens if the user enters a non-numeric value?",
-      "rationale": "`input()` returns a string; the student must commit to a conversion and decide whether to handle invalid input or assume well-formed input."
+      "description": "Should the radius be read as a float (to allow decimals like 2.5) or as an int? The formula works with either, but the student must commit.",
+      "rationale": "Type casting is a core unit_1 skill; forcing the student to pick int() vs float() surfaces whether they've thought about realistic radius values."
+    },
+    {
+      "id": "invalid_or_negative_input",
+      "description": "Does the program assume the user enters a positive number, or does it handle non-numeric input (via try/except) and/or zero/negative radius specially?",
+      "rationale": "At unit_1, 'assume valid positive input' is a legitimate commitment, but the student should name it rather than silently hope. try/except is in-curriculum if they want to handle bad input."
     },
     {
       "id": "output_format",
-      "description": "Should the printed area be a raw float, rounded to a specific number of decimal places, or accompanied by a label (e.g., 'Area: 12.566')?",
-      "rationale": "The prompt says 'prints the area' without specifying format; committing in the spec prevents vague output that can't be checked."
-    },
-    {
-      "id": "negative_or_zero_radius",
-      "description": "What should the program do if the user enters 0 or a negative number?",
-      "rationale": "A negative radius is geometrically meaningless but mathematically computable; the student should decide whether to reject, warn, or compute anyway."
+      "description": "How should the area be displayed — as a raw number, rounded to some number of decimals, or with a label like 'Area: '?",
+      "rationale": "Output presentation is the most common place students drift from spec; committing up front makes Phase 4 comparison meaningful."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student forgets to convert the input with float() and attempts to multiply a string by π, causing a TypeError"
+      "pattern": "Student forgets to cast input() to float/int and tries to multiply a string by 3.14159, causing a TypeError"
     },
     {
       "category": "bug",
-      "pattern": "Student writes `3.14159 * r^2` using `^` (XOR) instead of `**` for exponentiation, producing wildly wrong results without a crash"
+      "pattern": "Student writes 3.14159 * r * 2 instead of 3.14159 * r ** 2, computing circumference-like value instead of area"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to using 3.14159 but student imports `math.pi` instead, changing the expected output"
+      "pattern": "Spec commits to a labeled or formatted output (e.g. 'Area: 12.57') but code prints the raw float with full precision"
     },
     {
       "category": "revision",
-      "pattern": "Student computes `r * r` instead of `r ** 2` — coherent equivalent"
+      "pattern": "Student uses an f-string for output where the plan described plain print() with concatenation — coherent Pythonic substitution"
     },
     {
-      "category": "drift",
-      "pattern": "Spec commits to a formatted output (e.g., 2 decimal places) but code prints the raw float"
+      "category": "bug",
+      "pattern": "Student uses ^ instead of ** for exponentiation, getting a bitwise-XOR result instead of r squared"
     }
   ],
   "opusGeneratedPhase2Required": false,

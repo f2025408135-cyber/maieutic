@@ -64,7 +64,7 @@ export default function AuthoringPage() {
       const res = await fetch("/api/author/generate-scaffolding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, prompt }),
+        body: JSON.stringify({ title, prompt, unit }),
       });
       if (!res.ok) {
         const body = (await res.json()) as { error?: string; message?: string };

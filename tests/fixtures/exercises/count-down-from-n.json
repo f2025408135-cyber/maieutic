@@ -6,43 +6,48 @@
   "publishedAt": "2026-04-23T00:01:14.646Z",
   "specGateDimensions": [
     {
-      "id": "include_one",
-      "description": "Does the output include 1 as the final line, or does it stop before reaching 1?",
-      "rationale": "Off-by-one on loop bounds is the defining bug of countdown problems; forcing an explicit commitment prevents `range(n, 1, -1)` mistakes.",
+      "id": "inclusive_endpoints",
+      "description": "Does the output include both n itself and 1, or does it stop before reaching one of them?",
+      "rationale": "Off-by-one at the endpoints is the canonical bug in counting loops; forcing an explicit commitment prevents range() confusion later.",
       "source": "opus"
     },
     {
-      "id": "zero_and_negative_input",
-      "description": "What should happen if the user enters 0, a negative number, or the value 1 itself?",
-      "rationale": "The prompt says 'positive integer' but doesn't say whether the program validates input or trusts the user. The spec must commit.",
+      "id": "invalid_input_handling",
+      "description": "If the user enters 0, a negative number, or a non-integer, does the program crash, reprompt, print nothing, or assume input is always valid?",
+      "rationale": "The prompt says 'positive integer' but doesn't say whether the program must enforce that. At unit_2 the student has if/else and loops, so reprompting is feasible — but 'assume valid input' is also a legitimate commitment that must be named.",
       "source": "opus"
     },
     {
-      "id": "non_integer_input",
-      "description": "What should happen if the user types something that isn't an integer (e.g. 'five', '3.5', empty input)?",
-      "rationale": "`input()` returns a string; the student must decide whether to convert blindly (crash on bad input) or validate. Surfacing this prevents an unhandled ValueError.",
+      "id": "output_format",
+      "description": "Is each number on its own line with nothing else, or is there additional text (e.g., 'Countdown: 5')?",
+      "rationale": "The prompt implies bare numbers, but students often embellish; committing to the exact format makes the Phase 4 diff clean.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Uses `range(n, 1, -1)` which stops at 2, omitting 1 from the output",
+      "pattern": "Student writes `range(n, 1, -1)` and misses printing 1, or writes `range(n, 0)` forgetting the negative step entirely",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Forgets to convert `input()` to int, so `range` receives a string and raises TypeError",
+      "pattern": "Student uses a while loop with `while n > 0` but forgets to decrement n, producing an infinite loop",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to validating positive integers but code accepts any int and happily prints nothing (or counts up) when n <= 0",
+      "pattern": "Spec commits to rejecting non-positive input but code runs the loop anyway, producing no output for n=0 or n=-3 without any error message, and the student treats the empty output as 'working'",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a while loop with a decrementing counter; code uses `for i in range(n, 0, -1)` — coherent Pythonic equivalent",
+      "pattern": "Plan describes a while loop with manual decrement; code uses `for i in range(n, 0, -1)` — coherent simplification using the same unit_2 toolkit",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input() to int, so comparisons or range() fail with a TypeError",
       "source": "opus"
     }
   ],
@@ -51,37 +56,41 @@
   "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
-      "id": "include_one",
-      "description": "Does the output include 1 as the final line, or does it stop before reaching 1?",
-      "rationale": "Off-by-one on loop bounds is the defining bug of countdown problems; forcing an explicit commitment prevents `range(n, 1, -1)` mistakes."
+      "id": "inclusive_endpoints",
+      "description": "Does the output include both n itself and 1, or does it stop before reaching one of them?",
+      "rationale": "Off-by-one at the endpoints is the canonical bug in counting loops; forcing an explicit commitment prevents range() confusion later."
     },
     {
-      "id": "zero_and_negative_input",
-      "description": "What should happen if the user enters 0, a negative number, or the value 1 itself?",
-      "rationale": "The prompt says 'positive integer' but doesn't say whether the program validates input or trusts the user. The spec must commit."
+      "id": "invalid_input_handling",
+      "description": "If the user enters 0, a negative number, or a non-integer, does the program crash, reprompt, print nothing, or assume input is always valid?",
+      "rationale": "The prompt says 'positive integer' but doesn't say whether the program must enforce that. At unit_2 the student has if/else and loops, so reprompting is feasible — but 'assume valid input' is also a legitimate commitment that must be named."
     },
     {
-      "id": "non_integer_input",
-      "description": "What should happen if the user types something that isn't an integer (e.g. 'five', '3.5', empty input)?",
-      "rationale": "`input()` returns a string; the student must decide whether to convert blindly (crash on bad input) or validate. Surfacing this prevents an unhandled ValueError."
+      "id": "output_format",
+      "description": "Is each number on its own line with nothing else, or is there additional text (e.g., 'Countdown: 5')?",
+      "rationale": "The prompt implies bare numbers, but students often embellish; committing to the exact format makes the Phase 4 diff clean."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Uses `range(n, 1, -1)` which stops at 2, omitting 1 from the output"
+      "pattern": "Student writes `range(n, 1, -1)` and misses printing 1, or writes `range(n, 0)` forgetting the negative step entirely"
     },
     {
       "category": "bug",
-      "pattern": "Forgets to convert `input()` to int, so `range` receives a string and raises TypeError"
+      "pattern": "Student uses a while loop with `while n > 0` but forgets to decrement n, producing an infinite loop"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to validating positive integers but code accepts any int and happily prints nothing (or counts up) when n <= 0"
+      "pattern": "Spec commits to rejecting non-positive input but code runs the loop anyway, producing no output for n=0 or n=-3 without any error message, and the student treats the empty output as 'working'"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a while loop with a decrementing counter; code uses `for i in range(n, 0, -1)` — coherent Pythonic equivalent"
+      "pattern": "Plan describes a while loop with manual decrement; code uses `for i in range(n, 0, -1)` — coherent simplification using the same unit_2 toolkit"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input() to int, so comparisons or range() fail with a TypeError"
     }
   ],
   "opusGeneratedPhase2Required": false,

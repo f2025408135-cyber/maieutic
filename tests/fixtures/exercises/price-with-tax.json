@@ -6,43 +6,48 @@
   "publishedAt": "2026-04-23T00:18:41.807Z",
   "specGateDimensions": [
     {
-      "id": "input_types",
-      "description": "Are the price and tax rate read as floats, integers, or strings that get converted? What happens if the user types something non-numeric?",
-      "rationale": "CS1 students often forget input() returns a string; committing to a conversion strategy in the spec prevents the classic TypeError on arithmetic.",
-      "source": "opus"
-    },
-    {
       "id": "tax_rate_interpretation",
-      "description": "If the user enters 19.0, is that treated as 19% (divide by 100) or as a multiplier of 19.0x? The prompt gives the example '19.0 for 19%' — the spec must commit to the /100 conversion.",
-      "rationale": "The most common bug in this exercise is forgetting to divide by 100, producing absurd totals. Surfacing this in the spec forces the student to articulate the formula.",
+      "description": "Is the tax rate entered as a percentage (19.0 meaning 19%, so divide by 100 in the formula) or as a decimal fraction (0.19 meaning 19%)? The prompt specifies percentage — does the spec commit to that and to dividing by 100?",
+      "rationale": "This is the core arithmetic decision. Students often mix up whether to multiply by rate or rate/100, producing answers off by a factor of 100.",
       "source": "opus"
     },
     {
       "id": "output_format",
-      "description": "How should the total be displayed — raw float, rounded to 2 decimals, with a currency symbol, with a label?",
-      "rationale": "Float arithmetic produces noisy output like 119.00000000001; the student should commit to a formatting choice before discovering this at runtime.",
+      "description": "How is the total displayed — as a raw float (e.g. 119.00000000000001), rounded to 2 decimals, or with a currency symbol? What exactly does the printed line look like?",
+      "rationale": "Float arithmetic in Python routinely produces ugly trailing digits for money. Forcing a commitment on formatting surfaces this before the student is surprised by output.",
+      "source": "opus"
+    },
+    {
+      "id": "input_types",
+      "description": "Are price and tax rate both read as floats (to allow 9.99 and 19.5), or as ints? Does the spec assume valid numeric input, or handle non-numeric input with try/except?",
+      "rationale": "Casting choice drives whether decimal prices work at all. Naming the 'assume valid input' commitment is legitimate at unit_1; the alternative is try/except which is in-curriculum.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student multiplies price by tax_rate directly without dividing by 100, so a $100 item at 19% becomes $1900 instead of $119",
+      "pattern": "Student multiplies price by the tax rate directly (price * 19.0) instead of price * (1 + rate/100), producing a total of 1881.0 instead of 118.81 for a 99-unit item at 19%",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student forgets float() conversion on input() and gets a TypeError when multiplying string by number, or gets string repetition instead of arithmetic",
+      "pattern": "Student computes only the tax amount (price * rate/100) and prints that instead of the total including tax",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input() to float, so the multiplication raises TypeError or string-repeats",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to 2-decimal rounded output but code prints the raw float, exposing floating-point noise",
+      "pattern": "Spec commits to rounding to 2 decimals but code prints the raw float without round() or an f-string format specifier",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan computes tax amount and total in two steps; code collapses to a single expression like price * (1 + rate/100) — coherent simplification",
+      "pattern": "Plan describes computing tax amount then adding to price in two steps; code uses a single expression price * (1 + rate/100) — coherent simplification",
       "source": "opus"
     }
   ],
@@ -51,37 +56,41 @@
   "unit": "unit_1",
   "opusGeneratedDimensions": [
     {
-      "id": "input_types",
-      "description": "Are the price and tax rate read as floats, integers, or strings that get converted? What happens if the user types something non-numeric?",
-      "rationale": "CS1 students often forget input() returns a string; committing to a conversion strategy in the spec prevents the classic TypeError on arithmetic."
-    },
-    {
       "id": "tax_rate_interpretation",
-      "description": "If the user enters 19.0, is that treated as 19% (divide by 100) or as a multiplier of 19.0x? The prompt gives the example '19.0 for 19%' — the spec must commit to the /100 conversion.",
-      "rationale": "The most common bug in this exercise is forgetting to divide by 100, producing absurd totals. Surfacing this in the spec forces the student to articulate the formula."
+      "description": "Is the tax rate entered as a percentage (19.0 meaning 19%, so divide by 100 in the formula) or as a decimal fraction (0.19 meaning 19%)? The prompt specifies percentage — does the spec commit to that and to dividing by 100?",
+      "rationale": "This is the core arithmetic decision. Students often mix up whether to multiply by rate or rate/100, producing answers off by a factor of 100."
     },
     {
       "id": "output_format",
-      "description": "How should the total be displayed — raw float, rounded to 2 decimals, with a currency symbol, with a label?",
-      "rationale": "Float arithmetic produces noisy output like 119.00000000001; the student should commit to a formatting choice before discovering this at runtime."
+      "description": "How is the total displayed — as a raw float (e.g. 119.00000000000001), rounded to 2 decimals, or with a currency symbol? What exactly does the printed line look like?",
+      "rationale": "Float arithmetic in Python routinely produces ugly trailing digits for money. Forcing a commitment on formatting surfaces this before the student is surprised by output."
+    },
+    {
+      "id": "input_types",
+      "description": "Are price and tax rate both read as floats (to allow 9.99 and 19.5), or as ints? Does the spec assume valid numeric input, or handle non-numeric input with try/except?",
+      "rationale": "Casting choice drives whether decimal prices work at all. Naming the 'assume valid input' commitment is legitimate at unit_1; the alternative is try/except which is in-curriculum."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student multiplies price by tax_rate directly without dividing by 100, so a $100 item at 19% becomes $1900 instead of $119"
+      "pattern": "Student multiplies price by the tax rate directly (price * 19.0) instead of price * (1 + rate/100), producing a total of 1881.0 instead of 118.81 for a 99-unit item at 19%"
     },
     {
       "category": "bug",
-      "pattern": "Student forgets float() conversion on input() and gets a TypeError when multiplying string by number, or gets string repetition instead of arithmetic"
+      "pattern": "Student computes only the tax amount (price * rate/100) and prints that instead of the total including tax"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input() to float, so the multiplication raises TypeError or string-repeats"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to 2-decimal rounded output but code prints the raw float, exposing floating-point noise"
+      "pattern": "Spec commits to rounding to 2 decimals but code prints the raw float without round() or an f-string format specifier"
     },
     {
       "category": "revision",
-      "pattern": "Plan computes tax amount and total in two steps; code collapses to a single expression like price * (1 + rate/100) — coherent simplification"
+      "pattern": "Plan describes computing tax amount then adding to price in two steps; code uses a single expression price * (1 + rate/100) — coherent simplification"
     }
   ],
   "opusGeneratedPhase2Required": false,

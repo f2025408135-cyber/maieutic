@@ -7,69 +7,64 @@
   "specGateDimensions": [
     {
       "id": "whitespace_handling",
-      "description": "After splitting on commas, should surrounding whitespace be stripped so that 'a, a' is treated as two occurrences of 'a', or are ' a' and 'a' considered distinct values?",
-      "rationale": "Users naturally type spaces after commas; the spec must commit to whether the program normalizes input or treats whitespace literally.",
+      "description": "If the user types 'a, b , c,a', is the value ' b ' treated the same as 'b', or are leading/trailing spaces significant?",
+      "rationale": "comma-separated input almost always contains spaces after commas; the spec must commit to stripping or not, because it changes which items count as duplicates.",
       "source": "opus"
     },
     {
       "id": "case_sensitivity",
-      "description": "Are 'Apple' and 'apple' considered the same value for duplicate detection?",
-      "rationale": "Values are strings by default; the student must commit to whether comparison is case-sensitive before writing the comparison logic.",
+      "description": "Are 'Apple' and 'apple' considered the same value, or different values?",
+      "rationale": "String equality for duplicate detection forces a commitment; students often don't notice they've implicitly chosen case-sensitive until a test surprises them.",
       "source": "opus"
     },
     {
       "id": "output_order",
-      "description": "In what order should duplicates be printed — order of first appearance, order of second appearance, sorted, or unspecified?",
-      "rationale": "The prompt does not specify ordering, and different data structures (list scan vs. set vs. Counter) naturally produce different orders. The spec must commit so Phase 4 can verify.",
+      "description": "In what order should the duplicates be printed — order of first appearance in the input, sorted, or unspecified?",
+      "rationale": "Different data-structure choices (list vs. set vs. dict) produce different orders; forcing the commitment before coding ties the spec to the structural choice.",
       "source": "opus"
     },
     {
-      "id": "empty_and_single_input",
-      "description": "What should the program print when the user enters nothing, or a list with no duplicates?",
-      "rationale": "Empty/no-duplicate cases are the canonical missed paths; the spec should state whether the program prints nothing, a message, or something else.",
+      "id": "no_duplicates_case",
+      "description": "What should the program do if no value appears more than once — print nothing, print a message, or something else?",
+      "rationale": "The empty-result case is almost always unstated in duplicate-finding problems and causes confused output during testing.",
       "source": "opus"
     },
     {
-      "id": "value_type",
-      "description": "Are values treated as strings as typed, or should numeric-looking values ('3' and '3.0') be normalized?",
-      "rationale": "CS1 students often half-convert input; forcing a commitment prevents the 'sometimes it dedupes, sometimes it doesn't' bug class.",
+      "id": "empty_input",
+      "description": "What happens if the user enters an empty string or just whitespace? Does the program assume the input is non-empty, or handle it explicitly?",
+      "rationale": "Splitting an empty string yields [''], which the student may not anticipate; either handling or assuming is fine, but it must be named.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec says whitespace is stripped, but code does `input.split(',')` without calling .strip() on each element, so 'a, a' reports no duplicate",
+      "pattern": "Spec commits to stripping whitespace but code uses `input().split(',')` without calling .strip() on each element, so ' apple' and 'apple' register as different",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to printing each duplicate once, but code prints the duplicate every time it is encountered after the first (e.g., 'a,a,a' prints 'a' twice)",
+      "pattern": "Spec says 'print each duplicate once' but code prints the duplicate every time it's encountered after the first (e.g. prints 'a' twice for input 'a,a,a')",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes nested loops comparing each element to every other; code uses collections.Counter or a seen-set — coherent and more efficient",
+      "pattern": "Plan describes nested loops comparing every pair; code uses a count dictionary or a seen-set + duplicates-set pair — coherent simplification using unit_3 tools",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a count dictionary then filtering; code uses a two-set approach (seen, duplicates) in a single pass — coherent restructure",
+      "pattern": "Plan uses a dict mapping value to count; code uses two sets (seen, duplicates) — equivalent outcome, different structure",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student uses a set to track duplicates but iterates over the set for output, producing nondeterministic order that may not match the committed order",
+      "pattern": "Student builds a count dict correctly but iterates the original list when printing, causing duplicates to print multiple times instead of once",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Code appends to a duplicates list without checking membership, so a value appearing three times is printed twice",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Forgets to handle the input() return being a single string; tries to iterate characters instead of comma-separated tokens",
+      "pattern": "Student uses `list.count(x) > 1` inside a loop over the list without tracking which values have already been printed, causing repeated output",
       "source": "opus"
     }
   ],
@@ -79,58 +74,54 @@
   "opusGeneratedDimensions": [
     {
       "id": "whitespace_handling",
-      "description": "After splitting on commas, should surrounding whitespace be stripped so that 'a, a' is treated as two occurrences of 'a', or are ' a' and 'a' considered distinct values?",
-      "rationale": "Users naturally type spaces after commas; the spec must commit to whether the program normalizes input or treats whitespace literally."
+      "description": "If the user types 'a, b , c,a', is the value ' b ' treated the same as 'b', or are leading/trailing spaces significant?",
+      "rationale": "comma-separated input almost always contains spaces after commas; the spec must commit to stripping or not, because it changes which items count as duplicates."
     },
     {
       "id": "case_sensitivity",
-      "description": "Are 'Apple' and 'apple' considered the same value for duplicate detection?",
-      "rationale": "Values are strings by default; the student must commit to whether comparison is case-sensitive before writing the comparison logic."
+      "description": "Are 'Apple' and 'apple' considered the same value, or different values?",
+      "rationale": "String equality for duplicate detection forces a commitment; students often don't notice they've implicitly chosen case-sensitive until a test surprises them."
     },
     {
       "id": "output_order",
-      "description": "In what order should duplicates be printed — order of first appearance, order of second appearance, sorted, or unspecified?",
-      "rationale": "The prompt does not specify ordering, and different data structures (list scan vs. set vs. Counter) naturally produce different orders. The spec must commit so Phase 4 can verify."
+      "description": "In what order should the duplicates be printed — order of first appearance in the input, sorted, or unspecified?",
+      "rationale": "Different data-structure choices (list vs. set vs. dict) produce different orders; forcing the commitment before coding ties the spec to the structural choice."
     },
     {
-      "id": "empty_and_single_input",
-      "description": "What should the program print when the user enters nothing, or a list with no duplicates?",
-      "rationale": "Empty/no-duplicate cases are the canonical missed paths; the spec should state whether the program prints nothing, a message, or something else."
+      "id": "no_duplicates_case",
+      "description": "What should the program do if no value appears more than once — print nothing, print a message, or something else?",
+      "rationale": "The empty-result case is almost always unstated in duplicate-finding problems and causes confused output during testing."
     },
     {
-      "id": "value_type",
-      "description": "Are values treated as strings as typed, or should numeric-looking values ('3' and '3.0') be normalized?",
-      "rationale": "CS1 students often half-convert input; forcing a commitment prevents the 'sometimes it dedupes, sometimes it doesn't' bug class."
+      "id": "empty_input",
+      "description": "What happens if the user enters an empty string or just whitespace? Does the program assume the input is non-empty, or handle it explicitly?",
+      "rationale": "Splitting an empty string yields [''], which the student may not anticipate; either handling or assuming is fine, but it must be named."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec says whitespace is stripped, but code does `input.split(',')` without calling .strip() on each element, so 'a, a' reports no duplicate"
+      "pattern": "Spec commits to stripping whitespace but code uses `input().split(',')` without calling .strip() on each element, so ' apple' and 'apple' register as different"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to printing each duplicate once, but code prints the duplicate every time it is encountered after the first (e.g., 'a,a,a' prints 'a' twice)"
+      "pattern": "Spec says 'print each duplicate once' but code prints the duplicate every time it's encountered after the first (e.g. prints 'a' twice for input 'a,a,a')"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes nested loops comparing each element to every other; code uses collections.Counter or a seen-set — coherent and more efficient"
+      "pattern": "Plan describes nested loops comparing every pair; code uses a count dictionary or a seen-set + duplicates-set pair — coherent simplification using unit_3 tools"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a count dictionary then filtering; code uses a two-set approach (seen, duplicates) in a single pass — coherent restructure"
+      "pattern": "Plan uses a dict mapping value to count; code uses two sets (seen, duplicates) — equivalent outcome, different structure"
     },
     {
       "category": "bug",
-      "pattern": "Student uses a set to track duplicates but iterates over the set for output, producing nondeterministic order that may not match the committed order"
+      "pattern": "Student builds a count dict correctly but iterates the original list when printing, causing duplicates to print multiple times instead of once"
     },
     {
       "category": "bug",
-      "pattern": "Code appends to a duplicates list without checking membership, so a value appearing three times is printed twice"
-    },
-    {
-      "category": "bug",
-      "pattern": "Forgets to handle the input() return being a single string; tries to iterate characters instead of comma-separated tokens"
+      "pattern": "Student uses `list.count(x) > 1` inside a loop over the list without tracking which values have already been printed, causing repeated output"
     }
   ],
   "opusGeneratedPhase2Required": true,

@@ -7,42 +7,47 @@
   "specGateDimensions": [
     {
       "id": "input_type",
-      "description": "Should width and height be read as integers or as floating-point numbers (so decimals like 2.5 are accepted)?",
-      "rationale": "The prompt doesn't specify numeric type; committing forces the student to choose between `int(input())` and `float(input())` rather than discovering the mismatch when a test case uses a decimal.",
+      "description": "Should width and height be read as integers or floats (i.e. are decimal dimensions like 3.5 allowed)?",
+      "rationale": "The casting choice (int vs float) is the one real decision in this exercise, and it determines what inputs the program accepts without crashing.",
+      "source": "opus"
+    },
+    {
+      "id": "input_validity_assumption",
+      "description": "Does the program assume the user enters valid positive numbers, or does it need to handle non-numeric or negative input specially (e.g. via try/except)?",
+      "rationale": "Forcing the student to name the assumption — 'I assume valid positive input' is a fine commitment at unit_1 — prevents surprise when the program crashes on bad input.",
       "source": "opus"
     },
     {
       "id": "output_format",
-      "description": "Should the perimeter be printed as a bare number, or as a labeled message like 'The perimeter is 14'?",
-      "rationale": "Novices often assume print format doesn't matter; surfacing it prevents drift between a spec that promises a sentence and code that prints a raw number.",
-      "source": "opus"
-    },
-    {
-      "id": "invalid_or_negative_input",
-      "description": "What should happen if the user enters a negative number, zero, or something non-numeric?",
-      "rationale": "The prompt is silent on validation; the student should decide whether to trust input or guard against it, rather than ignoring the question.",
+      "description": "What exactly does the printed output look like — just the number, or a labeled message like 'Perimeter: 20'?",
+      "rationale": "The prompt says 'prints its perimeter' without specifying format; committing to a concrete output shape makes the spec checkable.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student forgets to convert `input()` return values from string to number, so `2 * width + 2 * height` concatenates/repeats strings instead of doing arithmetic",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Operator precedence or parenthesization error, e.g. writing `2 * width + height` instead of `2 * width + 2 * height`",
+      "category": "drift",
+      "pattern": "Spec commits to float input but code uses int(input(...)), silently rejecting decimal dimensions",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to accepting decimal inputs but code uses `int(input(...))`, rejecting valid floats",
+      "pattern": "Spec promises a labeled output message but code prints only the bare number, or vice versa",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input() and computes 2 * '5' + 2 * '3', producing '5555' + '33' style string concatenation instead of a number",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student computes width * height (area) instead of 2*width + 2*height (perimeter), confusing the two formulas",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan computes `2 * width + 2 * height`; code uses the equivalent `2 * (width + height)` — coherent algebraic simplification",
+      "pattern": "Plan describes computing 2*width + 2*height; code uses the equivalent 2 * (width + height) — coherent algebraic simplification",
       "source": "opus"
     }
   ],
@@ -52,36 +57,40 @@
   "opusGeneratedDimensions": [
     {
       "id": "input_type",
-      "description": "Should width and height be read as integers or as floating-point numbers (so decimals like 2.5 are accepted)?",
-      "rationale": "The prompt doesn't specify numeric type; committing forces the student to choose between `int(input())` and `float(input())` rather than discovering the mismatch when a test case uses a decimal."
+      "description": "Should width and height be read as integers or floats (i.e. are decimal dimensions like 3.5 allowed)?",
+      "rationale": "The casting choice (int vs float) is the one real decision in this exercise, and it determines what inputs the program accepts without crashing."
+    },
+    {
+      "id": "input_validity_assumption",
+      "description": "Does the program assume the user enters valid positive numbers, or does it need to handle non-numeric or negative input specially (e.g. via try/except)?",
+      "rationale": "Forcing the student to name the assumption — 'I assume valid positive input' is a fine commitment at unit_1 — prevents surprise when the program crashes on bad input."
     },
     {
       "id": "output_format",
-      "description": "Should the perimeter be printed as a bare number, or as a labeled message like 'The perimeter is 14'?",
-      "rationale": "Novices often assume print format doesn't matter; surfacing it prevents drift between a spec that promises a sentence and code that prints a raw number."
-    },
-    {
-      "id": "invalid_or_negative_input",
-      "description": "What should happen if the user enters a negative number, zero, or something non-numeric?",
-      "rationale": "The prompt is silent on validation; the student should decide whether to trust input or guard against it, rather than ignoring the question."
+      "description": "What exactly does the printed output look like — just the number, or a labeled message like 'Perimeter: 20'?",
+      "rationale": "The prompt says 'prints its perimeter' without specifying format; committing to a concrete output shape makes the spec checkable."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student forgets to convert `input()` return values from string to number, so `2 * width + 2 * height` concatenates/repeats strings instead of doing arithmetic"
-    },
-    {
-      "category": "bug",
-      "pattern": "Operator precedence or parenthesization error, e.g. writing `2 * width + height` instead of `2 * width + 2 * height`"
+      "category": "drift",
+      "pattern": "Spec commits to float input but code uses int(input(...)), silently rejecting decimal dimensions"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to accepting decimal inputs but code uses `int(input(...))`, rejecting valid floats"
+      "pattern": "Spec promises a labeled output message but code prints only the bare number, or vice versa"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input() and computes 2 * '5' + 2 * '3', producing '5555' + '33' style string concatenation instead of a number"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student computes width * height (area) instead of 2*width + 2*height (perimeter), confusing the two formulas"
     },
     {
       "category": "revision",
-      "pattern": "Plan computes `2 * width + 2 * height`; code uses the equivalent `2 * (width + height)` — coherent algebraic simplification"
+      "pattern": "Plan describes computing 2*width + 2*height; code uses the equivalent 2 * (width + height) — coherent algebraic simplification"
     }
   ],
   "opusGeneratedPhase2Required": false,

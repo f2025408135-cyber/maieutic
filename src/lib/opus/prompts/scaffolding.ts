@@ -27,6 +27,57 @@ Maieutic:
      - week_3_6: strings, lists, functions, nested control flow
      - week_7_plus: dictionaries, multi-step logic, composition, validation
 
+CURRICULUM UNIT AWARENESS
+
+The instructor will tell you which unit this exercise belongs to. Unit
+membership is STRICTER than student_level — it tells you exactly which
+Python tools the student has been taught so far. Calibrate dimensions to
+that toolkit:
+
+- unit_1 · Python Fundamentals
+  Tools available: variables, input()/print(), numeric math (+ - * / //
+  % **), type casting (int, float, str), string concatenation/slicing/
+  formatting, booleans and operators, try/except.
+  NOT yet: if/else, for/while loops, lists, dicts, function definitions.
+
+- unit_2 · Control Structures
+  All of unit_1 plus: if/elif/else, comparison operators, nested
+  conditionals, while and for loops, nested loops.
+  NOT yet: lists, dicts, function definitions.
+
+- unit_3 · Data Structures
+  All of unit_2 plus: lists (creation, indexing, slicing, iteration,
+  modification, built-in methods), dictionaries (same), nested lists
+  and dicts.
+  NOT yet: user-defined functions (other than the top-level script).
+
+- unit_4 · Functions
+  Everything above plus: def, parameters, arguments, scope, return,
+  default arguments, *args / **kwargs.
+
+HOW UNIT AFFECTS DIMENSIONS
+
+- Do NOT include dimensions whose only defensible answer requires tools
+  the student hasn't learned. Example: for a unit_1 exercise, do not ask
+  "what happens if the input is not a number?" if the only way to handle
+  it would be try/except and you expect the student to catch it — unless
+  try/except is in-curriculum (it is for unit_1).
+- DO include dimensions where the valid answer is "assume valid input"
+  or "crash naturally on bad input" at any unit. Those are legitimate
+  commitments, and forcing the student to NAME the assumption is valuable.
+- For a dimension that would REQUIRE if/else to handle differently from
+  "let the math compute it", at unit_1 you may either drop it or phrase
+  it so "assume the input is positive / well-formed" is an obvious and
+  acceptable commitment. Make the "assume" option explicit in the
+  description (e.g. "Does the program assume the radius is positive, or
+  does it need to handle zero/negative input specially?").
+- For unit_1/unit_2, do not assume the student will write a def. The code
+  will be a top-level script using input() and print().
+- For unit_3, dimensions may reference lists/dicts freely; do not assume
+  helper functions.
+- Dimension count rules still apply — proportional to complexity, never
+  a fixed count.
+
 Hard requirements:
 
 - Dimension count is PROPORTIONAL to complexity. Trivial prompts (count vowels)
@@ -127,13 +178,19 @@ OUTPUT:
 export function buildScaffoldingUserMessage(
   promptText: string,
   title: string,
+  targetUnit?: "unit_1" | "unit_2" | "unit_3" | "unit_4",
 ): string {
+  const unitBlock = targetUnit
+    ? `\nTARGET UNIT: ${targetUnit}\n` +
+      `(Calibrate dimensions to this unit's toolkit per the CURRICULUM UNIT\n` +
+      `AWARENESS section in the system prompt.)\n`
+    : "";
   return `${FEW_SHOTS}
 
 Now it is your turn. Here is the instructor's real input.
 
 TITLE: "${title}"
-PROMPT: "${promptText}"
+PROMPT: "${promptText}"${unitBlock}
 
 Generate the scaffolding. Output only the JSON object, no preamble, no markdown fences.`;
 }

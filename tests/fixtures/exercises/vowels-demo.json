@@ -6,54 +6,54 @@
   "publishedAt": "2026-04-22T21:51:15.394Z",
   "specGateDimensions": [
     {
-      "id": "case_sensitivity",
-      "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase?",
-      "rationale": "Case handling is the most common unstated assumption in string-counting problems; forcing the student to commit surfaces whether they've thought about it before they hit a failing example.",
+      "id": "vowel_set",
+      "description": "Which characters count as vowels — only a, e, i, o, u, or is y also included?",
+      "rationale": "There is no objectively correct answer, so the spec must commit. Students often leave this implicit and then their code silently disagrees with their intent.",
       "source": "opus"
     },
     {
-      "id": "y_as_vowel",
-      "description": "Does 'y' count as a vowel?",
-      "rationale": "There is no objectively correct answer here, so the spec must commit — otherwise the student cannot tell whether their output is right.",
+      "id": "case_sensitivity",
+      "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?",
+      "rationale": "This is the canonical drift in string-counting: the spec says 'vowels' but the code only checks lowercase. Forcing the commitment up front makes the gap visible.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_or_no_vowels",
+      "description": "What should the program print if the string is empty or contains no vowels?",
+      "rationale": "Students often don't consider that 0 is a valid answer and may add special-case text. Committing to 'print 0' keeps the logic clean.",
       "source": "opus"
     },
     {
       "id": "output_format",
-      "description": "What exactly gets printed — just the number, or a sentence like 'Your string contains 3 vowels'?",
-      "rationale": "The prompt says 'prints how many vowels', which is ambiguous between a bare integer and a human-readable message. Committing up front prevents later rework.",
-      "source": "opus"
-    },
-    {
-      "id": "empty_input",
-      "description": "What should the program print if the user enters an empty string (just presses Enter)?",
-      "rationale": "Empty input is the canonical missed case in CS1; surfacing it in the spec gate is cheaper than discovering it in testing.",
+      "description": "What exactly should be printed — just the number, or a sentence like 'Your string has 3 vowels'?",
+      "rationale": "Phase 4 diffs output against spec; without a committed output format, there is nothing to diff against.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to counting both cases but code only checks `c in 'aeiou'` without lowercasing, so uppercase vowels are silently missed",
+      "pattern": "Spec commits to counting both cases, but code writes `if c in 'aeiou'` without lowercasing the input or including uppercase letters",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec promises a formatted message but code just prints the bare count (or vice versa)",
+      "pattern": "Spec includes 'y' as a vowel but the code's vowel string is 'aeiou'",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes an accumulator with a for-loop; code uses `sum(1 for c in s if c in 'aeiou')` — coherent Pythonic refactor",
+      "pattern": "Plan describes an if/elif chain for each vowel; code uses `if c in 'aeiou'` membership test — coherent simplification within unit_2 toolkit",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student forgets `input()` and hardcodes a test string, so the program doesn't actually prompt the user",
+      "pattern": "Counter is initialized inside the loop instead of before it, so the final count is 0 or 1",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Counter variable is declared inside the loop instead of before it, so it resets each iteration and the final count is 0 or 1",
+      "pattern": "Student uses `if c == 'a' or 'e' or 'i' ...` which always evaluates truthy, inflating the count to the string length",
       "source": "opus"
     }
   ],
@@ -62,46 +62,46 @@
   "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
-      "id": "case_sensitivity",
-      "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase?",
-      "rationale": "Case handling is the most common unstated assumption in string-counting problems; forcing the student to commit surfaces whether they've thought about it before they hit a failing example."
+      "id": "vowel_set",
+      "description": "Which characters count as vowels — only a, e, i, o, u, or is y also included?",
+      "rationale": "There is no objectively correct answer, so the spec must commit. Students often leave this implicit and then their code silently disagrees with their intent."
     },
     {
-      "id": "y_as_vowel",
-      "description": "Does 'y' count as a vowel?",
-      "rationale": "There is no objectively correct answer here, so the spec must commit — otherwise the student cannot tell whether their output is right."
+      "id": "case_sensitivity",
+      "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?",
+      "rationale": "This is the canonical drift in string-counting: the spec says 'vowels' but the code only checks lowercase. Forcing the commitment up front makes the gap visible."
+    },
+    {
+      "id": "empty_or_no_vowels",
+      "description": "What should the program print if the string is empty or contains no vowels?",
+      "rationale": "Students often don't consider that 0 is a valid answer and may add special-case text. Committing to 'print 0' keeps the logic clean."
     },
     {
       "id": "output_format",
-      "description": "What exactly gets printed — just the number, or a sentence like 'Your string contains 3 vowels'?",
-      "rationale": "The prompt says 'prints how many vowels', which is ambiguous between a bare integer and a human-readable message. Committing up front prevents later rework."
-    },
-    {
-      "id": "empty_input",
-      "description": "What should the program print if the user enters an empty string (just presses Enter)?",
-      "rationale": "Empty input is the canonical missed case in CS1; surfacing it in the spec gate is cheaper than discovering it in testing."
+      "description": "What exactly should be printed — just the number, or a sentence like 'Your string has 3 vowels'?",
+      "rationale": "Phase 4 diffs output against spec; without a committed output format, there is nothing to diff against."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to counting both cases but code only checks `c in 'aeiou'` without lowercasing, so uppercase vowels are silently missed"
+      "pattern": "Spec commits to counting both cases, but code writes `if c in 'aeiou'` without lowercasing the input or including uppercase letters"
     },
     {
       "category": "drift",
-      "pattern": "Spec promises a formatted message but code just prints the bare count (or vice versa)"
+      "pattern": "Spec includes 'y' as a vowel but the code's vowel string is 'aeiou'"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes an accumulator with a for-loop; code uses `sum(1 for c in s if c in 'aeiou')` — coherent Pythonic refactor"
+      "pattern": "Plan describes an if/elif chain for each vowel; code uses `if c in 'aeiou'` membership test — coherent simplification within unit_2 toolkit"
     },
     {
       "category": "bug",
-      "pattern": "Student forgets `input()` and hardcodes a test string, so the program doesn't actually prompt the user"
+      "pattern": "Counter is initialized inside the loop instead of before it, so the final count is 0 or 1"
     },
     {
       "category": "bug",
-      "pattern": "Counter variable is declared inside the loop instead of before it, so it resets each iteration and the final count is 0 or 1"
+      "pattern": "Student uses `if c == 'a' or 'e' or 'i' ...` which always evaluates truthy, inflating the count to the string length"
     }
   ],
   "opusGeneratedPhase2Required": false,

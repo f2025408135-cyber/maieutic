@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Workbench } from "@/components/editor/Workbench";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import type {
   SpecDimension,
   StudentLevel,
 } from "@/lib/opus/schemas";
-import { unitLabel, UNIT_ROMAN, type Unit } from "@/lib/units";
+import { UNIT_ROMAN, UNIT_TITLE, type Unit } from "@/lib/units";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -54,7 +54,7 @@ interface DivergenceQuestion {
   result: { alignment: string; finalClassification: string } | null;
 }
 
-// ─── Main component ───────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────
 
 export function ExerciseClient({
   exercise,
@@ -83,6 +83,7 @@ export function ExerciseClient({
   const inPhase4 = session.currentPhase === 4;
   const closed = session.currentPhase >= 5;
 
+  // ── actions ──────────────────────────────────────────────────────────
   async function submitSpec() {
     if (!specDraft.trim()) return;
     setSubmitting(true);
@@ -276,103 +277,46 @@ export function ExerciseClient({
     }
   }
 
-  const phaseLabel: Record<number, string> = {
-    1: "spec gate",
-    2: "plan",
-    3: "writing",
-    4: "review",
-    5: "closed",
-  };
+  // ── layout ──────────────────────────────────────────────────────────
 
   return (
-    <Workbench
-      tabs={[
-        {
-          fileName: `${exercise.id}.py`,
-          active: true,
-          dirty: inPhase3 && code.length > 0,
-        },
-      ]}
-      statusLeft={
-        <>
-          <span className="font-mono">Unit {UNIT_ROMAN[exercise.unit]}</span>
-          <span>{unitLabel(exercise.unit).split(" · ")[1]}</span>
-          <span>
-            phase {session.currentPhase} ·{" "}
-            {phaseLabel[session.currentPhase] ?? ""}
-          </span>
-          {inPhase1 && session.phase1.iterations.length > 0 && (
-            <span>iter {session.phase1.iterations.length}</span>
-          )}
-        </>
-      }
-      statusRight={
-        <>
-          {!closed && (
-            <AskForHelpDialog
-              sessionId={session.id}
-              phase={session.currentPhase}
-            />
-          )}
-          <span>Student · {exercise.title}</span>
-        </>
-      }
-    >
-      <div className="px-6 py-3 border-b border-[#3e3e42] bg-[#252526] text-sm">
-        <span className="text-[#858585] mr-2 font-mono text-xs uppercase tracking-wider">
-          exercise
-        </span>
-        <span>{exercise.instructorPromptText}</span>
-      </div>
+    <div className="min-h-screen bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
+      <Header sessionId={session.id} phase={session.currentPhase} closed={closed} />
+
+      <ExerciseTitle
+        title={exercise.title}
+        promptText={exercise.instructorPromptText}
+        unit={exercise.unit}
+      />
 
       {inPhase1 && (
-        <TwoColumn
-          left={
-            <Phase1Panel
-              iterations={session.phase1.iterations}
-              draft={specDraft}
-              setDraft={setSpecDraft}
-              onSubmit={submitSpec}
-              submitting={submitting}
-              error={error}
-              dimensions={exercise.specGateDimensions}
-              addressed={session.phase1.instructorConfiguredDimensionsAddressed}
-            />
-          }
-          right={
-            <PythonEditor
-              value={PHASE3_PLACEHOLDER}
-              readOnly
-              lockNotice="The editor unlocks after the spec gate passes."
-            />
-          }
+        <Phase1View
+          iterations={session.phase1.iterations}
+          draft={specDraft}
+          setDraft={setSpecDraft}
+          onSubmit={submitSpec}
+          submitting={submitting}
+          error={error}
+          dimensions={exercise.specGateDimensions}
+          addressed={session.phase1.instructorConfiguredDimensionsAddressed}
         />
       )}
 
       {inPhase2 && (
-        <TwoColumn
-          left={
-            <Phase2Panel
-              finalSpec={session.phase1.finalSpecText ?? ""}
-              draft={planDraft}
-              setDraft={setPlanDraft}
-              onSubmit={submitPlan}
-              submitting={submitting}
-              error={error}
-            />
-          }
-          right={
-            <PythonEditor
-              value={PHASE3_PLACEHOLDER}
-              readOnly
-              lockNotice="Submit your plan — then the editor unlocks."
-            />
-          }
+        <Phase2View
+          iterations={session.phase1.iterations}
+          finalSpec={session.phase1.finalSpecText ?? ""}
+          draft={planDraft}
+          setDraft={setPlanDraft}
+          onSubmit={submitPlan}
+          submitting={submitting}
+          error={error}
         />
       )}
 
       {inPhase3 && (
-        <Phase3Layout
+        <Phase3View
+          iterations={session.phase1.iterations}
           finalSpec={session.phase1.finalSpecText ?? ""}
           plan={session.phase2?.planText ?? null}
           code={code}
@@ -390,7 +334,11 @@ export function ExerciseClient({
       )}
 
       {inPhase4 && (
-        <Phase4Panel
+        <Phase4View
+          iterations={session.phase1.iterations}
+          finalSpec={session.phase1.finalSpecText ?? ""}
+          plan={session.phase2?.planText ?? null}
+          finalCode={session.phase3.finalCode ?? code}
           divergences={divergences}
           currentIndex={divergenceIndex}
           setIndex={setDivergenceIndex}
@@ -399,37 +347,791 @@ export function ExerciseClient({
         />
       )}
 
-      {closed && <Phase5Closed divergences={divergences} />}
-    </Workbench>
-  );
-}
-
-// ─── Primitives ────────────────────────────────────────────────────────
-
-function TwoColumn({
-  left,
-  right,
-}: {
-  left: React.ReactNode;
-  right: React.ReactNode;
-}) {
-  return (
-    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] overflow-hidden">
-      <section className="border-r border-[#3e3e42] overflow-y-auto p-6 space-y-4">
-        {left}
-      </section>
-      <section className="h-[60vh] lg:h-auto bg-[#1e1e1e]">{right}</section>
+      {closed && (
+        <Phase5View
+          iterations={session.phase1.iterations}
+          finalSpec={session.phase1.finalSpecText ?? ""}
+          plan={session.phase2?.planText ?? null}
+          finalCode={session.phase3.finalCode ?? code}
+          divergences={divergences}
+        />
+      )}
     </div>
   );
 }
 
+// ─── Header ───────────────────────────────────────────────────────────
+
+function Header({
+  sessionId,
+  phase,
+  closed,
+}: {
+  sessionId: string;
+  phase: number;
+  closed: boolean;
+}) {
+  return (
+    <header className="border-b border-[#3e3e42] px-6 py-3 flex items-center justify-between bg-[#1e1e1e] sticky top-0 z-20">
+      <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+        <span
+          className="inline-block w-2.5 h-2.5 rounded-full"
+          style={{ backgroundColor: "#007acc" }}
+        />
+        <span className="text-lg font-semibold tracking-tight">Maieutic</span>
+      </Link>
+      <div className="flex items-center gap-3">
+        {!closed && <AskForHelpDialog sessionId={sessionId} phase={phase} />}
+        <Link
+          href="/exercises"
+          className="text-sm text-[#858585] hover:text-white transition-colors px-2 py-1 rounded hover:bg-[#2a2d2e]"
+        >
+          ← Back to exercises
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+function ExerciseTitle({
+  title,
+  promptText,
+  unit,
+}: {
+  title: string;
+  promptText: string;
+  unit: Unit;
+}) {
+  return (
+    <div className="px-8 py-8 border-b border-[#3e3e42] bg-[#1e1e1e]">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-xs font-mono text-[#4ec9b0] tracking-wider uppercase mb-3">
+          Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
+        </div>
+        <h1 className="text-4xl font-semibold tracking-tight leading-tight">
+          {title}
+        </h1>
+        <p className="mt-4 text-lg text-[#d4d4d4]/90 leading-relaxed max-w-3xl">
+          {promptText}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Phase 1 — spec gate (single column) ─────────────────────────────
+
+function Phase1View({
+  iterations,
+  draft,
+  setDraft,
+  onSubmit,
+  submitting,
+  error,
+  dimensions,
+  addressed,
+}: {
+  iterations: Phase1Iteration[];
+  draft: string;
+  setDraft: (v: string) => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  error: string | null;
+  dimensions: SpecDimension[];
+  addressed: string[];
+}) {
+  const addressedSet = new Set(addressed);
+  return (
+    <main className="flex-1 overflow-y-auto p-8">
+      <div className="max-w-3xl mx-auto space-y-4">
+        <Panel title={`Your specification · round ${iterations.length + 1}`}>
+          <div className="space-y-3">
+            <p className="text-sm text-[#858585]">
+              Write, in natural language, what the program must do. Say what
+              the inputs are, what it prints, and what assumptions you&apos;re
+              making. Opus will review and ask you to pin down anything that&apos;s
+              vague. The editor unlocks once the spec is precise enough.
+            </p>
+            <StudentTextarea
+              value={draft}
+              onChange={setDraft}
+              rows={8}
+              placeholder="The program asks the user for..."
+              disabled={submitting}
+            />
+            <div className="flex items-center gap-3">
+              <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
+                {submitting ? "Reviewing…" : "Submit spec for review"}
+              </Button>
+              {error && (
+                <span className="text-sm text-[#f48771] font-mono">
+                  {error}
+                </span>
+              )}
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          title={`Checklist · ${addressedSet.size}/${dimensions.length}`}
+          collapsible
+          defaultOpen
+        >
+          <ul className="space-y-1 text-sm font-mono">
+            {dimensions.map((d) => (
+              <li
+                key={d.id}
+                className={`flex items-start gap-2 ${
+                  addressedSet.has(d.id) ? "text-[#89d185]" : "text-[#858585]"
+                }`}
+              >
+                <span className="mt-0.5">
+                  {addressedSet.has(d.id) ? "✓" : "○"}
+                </span>
+                <span className="text-xs">{d.id}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-[#858585] mt-3">
+            Item names only — Opus will ask the concrete questions.
+          </p>
+        </Panel>
+
+        {iterations.length > 0 && (
+          <Panel title={`History · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`} collapsible>
+            <IterationHistory iterations={iterations} />
+          </Panel>
+        )}
+      </div>
+    </main>
+  );
+}
+
+// ─── Phase 2 — plan (single column, spec collapsible) ────────────────
+
+function Phase2View({
+  iterations,
+  finalSpec,
+  draft,
+  setDraft,
+  onSubmit,
+  submitting,
+  error,
+}: {
+  iterations: Phase1Iteration[];
+  finalSpec: string;
+  draft: string;
+  setDraft: (v: string) => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  return (
+    <main className="flex-1 overflow-y-auto p-8">
+      <div className="max-w-3xl mx-auto space-y-4">
+        <SpecAndHistoryTop
+          finalSpec={finalSpec}
+          iterations={iterations}
+        />
+        <Panel title="Implementation plan">
+          <div className="space-y-3">
+            <p className="text-sm text-[#858585]">
+              Before the editor unlocks, write down the data structures
+              you&apos;ll use, the order of operations, and the functions
+              you&apos;ll define. This is your prediction — your code will be
+              diffed against it later.
+            </p>
+            <StudentTextarea
+              value={draft}
+              onChange={setDraft}
+              rows={8}
+              placeholder="I'll use a single loop over the characters..."
+              disabled={submitting}
+            />
+            <div className="flex items-center gap-3">
+              <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
+                {submitting ? "Submitting…" : "Submit plan"}
+              </Button>
+              {error && (
+                <span className="text-sm text-[#f48771] font-mono">
+                  {error}
+                </span>
+              )}
+            </div>
+          </div>
+        </Panel>
+      </div>
+    </main>
+  );
+}
+
+// ─── Phase 3 — editor + chat ─────────────────────────────────────────
+
+function Phase3View({
+  iterations,
+  finalSpec,
+  plan,
+  code,
+  setCode,
+  exchanges,
+  chatInput,
+  setChatInput,
+  sendChat,
+  chatBusy,
+  submitFinalCode,
+  finalSubmitting,
+  sessionId,
+  error,
+}: {
+  iterations: Phase1Iteration[];
+  finalSpec: string;
+  plan: string | null;
+  code: string;
+  setCode: (v: string) => void;
+  exchanges: Phase3Exchange[];
+  chatInput: string;
+  setChatInput: (v: string) => void;
+  sendChat: () => void;
+  chatBusy: boolean;
+  submitFinalCode: () => void;
+  finalSubmitting: boolean;
+  sessionId: string;
+  error: string | null;
+}) {
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="px-8 py-3 border-b border-[#3e3e42]">
+        <div className="max-w-5xl mx-auto">
+          <SpecAndHistoryTop
+            finalSpec={finalSpec}
+            plan={plan}
+            iterations={iterations}
+            compact
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_24rem] min-h-0">
+        <section className="flex flex-col min-h-[50vh] border-r border-[#3e3e42]">
+          <div className="flex-1 min-h-0">
+            <PythonEditor value={code} onChange={setCode} readOnly={false} />
+          </div>
+          <div className="px-6 py-3 border-t border-[#3e3e42] bg-[#252526] flex items-center justify-between gap-3">
+            <RevisePlanDialog sessionId={sessionId} />
+            <div className="flex items-center gap-3">
+              {finalSubmitting && (
+                <span className="text-xs text-[#858585]">
+                  Comparing your code against your spec — 15–25 s…
+                </span>
+              )}
+              {error && (
+                <span className="text-xs text-[#f48771] font-mono">
+                  {error}
+                </span>
+              )}
+              <Button
+                onClick={submitFinalCode}
+                disabled={finalSubmitting || !code.trim()}
+              >
+                {finalSubmitting ? "Reviewing your work…" : "Submit for review"}
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <ChatPanel
+          exchanges={exchanges}
+          chatInput={chatInput}
+          setChatInput={setChatInput}
+          sendChat={sendChat}
+          chatBusy={chatBusy}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Phase 4 — divergence review ─────────────────────────────────────
+
+function Phase4View({
+  iterations,
+  finalSpec,
+  plan,
+  finalCode,
+  divergences,
+  currentIndex,
+  setIndex,
+  onAnswer,
+  error,
+}: {
+  iterations: Phase1Iteration[];
+  finalSpec: string;
+  plan: string | null;
+  finalCode: string;
+  divergences: DivergenceQuestion[];
+  currentIndex: number;
+  setIndex: (i: number) => void;
+  onAnswer: (i: number, answer: string) => void;
+  error: string | null;
+}) {
+  const [draft, setDraft] = useState("");
+  useEffect(() => {
+    setDraft("");
+  }, [currentIndex]);
+
+  return (
+    <main className="flex-1 overflow-y-auto p-8">
+      <div className="max-w-3xl mx-auto space-y-4">
+        <SpecAndHistoryTop
+          finalSpec={finalSpec}
+          plan={plan}
+          iterations={iterations}
+          finalCode={finalCode}
+        />
+
+        {divergences.length === 0 ? (
+          <Panel title="Review">
+            <div className="text-sm">
+              Opus found no meaningful divergences between your spec/plan and
+              your code. Nicely done.
+            </div>
+          </Panel>
+        ) : (
+          <>
+            <div className="flex items-center justify-between text-xs text-[#858585] font-mono">
+              <span>
+                Divergence {currentIndex + 1} of {divergences.length}
+              </span>
+              <span>
+                Answered {divergences.filter((x) => x.result).length} /{" "}
+                {divergences.length}
+              </span>
+            </div>
+
+            <Panel title="Opus asks">
+              <DivergenceAnswer
+                d={divergences[currentIndex]}
+                isLast={currentIndex === divergences.length - 1}
+                draft={draft}
+                setDraft={setDraft}
+                onAnswer={(answer) => onAnswer(currentIndex, answer)}
+                error={error}
+              />
+            </Panel>
+
+            <div className="flex gap-2 text-xs font-mono">
+              {divergences.map((x, i) => (
+                <button
+                  key={x.divergenceId}
+                  onClick={() => setIndex(i)}
+                  className={`px-2 py-1 rounded border transition-colors ${
+                    i === currentIndex
+                      ? "bg-[#007acc] border-[#007acc] text-white"
+                      : x.result
+                        ? "bg-[#1e3a2a] border-[#1e3a2a] text-[#89d185]"
+                        : "bg-[#252526] border-[#3e3e42] text-[#858585] hover:border-[#007acc]"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function DivergenceAnswer({
+  d,
+  isLast,
+  draft,
+  setDraft,
+  onAnswer,
+  error,
+}: {
+  d: DivergenceQuestion;
+  isLast: boolean;
+  draft: string;
+  setDraft: (v: string) => void;
+  onAnswer: (answer: string) => void;
+  error: string | null;
+}) {
+  const answered = d.result !== null;
+  return (
+    <div className="space-y-4">
+      <p className="whitespace-pre-wrap text-[#d4d4d4]">
+        {d.studentFacingQuestion}
+      </p>
+      {answered ? (
+        <div className="space-y-2">
+          <div className="text-sm">
+            <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
+              your answer
+            </div>
+            <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 whitespace-pre-wrap">
+              {d.answer}
+            </div>
+          </div>
+          <div className="text-xs text-[#858585]">
+            Recorded. Your instructor can see the full reasoning trail.
+          </div>
+        </div>
+      ) : (
+        <>
+          <StudentTextarea
+            value={draft}
+            onChange={setDraft}
+            rows={5}
+            placeholder={`Answering "I don't know" is valid and often the most useful thing you can say.`}
+            disabled={d.submitting}
+          />
+          <Button
+            onClick={() => onAnswer(draft)}
+            disabled={d.submitting || !draft.trim()}
+          >
+            {d.submitting
+              ? "Recording…"
+              : isLast
+                ? "Submit and finish"
+                : "Next"}
+          </Button>
+        </>
+      )}
+      {error && <div className="text-sm text-[#f48771] font-mono">{error}</div>}
+    </div>
+  );
+}
+
+// ─── Phase 5 — closed ─────────────────────────────────────────────────
+
+function Phase5View({
+  iterations,
+  finalSpec,
+  plan,
+  finalCode,
+  divergences,
+}: {
+  iterations: Phase1Iteration[];
+  finalSpec: string;
+  plan: string | null;
+  finalCode: string;
+  divergences: DivergenceQuestion[];
+}) {
+  return (
+    <main className="flex-1 overflow-y-auto p-8">
+      <div className="max-w-3xl mx-auto space-y-4">
+        <Panel title="Session complete ✓">
+          <div className="space-y-3 text-sm">
+            <p>
+              You answered {divergences.length} divergence{" "}
+              {divergences.length === 1 ? "question" : "questions"}. Your
+              instructor can see everything from here — the spec iterations,
+              your plan, your code, the chat, and the reasoning behind each
+              divergence.
+            </p>
+            <p className="text-[#858585]">
+              Nothing more to do. Head back to <Link href="/exercises" className="text-[#569cd6] hover:text-white underline">Available exercises</Link> for another.
+            </p>
+          </div>
+        </Panel>
+        <SpecAndHistoryTop
+          finalSpec={finalSpec}
+          plan={plan}
+          iterations={iterations}
+          finalCode={finalCode}
+          defaultOpen
+        />
+      </div>
+    </main>
+  );
+}
+
+// ─── Collapsible spec + plan + history + final code bundle ───────────
+
+function SpecAndHistoryTop({
+  finalSpec,
+  plan,
+  iterations,
+  finalCode,
+  compact,
+  defaultOpen,
+}: {
+  finalSpec: string;
+  plan?: string | null;
+  iterations: Phase1Iteration[];
+  finalCode?: string;
+  compact?: boolean;
+  defaultOpen?: boolean;
+}) {
+  return (
+    <div className={compact ? "space-y-1.5" : "space-y-2"}>
+      <CollapseRow
+        label={`Your spec${finalSpec ? "" : " (empty)"}`}
+        defaultOpen={defaultOpen}
+      >
+        <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+          {finalSpec || "(not submitted yet)"}
+        </div>
+      </CollapseRow>
+      {plan && (
+        <CollapseRow label="Your plan" defaultOpen={defaultOpen}>
+          <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+            {plan}
+          </div>
+        </CollapseRow>
+      )}
+      {iterations.length > 0 && (
+        <CollapseRow
+          label={`Spec iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
+          defaultOpen={defaultOpen}
+        >
+          <IterationHistory iterations={iterations} />
+        </CollapseRow>
+      )}
+      {finalCode && (
+        <CollapseRow label="Your submitted code" defaultOpen={defaultOpen}>
+          <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 overflow-x-auto font-mono">
+            {finalCode}
+          </pre>
+        </CollapseRow>
+      )}
+    </div>
+  );
+}
+
+function CollapseRow({
+  label,
+  defaultOpen,
+  children,
+}: {
+  label: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <details
+      className="group border border-[#3e3e42] bg-[#252526] rounded"
+      open={defaultOpen}
+    >
+      <summary className="cursor-pointer list-none px-3 py-1.5 flex items-center gap-2 text-xs font-mono text-[#858585] hover:text-white select-none">
+        <span className="inline-block transition-transform group-open:rotate-90">
+          ▸
+        </span>
+        <span>{label}</span>
+      </summary>
+      <div className="px-3 pb-3 pt-1">{children}</div>
+    </details>
+  );
+}
+
+function IterationHistory({ iterations }: { iterations: Phase1Iteration[] }) {
+  return (
+    <div className="space-y-4 max-h-[55vh] overflow-y-auto">
+      {iterations.map((it, i) => (
+        <div
+          key={i}
+          className="border-l-2 border-[#3e3e42] pl-3 space-y-2"
+        >
+          <div className="flex items-center gap-2">
+            <RoundBadge n={i + 1} />
+            <span className="text-xs text-[#858585] font-mono">
+              {new Date(it.timestamp).toLocaleTimeString()}
+            </span>
+            {it.passed && (
+              <span className="text-xs text-[#89d185] font-mono">✓ passed</span>
+            )}
+          </div>
+          <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+            {it.studentSpecText}
+          </div>
+          {it.opusQuestions.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                Opus asked
+              </div>
+              <ul className="text-sm space-y-1">
+                {it.opusQuestions.map((q, qi) => (
+                  <li key={qi} className="flex gap-2">
+                    <span className="text-[#858585]">·</span>
+                    <span>{q}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Chat panel ──────────────────────────────────────────────────────
+
+function ChatPanel({
+  exchanges,
+  chatInput,
+  setChatInput,
+  sendChat,
+  chatBusy,
+}: {
+  exchanges: Phase3Exchange[];
+  chatInput: string;
+  setChatInput: (v: string) => void;
+  sendChat: () => void;
+  chatBusy: boolean;
+}) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [exchanges.length]);
+
+  return (
+    <aside className="flex flex-col h-[60vh] lg:h-auto bg-[#252526] min-h-0">
+      <div className="px-4 py-2.5 border-b border-[#3e3e42] flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-[#007acc] text-white flex items-center justify-center text-[10px] font-semibold">
+          OP
+        </div>
+        <div>
+          <div className="text-sm font-semibold">Chat with Opus</div>
+          <div className="text-[10px] text-[#858585] font-mono">
+            interrogative for your code · direct for syntax
+          </div>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex-1 px-4 py-3 overflow-y-auto space-y-4 min-h-0"
+      >
+        {exchanges.length === 0 ? (
+          <p className="text-sm text-[#858585]">
+            Ask about your code or about Python syntax. Opus will answer
+            directly for syntax questions, and with counter-questions when
+            you ask about your own approach.
+          </p>
+        ) : (
+          exchanges.map((ex, i) => (
+            <div key={i} className="space-y-2">
+              <Bubble side="right" label="you">
+                {ex.studentMessage}
+              </Bubble>
+              <Bubble
+                side="left"
+                label={
+                  ex.opusResponse === "__pending__"
+                    ? "opus"
+                    : `opus · ${ex.opusMode}`
+                }
+                highlight
+              >
+                {ex.opusResponse === "__pending__" ? (
+                  <span className="italic text-[#75beff]">thinking…</span>
+                ) : (
+                  ex.opusResponse
+                )}
+              </Bubble>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="border-t border-[#3e3e42] p-3 space-y-2">
+        <StudentTextarea
+          value={chatInput}
+          onChange={setChatInput}
+          rows={3}
+          placeholder="Ask a question…"
+          disabled={chatBusy}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              sendChat();
+            }
+          }}
+        />
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-[#858585] font-mono">
+            ⌘/Ctrl + Enter to send
+          </span>
+          <Button
+            size="sm"
+            onClick={sendChat}
+            disabled={chatBusy || !chatInput.trim()}
+          >
+            {chatBusy ? "…" : "Send"}
+          </Button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function Bubble({
+  side,
+  label,
+  highlight,
+  children,
+}: {
+  side: "left" | "right";
+  label: string;
+  highlight?: boolean;
+  children: React.ReactNode;
+}) {
+  const isRight = side === "right";
+  return (
+    <div className={`flex flex-col ${isRight ? "items-end" : "items-start"}`}>
+      <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1 font-mono">
+        {label}
+      </div>
+      <div
+        className={`max-w-[90%] text-sm rounded-lg px-3 py-2 whitespace-pre-wrap ${
+          isRight
+            ? "bg-[#2a4d6e] border border-[#3e5d7a] text-white"
+            : highlight
+              ? "bg-[#252526] border border-[#007acc]/40"
+              : "bg-[#1e1e1e] border border-[#3e3e42]"
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Primitives ──────────────────────────────────────────────────────
+
 function Panel({
   title,
+  collapsible,
+  defaultOpen = true,
   children,
 }: {
   title?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
+  if (collapsible && title) {
+    return (
+      <details
+        open={defaultOpen}
+        className="border border-[#3e3e42] bg-[#252526] rounded"
+      >
+        <summary className="cursor-pointer list-none px-4 py-2.5 border-b border-[#3e3e42] text-[11px] font-semibold tracking-wider uppercase text-[#858585] hover:text-white flex items-center gap-2">
+          <span className="inline-block transition-transform group-open:rotate-90">
+            ▸
+          </span>
+          {title}
+        </summary>
+        <div className="p-4">{children}</div>
+      </details>
+    );
+  }
   return (
     <section className="border border-[#3e3e42] bg-[#252526] rounded">
       {title && (
@@ -472,493 +1174,6 @@ function StudentTextarea({
   );
 }
 
-// ─── Phase 1 ──────────────────────────────────────────────────────────
-
-function Phase1Panel({
-  iterations,
-  draft,
-  setDraft,
-  onSubmit,
-  submitting,
-  error,
-  dimensions,
-  addressed,
-}: {
-  iterations: Phase1Iteration[];
-  draft: string;
-  setDraft: (v: string) => void;
-  onSubmit: () => void;
-  submitting: boolean;
-  error: string | null;
-  dimensions: SpecDimension[];
-  addressed: string[];
-}) {
-  const addressedSet = new Set(addressed);
-  return (
-    <>
-      <Panel title={`Your specification · round ${iterations.length + 1}`}>
-        <div className="space-y-3">
-          <p className="text-sm text-[#858585]">
-            Write, in natural language, what the program must do: inputs,
-            outputs, edge cases, behavior on bad input. The editor unlocks
-            once the spec is specific enough to implement without guesswork.
-          </p>
-          <StudentTextarea
-            value={draft}
-            onChange={setDraft}
-            rows={6}
-            placeholder="The function takes a string and returns..."
-            disabled={submitting}
-          />
-          <div className="flex items-center gap-3">
-            <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
-              {submitting ? "Reviewing…" : "Submit spec for review"}
-            </Button>
-            {error && (
-              <span className="text-sm text-[#f48771] font-mono">{error}</span>
-            )}
-          </div>
-        </div>
-      </Panel>
-
-      <Panel title={`Checklist · ${addressedSet.size}/${dimensions.length}`}>
-        <ul className="space-y-1 text-sm font-mono">
-          {dimensions.map((d) => (
-            <li
-              key={d.id}
-              className={`flex items-start gap-2 ${
-                addressedSet.has(d.id) ? "text-[#89d185]" : "text-[#858585]"
-              }`}
-            >
-              <span className="mt-0.5">
-                {addressedSet.has(d.id) ? "✓" : "○"}
-              </span>
-              <span className="text-xs">{d.id}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="text-xs text-[#858585] mt-3">
-          Item names only — Opus will ask the concrete questions.
-        </p>
-      </Panel>
-
-      {iterations.length > 0 && (
-        <Panel title="History">
-          <div className="space-y-4 max-h-[55vh] overflow-y-auto">
-            {iterations.map((it, i) => (
-              <div
-                key={i}
-                className="border-l-2 border-[#3e3e42] pl-3 space-y-2"
-              >
-                <div className="flex items-center gap-2">
-                  <RoundBadge n={i + 1} />
-                  <span className="text-xs text-[#858585] font-mono">
-                    {new Date(it.timestamp).toLocaleTimeString()}
-                  </span>
-                  {it.passed && (
-                    <span className="text-xs text-[#89d185] font-mono">
-                      ✓ passed
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-                  {it.studentSpecText}
-                </div>
-                {it.opusQuestions.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-                      Opus asked
-                    </div>
-                    <ul className="text-sm space-y-1">
-                      {it.opusQuestions.map((q, qi) => (
-                        <li key={qi} className="flex gap-2">
-                          <span className="text-[#858585]">·</span>
-                          <span>{q}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
-    </>
-  );
-}
-
-// ─── Phase 2 ──────────────────────────────────────────────────────────
-
-function Phase2Panel({
-  finalSpec,
-  draft,
-  setDraft,
-  onSubmit,
-  submitting,
-  error,
-}: {
-  finalSpec: string;
-  draft: string;
-  setDraft: (v: string) => void;
-  onSubmit: () => void;
-  submitting: boolean;
-  error: string | null;
-}) {
-  return (
-    <>
-      <Panel title="Your spec · frozen">
-        <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
-          {finalSpec}
-        </div>
-      </Panel>
-
-      <Panel title="Implementation plan">
-        <div className="space-y-3">
-          <p className="text-sm text-[#858585]">
-            Before the editor unlocks, write down the data structures
-            you&apos;ll use, the order of operations, and the functions
-            you&apos;ll define. This is your prediction — your code will be
-            diffed against it later.
-          </p>
-          <StudentTextarea
-            value={draft}
-            onChange={setDraft}
-            rows={8}
-            placeholder="I'll use a single loop over the characters..."
-            disabled={submitting}
-          />
-          <div className="flex items-center gap-3">
-            <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
-              {submitting ? "Submitting…" : "Submit plan"}
-            </Button>
-            {error && (
-              <span className="text-sm text-[#f48771] font-mono">{error}</span>
-            )}
-          </div>
-        </div>
-      </Panel>
-    </>
-  );
-}
-
-// ─── Phase 3 ──────────────────────────────────────────────────────────
-
-function Phase3Layout({
-  finalSpec,
-  plan,
-  code,
-  setCode,
-  exchanges,
-  chatInput,
-  setChatInput,
-  sendChat,
-  chatBusy,
-  submitFinalCode,
-  finalSubmitting,
-  sessionId,
-  error,
-}: {
-  finalSpec: string;
-  plan: string | null;
-  code: string;
-  setCode: (v: string) => void;
-  exchanges: Phase3Exchange[];
-  chatInput: string;
-  setChatInput: (v: string) => void;
-  sendChat: () => void;
-  chatBusy: boolean;
-  submitFinalCode: () => void;
-  finalSubmitting: boolean;
-  sessionId: string;
-  error: string | null;
-}) {
-  return (
-    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_24rem] overflow-hidden">
-      <section className="flex flex-col border-r border-[#3e3e42]">
-        <div className="px-6 py-2.5 border-b border-[#3e3e42] flex items-center justify-between gap-3 bg-[#252526]">
-          <details className="text-sm min-w-0 flex-1">
-            <summary className="cursor-pointer text-[#858585] hover:text-white transition-colors font-mono text-xs uppercase tracking-wider">
-              spec &amp; plan · frozen
-            </summary>
-            <div className="mt-3 space-y-2">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
-                  Spec
-                </div>
-                <div className="whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-                  {finalSpec}
-                </div>
-              </div>
-              {plan && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
-                    Plan
-                  </div>
-                  <div className="whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-                    {plan}
-                  </div>
-                </div>
-              )}
-            </div>
-          </details>
-          <div className="flex items-center gap-2 shrink-0">
-            <RevisePlanDialog sessionId={sessionId} />
-            <Button
-              onClick={submitFinalCode}
-              disabled={finalSubmitting || !code.trim()}
-            >
-              {finalSubmitting ? "Reviewing your work…" : "Submit for review"}
-            </Button>
-          </div>
-        </div>
-        <div className="flex-1 min-h-[50vh]">
-          <PythonEditor value={code} onChange={setCode} readOnly={false} />
-        </div>
-        {finalSubmitting && (
-          <div className="px-6 py-2 text-xs text-[#858585] border-t border-[#3e3e42]">
-            Opus is comparing your code against your spec and plan — this
-            takes 15–25 seconds.
-          </div>
-        )}
-        {error && (
-          <div className="px-6 py-2 text-sm text-[#f48771] border-t border-[#3e3e42] font-mono">
-            {error}
-          </div>
-        )}
-      </section>
-
-      <aside className="flex flex-col h-[60vh] lg:h-auto bg-[#252526]">
-        <div className="px-4 py-2.5 border-b border-[#3e3e42] text-[11px] font-semibold tracking-wider uppercase text-[#858585]">
-          Chat with Opus
-        </div>
-        <div className="flex-1 px-4 py-3 overflow-y-auto">
-          {exchanges.length === 0 ? (
-            <p className="text-sm text-[#858585]">
-              Ask about your code or about Python syntax. Opus will answer
-              directly for syntax questions, and with counter-questions when
-              you ask about your own approach.
-            </p>
-          ) : (
-            <div className="space-y-5">
-              {exchanges.map((ex, i) => (
-                <div key={i} className="space-y-3">
-                  <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#3c3c3c] border border-[#3e3e42] flex items-center justify-center text-[11px] font-mono text-[#858585] shrink-0">
-                      you
-                    </div>
-                    <div className="flex-1 text-sm bg-[#1e1e1e] border border-[#3e3e42] rounded px-3 py-2 whitespace-pre-wrap">
-                      {ex.studentMessage}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#007acc] text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
-                      OP
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-                        opus
-                        {ex.opusResponse !== "__pending__" && (
-                          <span className="font-mono text-[#4ec9b0]">
-                            {" · "}
-                            {ex.opusMode}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm bg-[#1e3a5c] border border-[#007acc] rounded px-3 py-2 whitespace-pre-wrap">
-                        {ex.opusResponse === "__pending__" ? (
-                          <span className="italic text-[#75beff]">
-                            thinking…
-                          </span>
-                        ) : (
-                          ex.opusResponse
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="border-t border-[#3e3e42] p-3 space-y-2">
-          <StudentTextarea
-            value={chatInput}
-            onChange={setChatInput}
-            rows={3}
-            placeholder="Ask a question…"
-            disabled={chatBusy}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                sendChat();
-              }
-            }}
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-[#858585] font-mono">
-              ⌘/Ctrl + Enter to send
-            </span>
-            <Button
-              size="sm"
-              onClick={sendChat}
-              disabled={chatBusy || !chatInput.trim()}
-            >
-              {chatBusy ? "…" : "Send"}
-            </Button>
-          </div>
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-// ─── Phase 4 ──────────────────────────────────────────────────────────
-
-function Phase4Panel({
-  divergences,
-  currentIndex,
-  setIndex,
-  onAnswer,
-  error,
-}: {
-  divergences: DivergenceQuestion[];
-  currentIndex: number;
-  setIndex: (i: number) => void;
-  onAnswer: (i: number, answer: string) => void;
-  error: string | null;
-}) {
-  const [draft, setDraft] = useState("");
-  useEffect(() => {
-    setDraft("");
-  }, [currentIndex]);
-
-  if (divergences.length === 0) {
-    return (
-      <div className="flex-1 p-8">
-        <Panel>
-          <div className="text-sm">
-            Opus found no meaningful divergences between your spec/plan and
-            your code. Nicely done.
-          </div>
-        </Panel>
-      </div>
-    );
-  }
-
-  const d = divergences[currentIndex];
-  const answered = d.result !== null;
-
-  return (
-    <div className="flex-1 flex items-start justify-center p-8 overflow-y-auto">
-      <div className="max-w-2xl w-full space-y-4">
-        <div className="flex items-center justify-between text-sm text-[#858585] font-mono">
-          <span>
-            divergence {currentIndex + 1} of {divergences.length}
-          </span>
-          <span>
-            answered {divergences.filter((x) => x.result).length} /{" "}
-            {divergences.length}
-          </span>
-        </div>
-        <Panel title="Opus asks">
-          <div className="space-y-4">
-            <p className="whitespace-pre-wrap text-[#d4d4d4]">
-              {d.studentFacingQuestion}
-            </p>
-            {answered ? (
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
-                    your answer
-                  </div>
-                  <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 whitespace-pre-wrap">
-                    {d.answer}
-                  </div>
-                </div>
-                <div className="text-xs text-[#858585]">
-                  Recorded. Your instructor can see the full reasoning trail.
-                </div>
-              </div>
-            ) : (
-              <>
-                <StudentTextarea
-                  value={draft}
-                  onChange={setDraft}
-                  rows={5}
-                  placeholder={`Answering "I don't know" is valid and often the most useful thing you can say.`}
-                  disabled={d.submitting}
-                />
-                <Button
-                  onClick={() => onAnswer(currentIndex, draft)}
-                  disabled={d.submitting || !draft.trim()}
-                >
-                  {d.submitting
-                    ? "Recording…"
-                    : currentIndex === divergences.length - 1
-                      ? "Submit and finish"
-                      : "Next"}
-                </Button>
-              </>
-            )}
-            {error && (
-              <div className="text-sm text-[#f48771] font-mono">{error}</div>
-            )}
-          </div>
-        </Panel>
-        <div className="flex gap-2 text-xs font-mono">
-          {divergences.map((x, i) => (
-            <button
-              key={x.divergenceId}
-              onClick={() => setIndex(i)}
-              className={`px-2 py-1 rounded border transition-colors ${
-                i === currentIndex
-                  ? "bg-[#007acc] border-[#007acc] text-white"
-                  : x.result
-                    ? "bg-[#1e3a2a] border-[#1e3a2a] text-[#89d185]"
-                    : "bg-[#252526] border-[#3e3e42] text-[#858585] hover:border-[#007acc]"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Phase 5 ──────────────────────────────────────────────────────────
-
-function Phase5Closed({
-  divergences,
-}: {
-  divergences: DivergenceQuestion[];
-}) {
-  return (
-    <div className="flex-1 flex items-start justify-center p-8 overflow-y-auto">
-      <div className="max-w-xl w-full">
-        <Panel title="Session complete">
-          <div className="space-y-3 text-sm">
-            <p>
-              You answered {divergences.length} divergence{" "}
-              {divergences.length === 1 ? "question" : "questions"}. Your
-              instructor can see everything from here — the spec iterations,
-              your plan, your code, the chat, and the reasoning behind each
-              divergence.
-            </p>
-            <p className="text-[#858585]">
-              Nothing more to do here. Close this tab or open a new exercise.
-            </p>
-          </div>
-        </Panel>
-      </div>
-    </div>
-  );
-}
-
-// ─── Misc UI ──────────────────────────────────────────────────────────
-
 function RoundBadge({ n }: { n: number }) {
   return (
     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
@@ -967,6 +1182,8 @@ function RoundBadge({ n }: { n: number }) {
     </span>
   );
 }
+
+// ─── Dialogs ─────────────────────────────────────────────────────────
 
 function AskForHelpDialog({
   sessionId,
@@ -1006,7 +1223,7 @@ function AskForHelpDialog({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-[12px] px-2 py-0.5 rounded bg-[#2d2d30] text-white hover:bg-[#3e3e42] transition-colors"
+        className="text-xs px-2.5 py-1 rounded border border-[#3e3e42] bg-[#2d2d30] text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors"
       >
         Ask for help
       </button>
@@ -1143,10 +1360,3 @@ async function readError(res: Response): Promise<string> {
     return `HTTP ${res.status}`;
   }
 }
-
-const PHASE3_PLACEHOLDER = `# The editor unlocks once your spec is approved.
-# While you write here in Phase 3:
-#   - Autocomplete is off.
-#   - Opus answers language questions directly.
-#   - Opus responds to "why is my code broken?" with questions, not fixes.
-`;

@@ -5,11 +5,12 @@ import {
   SCAFFOLDING_SYSTEM,
   buildScaffoldingUserMessage,
 } from "@/lib/opus/prompts/scaffolding";
-import { ScaffoldingOutput } from "@/lib/opus/schemas";
+import { ScaffoldingOutput, UnitId } from "@/lib/opus/schemas";
 
 const Body = z.object({
   title: z.string().min(1).max(200),
   prompt: z.string().min(1).max(5000),
+  unit: UnitId.optional(),
 });
 
 export async function POST(req: Request) {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: buildScaffoldingUserMessage(body.prompt, body.title),
+          content: buildScaffoldingUserMessage(body.prompt, body.title, body.unit),
         },
       ],
       maxTokens: 4096,
