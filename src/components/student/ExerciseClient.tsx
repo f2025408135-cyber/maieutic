@@ -12,6 +12,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { PythonEditor } from "@/components/student/PythonEditor";
+import { TopNav } from "@/components/editor/TopNav";
+import { FileTabBar } from "@/components/editor/FileTab";
 import type {
   OpusMode,
   Phase1Data,
@@ -281,13 +283,18 @@ export function ExerciseClient({
 
   return (
     <div className="min-h-screen bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
-      <Header sessionId={session.id} phase={session.currentPhase} closed={closed} />
+      <TopNav back={{ href: "/exercises", label: "Back to exercises" }} />
+      <FileTabBar fileName={`${exercise.id}.py`} />
 
       <ExerciseTitle
         title={exercise.title}
         promptText={exercise.instructorPromptText}
         unit={exercise.unit}
       />
+
+      {!closed && (
+        <HelpImStuckButton sessionId={session.id} phase={session.currentPhase} />
+      )}
 
       {inPhase1 && (
         <Phase1View
@@ -297,8 +304,6 @@ export function ExerciseClient({
           onSubmit={submitSpec}
           submitting={submitting}
           error={error}
-          dimensions={exercise.specGateDimensions}
-          addressed={session.phase1.instructorConfiguredDimensionsAddressed}
         />
       )}
 
@@ -360,38 +365,7 @@ export function ExerciseClient({
   );
 }
 
-// ─── Header ───────────────────────────────────────────────────────────
-
-function Header({
-  sessionId,
-  phase,
-  closed,
-}: {
-  sessionId: string;
-  phase: number;
-  closed: boolean;
-}) {
-  return (
-    <header className="border-b border-[#3e3e42] px-6 py-3 flex items-center justify-between bg-[#1e1e1e] sticky top-0 z-20">
-      <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-        <span
-          className="inline-block w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: "#007acc" }}
-        />
-        <span className="text-lg font-semibold tracking-tight">Maieutic</span>
-      </Link>
-      <div className="flex items-center gap-3">
-        {!closed && <AskForHelpDialog sessionId={sessionId} phase={phase} />}
-        <Link
-          href="/exercises"
-          className="text-sm text-[#858585] hover:text-white transition-colors px-2 py-1 rounded hover:bg-[#2a2d2e]"
-        >
-          ← Back to exercises
-        </Link>
-      </div>
-    </header>
-  );
-}
+// ─── Exercise title banner ───────────────────────────────────────────
 
 function ExerciseTitle({
   title,
@@ -403,19 +377,89 @@ function ExerciseTitle({
   unit: Unit;
 }) {
   return (
-    <div className="px-8 py-8 border-b border-[#3e3e42] bg-[#1e1e1e]">
-      <div className="max-w-5xl mx-auto">
+    <div className="px-8 py-10 border-b border-[#3e3e42] bg-[#1e1e1e]">
+      <div className="max-w-3xl mx-auto">
         <div className="text-xs font-mono text-[#4ec9b0] tracking-wider uppercase mb-3">
           Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
         </div>
         <h1 className="text-4xl font-semibold tracking-tight leading-tight">
           {title}
         </h1>
-        <p className="mt-4 text-lg text-[#d4d4d4]/90 leading-relaxed max-w-3xl">
+        <p className="mt-4 text-lg text-[#d4d4d4]/90 leading-relaxed">
           {promptText}
         </p>
       </div>
     </div>
+  );
+}
+
+function HelpImStuckButton({
+  sessionId,
+  phase,
+}: {
+  sessionId: string;
+  phase: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function send() {
+    setSending(true);
+    try {
+      await fetch(`/api/session/${sessionId}/help`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message.trim() || "(no details provided)",
+          phaseState: { phase },
+        }),
+      });
+      setSent(true);
+      setTimeout(() => {
+        setOpen(false);
+        setSent(false);
+        setMessage("");
+      }, 1200);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 px-5 py-3 rounded-full bg-[#a94444] hover:bg-[#bf5555] text-white font-medium shadow-md shadow-black/30 transition-colors"
+      >
+        <span aria-hidden className="text-base">🙋</span>
+        <span>Help, I&apos;m stuck</span>
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ask the instructor or TA</DialogTitle>
+            <DialogDescription>
+              This sends a notification to the instructor dashboard with your
+              current session state.
+            </DialogDescription>
+          </DialogHeader>
+          <StudentTextarea
+            value={message}
+            onChange={setMessage}
+            rows={4}
+            placeholder="What are you stuck on?"
+            disabled={sending || sent}
+          />
+          <DialogFooter>
+            <Button onClick={send} disabled={sending || sent}>
+              {sent ? "Sent" : sending ? "Sending…" : "Send"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -428,8 +472,6 @@ function Phase1View({
   onSubmit,
   submitting,
   error,
-  dimensions,
-  addressed,
 }: {
   iterations: Phase1Iteration[];
   draft: string;
@@ -437,10 +479,9 @@ function Phase1View({
   onSubmit: () => void;
   submitting: boolean;
   error: string | null;
-  dimensions: SpecDimension[];
-  addressed: string[];
 }) {
-  const addressedSet = new Set(addressed);
+  const lastIteration = iterations[iterations.length - 1];
+  const hints = lastIteration?.opusQuestions ?? [];
   return (
     <main className="flex-1 overflow-y-auto p-8">
       <div className="max-w-3xl mx-auto space-y-4">
@@ -449,8 +490,7 @@ function Phase1View({
             <p className="text-sm text-[#858585]">
               Write, in natural language, what the program must do. Say what
               the inputs are, what it prints, and what assumptions you&apos;re
-              making. Opus will review and ask you to pin down anything that&apos;s
-              vague. The editor unlocks once the spec is precise enough.
+              making. The editor unlocks once the spec is precise enough.
             </p>
             <StudentTextarea
               value={draft}
@@ -472,38 +512,50 @@ function Phase1View({
           </div>
         </Panel>
 
-        <Panel
-          title={`Checklist · ${addressedSet.size}/${dimensions.length}`}
-          collapsible
-          defaultOpen
-        >
-          <ul className="space-y-1 text-sm font-mono">
-            {dimensions.map((d) => (
-              <li
-                key={d.id}
-                className={`flex items-start gap-2 ${
-                  addressedSet.has(d.id) ? "text-[#89d185]" : "text-[#858585]"
-                }`}
-              >
-                <span className="mt-0.5">
-                  {addressedSet.has(d.id) ? "✓" : "○"}
-                </span>
-                <span className="text-xs">{d.id}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-xs text-[#858585] mt-3">
-            Item names only — Opus will ask the concrete questions.
-          </p>
-        </Panel>
+        {hints.length > 0 && (
+          <HintsPanel hints={hints} round={iterations.length} />
+        )}
 
-        {iterations.length > 0 && (
-          <Panel title={`History · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`} collapsible>
-            <IterationHistory iterations={iterations} />
+        {iterations.length > 1 && (
+          <Panel
+            title={`Earlier rounds · ${iterations.length - 1}`}
+            collapsible
+          >
+            <IterationHistory iterations={iterations.slice(0, -1)} />
           </Panel>
         )}
       </div>
     </main>
+  );
+}
+
+function HintsPanel({ hints, round }: { hints: string[]; round: number }) {
+  return (
+    <section className="border border-[#4a4a2e] bg-[#2a2a1a] rounded p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base" aria-hidden>
+          💡
+        </span>
+        <h2 className="text-[13px] font-semibold text-[#dcdcaa]">
+          Some things to think about
+        </h2>
+        <span className="text-[10px] text-[#858585] font-mono ml-auto">
+          round {round}
+        </span>
+      </div>
+      <ul className="space-y-2 text-sm text-[#d4d4d4]">
+        {hints.map((h, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="text-[#dcdcaa] shrink-0">→</span>
+            <span>{h}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-[#858585] mt-3">
+        These are suggestions — decide for yourself which ones to pin down in
+        your next spec.
+      </p>
+    </section>
   );
 }
 
@@ -1184,75 +1236,6 @@ function RoundBadge({ n }: { n: number }) {
 }
 
 // ─── Dialogs ─────────────────────────────────────────────────────────
-
-function AskForHelpDialog({
-  sessionId,
-  phase,
-}: {
-  sessionId: string;
-  phase: number;
-}) {
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  async function send() {
-    setSending(true);
-    try {
-      await fetch(`/api/session/${sessionId}/help`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: message.trim() || "(no details provided)",
-          phaseState: { phase },
-        }),
-      });
-      setSent(true);
-      setTimeout(() => {
-        setOpen(false);
-        setSent(false);
-        setMessage("");
-      }, 1200);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="text-xs px-2.5 py-1 rounded border border-[#3e3e42] bg-[#2d2d30] text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors"
-      >
-        Ask for help
-      </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ask the instructor or TA</DialogTitle>
-            <DialogDescription>
-              This sends a notification to the instructor dashboard with your
-              current session state.
-            </DialogDescription>
-          </DialogHeader>
-          <StudentTextarea
-            value={message}
-            onChange={setMessage}
-            rows={4}
-            placeholder="What are you stuck on?"
-            disabled={sending || sent}
-          />
-          <DialogFooter>
-            <Button onClick={send} disabled={sending || sent}>
-              {sent ? "Sent" : sending ? "Sending…" : "Send"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
 
 function RevisePlanDialog({ sessionId }: { sessionId: string }) {
   const [open, setOpen] = useState(false);

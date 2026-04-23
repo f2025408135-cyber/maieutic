@@ -6,6 +6,7 @@
 // #4ec9b0 / #b5cea8 / #858585 / #007acc) to match stock VSCode.
 
 import * as React from "react";
+import { TopNav } from "./TopNav";
 
 export const SYNTAX = {
   comment: "#6a9955",
@@ -27,6 +28,7 @@ export function CodeFrame({
   statusLeft,
   statusRight,
   banner,
+  back,
   children,
 }: {
   fileName?: string;
@@ -34,6 +36,8 @@ export function CodeFrame({
   statusLeft?: React.ReactNode;
   statusRight?: React.ReactNode;
   banner?: React.ReactNode;
+  /** Optional "← {label}" link in the top nav. */
+  back?: { href: string; label: string };
   children: React.ReactNode;
 }) {
   const lines = React.Children.toArray(children);
@@ -43,6 +47,7 @@ export function CodeFrame({
       className="min-h-screen flex flex-col bg-[#1e1e1e] text-[#d4d4d4] font-mono text-[15px]"
       style={{ lineHeight: `${LINE_H}px` }}
     >
+      <TopNav back={back} />
       <TabBar fileName={fileName} />
       {banner && <div className="px-8 pt-10 pb-6">{banner}</div>}
       <div className="flex-1 flex overflow-auto">

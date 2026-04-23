@@ -97,6 +97,7 @@ export default async function Exercises() {
     <CodeFrame
       fileName="exercises.md"
       language="Markdown"
+      back={{ href: "/", label: "Welcome" }}
       statusLeft={
         <>
           <span>✓ claude-opus-4-7</span>
