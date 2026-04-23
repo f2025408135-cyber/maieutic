@@ -5,6 +5,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 import { sessionEventBus } from "./events";
+import { defaultUnitForLevel } from "@/lib/units";
 
 // Prisma's `InputJsonValue` requires a recursive index signature that
 // Zod-inferred object literals don't structurally satisfy. Since everything
@@ -49,6 +50,7 @@ export async function createExercise(input: ExerciseAuthoringInput) {
       expectedDivergences: asJson(parsed.expectedDivergences),
       phase2Required: parsed.phase2Required,
       studentLevel: parsed.studentLevel,
+      unit: parsed.unit ?? defaultUnitForLevel(parsed.studentLevel),
       opusGeneratedDimensions: asJson(parsed.opusGeneratedDimensions),
       opusGeneratedDivergences: asJson(parsed.opusGeneratedDivergences),
       opusGeneratedPhase2Required: parsed.opusGeneratedPhase2Required,
@@ -72,6 +74,7 @@ export async function getExercise(exerciseId: string): Promise<ExerciseRecord> {
     expectedDivergences: row.expectedDivergences,
     phase2Required: row.phase2Required,
     studentLevel: row.studentLevel,
+    unit: row.unit,
     opusGeneratedDimensions: row.opusGeneratedDimensions,
     opusGeneratedDivergences: row.opusGeneratedDivergences,
     opusGeneratedPhase2Required: row.opusGeneratedPhase2Required,

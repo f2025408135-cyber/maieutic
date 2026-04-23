@@ -75,6 +75,7 @@
   ],
   "phase2Required": true,
   "studentLevel": "week_3_6",
+  "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
       "id": "order_of_result",

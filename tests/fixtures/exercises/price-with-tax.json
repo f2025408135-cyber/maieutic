@@ -1,0 +1,89 @@
+{
+  "id": "price-with-tax",
+  "title": "Price with tax",
+  "instructorPromptText": "Write a function that takes a price (a number) and a tax rate expressed as a percentage (e.g. 19.0 for 19%), and returns the total price including tax.",
+  "authoredAt": "2026-04-23T00:18:41.808Z",
+  "publishedAt": "2026-04-23T00:18:41.807Z",
+  "specGateDimensions": [
+    {
+      "id": "tax_rate_interpretation",
+      "description": "Does the function treat the tax_rate argument as a percentage (19.0 means 19%, so multiply by rate/100) or as a decimal fraction (0.19)?",
+      "rationale": "The prompt specifies percentage form, but students often default to treating the input as a decimal and divide by the wrong factor. Forcing the spec to commit makes this visible before coding.",
+      "source": "opus"
+    },
+    {
+      "id": "return_rounding",
+      "description": "Should the returned total be rounded to 2 decimal places (currency), or returned as a raw float?",
+      "rationale": "Prices imply currency, which implies rounding, but the prompt says nothing about it. The spec must commit because the student will otherwise produce values like 11.899999999999999 and be surprised.",
+      "source": "opus"
+    },
+    {
+      "id": "negative_or_zero_inputs",
+      "description": "What should happen if price or tax_rate is negative or zero? Are they accepted, rejected, or undefined behavior?",
+      "rationale": "Zero tax is realistic; negative values are nonsense. Surfacing this decides whether the function needs validation or operates on trust.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec says 'multiply by rate/100' but code writes `price * tax_rate` or `price + tax_rate`, forgetting the percentage conversion entirely",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to rounding to 2 decimals but code returns the raw float product",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student computes only the tax amount (`price * tax_rate / 100`) and returns that instead of the total (price + tax)",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes computing tax_amount then adding it; code uses the equivalent one-liner `price * (1 + tax_rate/100)` — coherent simplification",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "unit": "unit_1",
+  "opusGeneratedDimensions": [
+    {
+      "id": "tax_rate_interpretation",
+      "description": "Does the function treat the tax_rate argument as a percentage (19.0 means 19%, so multiply by rate/100) or as a decimal fraction (0.19)?",
+      "rationale": "The prompt specifies percentage form, but students often default to treating the input as a decimal and divide by the wrong factor. Forcing the spec to commit makes this visible before coding."
+    },
+    {
+      "id": "return_rounding",
+      "description": "Should the returned total be rounded to 2 decimal places (currency), or returned as a raw float?",
+      "rationale": "Prices imply currency, which implies rounding, but the prompt says nothing about it. The spec must commit because the student will otherwise produce values like 11.899999999999999 and be surprised."
+    },
+    {
+      "id": "negative_or_zero_inputs",
+      "description": "What should happen if price or tax_rate is negative or zero? Are they accepted, rejected, or undefined behavior?",
+      "rationale": "Zero tax is realistic; negative values are nonsense. Surfacing this decides whether the function needs validation or operates on trust."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec says 'multiply by rate/100' but code writes `price * tax_rate` or `price + tax_rate`, forgetting the percentage conversion entirely"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to rounding to 2 decimals but code returns the raw float product"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student computes only the tax amount (`price * tax_rate / 100`) and returns that instead of the total (price + tax)"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes computing tax_amount then adding it; code uses the equivalent one-liner `price * (1 + tax_rate/100)` — coherent simplification"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

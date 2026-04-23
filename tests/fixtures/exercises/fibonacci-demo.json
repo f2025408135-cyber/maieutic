@@ -63,6 +63,7 @@
   ],
   "phase2Required": false,
   "studentLevel": "week_3_6",
+  "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
       "id": "negative_input",

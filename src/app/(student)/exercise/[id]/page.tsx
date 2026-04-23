@@ -37,6 +37,7 @@ export default async function Page(
         title: exercise.title,
         instructorPromptText: exercise.instructorPromptText,
         studentLevel: exercise.studentLevel,
+        unit: exercise.unit,
         phase2Required: exercise.phase2Required,
         specGateDimensions: exercise.specGateDimensions,
       }}

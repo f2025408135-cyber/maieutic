@@ -22,6 +22,7 @@ import type {
   SpecDimension,
   StudentLevel,
 } from "@/lib/opus/schemas";
+import { unitLabel, UNIT_ROMAN, type Unit } from "@/lib/units";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,7 @@ export interface ExerciseClientProps {
     title: string;
     instructorPromptText: string;
     studentLevel: StudentLevel;
+    unit: Unit;
     phase2Required: boolean;
     specGateDimensions: SpecDimension[];
   };
@@ -293,7 +295,8 @@ export function ExerciseClient({
       ]}
       statusLeft={
         <>
-          <span className="font-mono">{exercise.studentLevel}</span>
+          <span className="font-mono">Unit {UNIT_ROMAN[exercise.unit]}</span>
+          <span>{unitLabel(exercise.unit).split(" · ")[1]}</span>
           <span>
             phase {session.currentPhase} ·{" "}
             {phaseLabel[session.currentPhase] ?? ""}

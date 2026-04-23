@@ -1,43 +1,32 @@
 import Link from "next/link";
-import {
-  CodeFrame,
-  Comment,
-  SYNTAX,
-} from "@/components/editor/CodeFrame";
+import { CodeFrame, Comment, SYNTAX } from "@/components/editor/CodeFrame";
 import { prisma } from "@/lib/db";
+import { UNIT_IDS, UNIT_ROMAN, UNIT_TITLE, type Unit } from "@/lib/units";
 
 async function getExercises() {
   return prisma.exercise.findMany({
     where: { publishedAt: { not: null } },
-    select: { id: true, title: true, studentLevel: true },
+    select: { id: true, title: true, unit: true },
     orderBy: { publishedAt: "asc" },
   });
 }
-
-type Level = "week_1_2" | "week_3_6" | "week_7_plus";
-
-const LEVEL_ORDER: Level[] = ["week_1_2", "week_3_6", "week_7_plus"];
-const LEVEL_LABEL: Record<Level, string> = {
-  week_1_2: "Week 1–2",
-  week_3_6: "Week 3–6",
-  week_7_plus: "Week 7+",
-};
 
 type ExerciseRow = { id: string; title: string };
 
 export default async function Exercises() {
   const exercises = await getExercises();
 
-  // Group by level, preserving publishedAt order within each group.
-  const byLevel = new Map<Level, ExerciseRow[]>();
+  // Group by unit, preserving publishedAt order within each group.
+  const byUnit = new Map<Unit, ExerciseRow[]>();
   for (const ex of exercises) {
-    const level = (ex.studentLevel as Level) ?? "week_1_2";
-    if (!byLevel.has(level)) byLevel.set(level, []);
-    byLevel.get(level)!.push({ id: ex.id, title: ex.title });
+    const unit = (ex.unit as Unit) ?? "unit_2";
+    if (!byUnit.has(unit)) byUnit.set(unit, []);
+    byUnit.get(unit)!.push({ id: ex.id, title: ex.title });
   }
-  const orderedGroups = LEVEL_ORDER.filter((lvl) => byLevel.has(lvl)).map(
-    (lvl) => ({ level: lvl, items: byLevel.get(lvl)! }),
-  );
+  const orderedGroups = UNIT_IDS.filter((u) => byUnit.has(u)).map((u) => ({
+    unit: u,
+    items: byUnit.get(u)!,
+  }));
 
   const lines: React.ReactNode[] = [];
   lines.push(<span />);
@@ -57,7 +46,7 @@ export default async function Exercises() {
   } else {
     orderedGroups.forEach((group, gi) => {
       if (gi > 0) lines.push(<span />);
-      lines.push(<WeekHeader label={LEVEL_LABEL[group.level]} />);
+      lines.push(<UnitHeader unit={group.unit} />);
       for (const ex of group.items) {
         lines.push(<ExerciseLine id={ex.id} title={ex.title} />);
       }
@@ -101,10 +90,10 @@ export default async function Exercises() {
   );
 }
 
-function WeekHeader({ label }: { label: string }) {
+function UnitHeader({ unit }: { unit: Unit }) {
   return (
     <span className="text-[16px] font-semibold" style={{ color: SYNTAX.type }}>
-      # {label}
+      # Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
     </span>
   );
 }

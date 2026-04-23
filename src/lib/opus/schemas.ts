@@ -13,6 +13,11 @@ import { z } from "zod";
 export const StudentLevel = z.enum(["week_1_2", "week_3_6", "week_7_plus"]);
 export type StudentLevel = z.infer<typeof StudentLevel>;
 
+// Curriculum unit — independent of StudentLevel. See src/lib/units.ts for
+// the unit-to-level mapping.
+export const UnitId = z.enum(["unit_1", "unit_2", "unit_3", "unit_4"]);
+export type UnitId = z.infer<typeof UnitId>;
+
 export const DivergenceCategory = z.enum(["drift", "revision", "bug"]);
 export type DivergenceCategory = z.infer<typeof DivergenceCategory>;
 
@@ -82,6 +87,7 @@ export const ExerciseRecord = z.object({
   expectedDivergences: z.array(ExpectedDivergence),
   phase2Required: z.boolean(),
   studentLevel: StudentLevel,
+  unit: UnitId,
   opusGeneratedDimensions: z.array(OpusGeneratedDimension),
   opusGeneratedDivergences: z.array(OpusGeneratedDivergence),
   opusGeneratedPhase2Required: z.boolean(),
@@ -99,6 +105,9 @@ export const ExerciseAuthoringInput = z.object({
   expectedDivergences: z.array(ExpectedDivergence).min(1),
   phase2Required: z.boolean(),
   studentLevel: StudentLevel,
+  // Optional at the boundary — createExercise derives from studentLevel
+  // when absent so legacy demo/test scripts keep working.
+  unit: UnitId.optional(),
   opusGeneratedDimensions: z.array(OpusGeneratedDimension),
   opusGeneratedDivergences: z.array(OpusGeneratedDivergence),
   opusGeneratedPhase2Required: z.boolean(),

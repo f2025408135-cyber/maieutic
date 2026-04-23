@@ -53,6 +53,7 @@
   ],
   "phase2Required": false,
   "studentLevel": "week_1_2",
+  "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
       "id": "case_sensitivity",

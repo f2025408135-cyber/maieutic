@@ -9,6 +9,7 @@ import {
   Phase2Data,
   Phase3Data,
 } from "@/lib/opus/schemas";
+import { UNIT_ROMAN, UNIT_TITLE, isUnit, type Unit } from "@/lib/units";
 
 export default async function Page({
   params,
@@ -79,8 +80,17 @@ export default async function Page({
               {session.id}
             </span>
             <span className="text-[#858585]">·</span>
-            <span className="font-mono text-xs text-[#4ec9b0]">
-              {session.exercise.studentLevel}
+            <span
+              className="font-mono text-xs text-[#4ec9b0]"
+              title={
+                isUnit(session.exercise.unit)
+                  ? UNIT_TITLE[session.exercise.unit as Unit]
+                  : undefined
+              }
+            >
+              {isUnit(session.exercise.unit)
+                ? `Unit ${UNIT_ROMAN[session.exercise.unit as Unit]} · ${UNIT_TITLE[session.exercise.unit as Unit]}`
+                : session.exercise.studentLevel}
             </span>
             <span className="text-[#858585]">·</span>
             <span>{session.exercise.title}</span>

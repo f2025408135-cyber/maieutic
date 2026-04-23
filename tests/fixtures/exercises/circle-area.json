@@ -1,0 +1,98 @@
+{
+  "id": "circle-area",
+  "title": "Area of a circle",
+  "instructorPromptText": "Write a function that takes a radius (a number) and returns the area of a circle using the formula π × r². Use 3.14159 for π.",
+  "authoredAt": "2026-04-23T00:18:23.622Z",
+  "publishedAt": "2026-04-23T00:18:23.621Z",
+  "specGateDimensions": [
+    {
+      "id": "negative_radius",
+      "description": "What should the function do if given a negative radius — compute the (positive) area anyway, return 0, or reject the input?",
+      "rationale": "A negative radius is geometrically meaningless; forcing the student to commit surfaces whether they treat the function as pure math or as modeling a real circle.",
+      "source": "opus"
+    },
+    {
+      "id": "return_type",
+      "description": "Does the function return a float (the raw computed value) or a rounded/formatted value?",
+      "rationale": "Students often conflate 'return' with 'print' and add formatting that changes the return type; committing to float output up front prevents that.",
+      "source": "opus"
+    },
+    {
+      "id": "zero_radius",
+      "description": "What should the function return when the radius is 0?",
+      "rationale": "Zero is a boundary case that's trivially correct (returns 0.0) but worth naming so the student confirms the formula handles it rather than special-casing it.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec says 'return the area' but code calls print(area) and returns None",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student hardcodes a different π value (3.14 or math.pi) instead of the specified 3.14159",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses r**2; code uses r*r — semantically identical",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses 3.14159 * r * 2 instead of 3.14159 * r ** 2 (misreads r² as 2r)",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Operator precedence error, e.g. writes 3.14159 * r ** 2 correctly but then a student variant writes (3.14159 * r) ** 2",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "unit": "unit_1",
+  "opusGeneratedDimensions": [
+    {
+      "id": "negative_radius",
+      "description": "What should the function do if given a negative radius — compute the (positive) area anyway, return 0, or reject the input?",
+      "rationale": "A negative radius is geometrically meaningless; forcing the student to commit surfaces whether they treat the function as pure math or as modeling a real circle."
+    },
+    {
+      "id": "return_type",
+      "description": "Does the function return a float (the raw computed value) or a rounded/formatted value?",
+      "rationale": "Students often conflate 'return' with 'print' and add formatting that changes the return type; committing to float output up front prevents that."
+    },
+    {
+      "id": "zero_radius",
+      "description": "What should the function return when the radius is 0?",
+      "rationale": "Zero is a boundary case that's trivially correct (returns 0.0) but worth naming so the student confirms the formula handles it rather than special-casing it."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec says 'return the area' but code calls print(area) and returns None"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student hardcodes a different π value (3.14 or math.pi) instead of the specified 3.14159"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses r**2; code uses r*r — semantically identical"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses 3.14159 * r * 2 instead of 3.14159 * r ** 2 (misreads r² as 2r)"
+    },
+    {
+      "category": "bug",
+      "pattern": "Operator precedence error, e.g. writes 3.14159 * r ** 2 correctly but then a student variant writes (3.14159 * r) ** 2"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

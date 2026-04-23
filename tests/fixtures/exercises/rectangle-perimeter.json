@@ -1,0 +1,78 @@
+{
+  "id": "rectangle-perimeter",
+  "title": "Perimeter of a rectangle",
+  "instructorPromptText": "Write a function that takes the width and height of a rectangle (two numbers) and returns its perimeter (2 × width + 2 × height).",
+  "authoredAt": "2026-04-23T00:18:31.766Z",
+  "publishedAt": "2026-04-23T00:18:31.764Z",
+  "specGateDimensions": [
+    {
+      "id": "numeric_type_contract",
+      "description": "Should the function accept only integers, or also floats? What happens if one or both inputs are non-numeric (string, None)?",
+      "rationale": "The prompt says 'two numbers' without specifying type; committing forces the student to think about input contracts before the formula.",
+      "source": "opus"
+    },
+    {
+      "id": "negative_or_zero_dimensions",
+      "description": "What should happen if width or height is zero or negative? Return the computed value anyway, return 0, or reject the input?",
+      "rationale": "A negative perimeter is geometrically meaningless; surfacing this forces the student to decide between 'trust the caller' and 'validate'.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec commits to rejecting negative inputs, but code computes the formula unconditionally with no validation",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes computing `2*width + 2*height`; code uses the equivalent `2 * (width + height)` — coherent factoring",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student prints the result inside the function instead of returning it, so the caller receives None",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `^` (XOR) instead of `*` for multiplication, carrying over a math-notation habit",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "unit": "unit_1",
+  "opusGeneratedDimensions": [
+    {
+      "id": "numeric_type_contract",
+      "description": "Should the function accept only integers, or also floats? What happens if one or both inputs are non-numeric (string, None)?",
+      "rationale": "The prompt says 'two numbers' without specifying type; committing forces the student to think about input contracts before the formula."
+    },
+    {
+      "id": "negative_or_zero_dimensions",
+      "description": "What should happen if width or height is zero or negative? Return the computed value anyway, return 0, or reject the input?",
+      "rationale": "A negative perimeter is geometrically meaningless; surfacing this forces the student to decide between 'trust the caller' and 'validate'."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec commits to rejecting negative inputs, but code computes the formula unconditionally with no validation"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes computing `2*width + 2*height`; code uses the equivalent `2 * (width + height)` — coherent factoring"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student prints the result inside the function instead of returning it, so the caller receives None"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `^` (XOR) instead of `*` for multiplication, carrying over a math-notation habit"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

@@ -21,6 +21,7 @@ async function getInitialSnapshot() {
       exerciseId: s.exerciseId,
       exerciseTitle: s.exercise.title,
       studentLevel: s.exercise.studentLevel,
+      unit: s.exercise.unit,
       currentPhase: s.currentPhase,
       startedAt: s.startedAt.toISOString(),
       mostRecentSummary,
@@ -39,7 +40,7 @@ async function listExercises() {
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
-    level: r.studentLevel,
+    unit: r.unit,
     sessionCount: r._count.sessions,
   }));
 }

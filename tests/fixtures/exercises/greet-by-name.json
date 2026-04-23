@@ -1,0 +1,89 @@
+{
+  "id": "greet-by-name",
+  "title": "Greet by name",
+  "instructorPromptText": "Write a function that takes a person's name (a string) and returns a friendly greeting like 'Hello, Alice!'.",
+  "authoredAt": "2026-04-23T00:18:14.494Z",
+  "publishedAt": "2026-04-23T00:18:14.490Z",
+  "specGateDimensions": [
+    {
+      "id": "empty_name",
+      "description": "What should the function return when the name is an empty string — 'Hello, !' or some other fallback like 'Hello, friend!'?",
+      "rationale": "Empty string is the canonical missed case; forcing a commitment here surfaces whether the student has thought past the happy path.",
+      "source": "opus"
+    },
+    {
+      "id": "whitespace_handling",
+      "description": "Should leading/trailing whitespace in the name be stripped, or preserved verbatim in the greeting?",
+      "rationale": "Students rarely think about input hygiene; surfacing it in the spec prevents output like 'Hello,   Alice  !'.",
+      "source": "opus"
+    },
+    {
+      "id": "return_vs_print",
+      "description": "Does the function return the greeting string or print it?",
+      "rationale": "Novices routinely conflate return and print; the prompt says 'returns' but students often write print() and then cannot use the result.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses print() instead of return, so the function technically outputs the greeting but returns None",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes string concatenation with '+'; code uses an f-string — coherent idiomatic substitution",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Forgets the comma or exclamation mark, producing 'Hello Alice' or 'Hello, Alice' instead of the specified format",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec committed to stripping whitespace but code passes the name through unchanged",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "unit": "unit_1",
+  "opusGeneratedDimensions": [
+    {
+      "id": "empty_name",
+      "description": "What should the function return when the name is an empty string — 'Hello, !' or some other fallback like 'Hello, friend!'?",
+      "rationale": "Empty string is the canonical missed case; forcing a commitment here surfaces whether the student has thought past the happy path."
+    },
+    {
+      "id": "whitespace_handling",
+      "description": "Should leading/trailing whitespace in the name be stripped, or preserved verbatim in the greeting?",
+      "rationale": "Students rarely think about input hygiene; surfacing it in the spec prevents output like 'Hello,   Alice  !'."
+    },
+    {
+      "id": "return_vs_print",
+      "description": "Does the function return the greeting string or print it?",
+      "rationale": "Novices routinely conflate return and print; the prompt says 'returns' but students often write print() and then cannot use the result."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses print() instead of return, so the function technically outputs the greeting but returns None"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes string concatenation with '+'; code uses an f-string — coherent idiomatic substitution"
+    },
+    {
+      "category": "bug",
+      "pattern": "Forgets the comma or exclamation mark, producing 'Hello Alice' or 'Hello, Alice' instead of the specified format"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec committed to stripping whitespace but code passes the name through unchanged"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

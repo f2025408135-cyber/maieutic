@@ -11,6 +11,14 @@ import type {
   Source,
   DivergenceCategory,
 } from "@/lib/opus/schemas";
+import {
+  UNIT_IDS,
+  UNIT_ROMAN,
+  UNIT_TITLE,
+  defaultUnitForLevel,
+  levelForUnit,
+  type Unit,
+} from "@/lib/units";
 
 type EditableDimension = SpecDimension & { originalId?: string };
 
@@ -23,7 +31,6 @@ function slugify(s: string): string {
     .slice(0, 40);
 }
 
-const LEVELS: StudentLevel[] = ["week_1_2", "week_3_6", "week_7_plus"];
 const CATEGORIES: DivergenceCategory[] = ["drift", "revision", "bug"];
 
 export default function AuthoringPage() {
@@ -39,6 +46,7 @@ export default function AuthoringPage() {
   const [divergences, setDivergences] = useState<ExpectedDivergence[]>([]);
   const [phase2Required, setPhase2Required] = useState(false);
   const [studentLevel, setStudentLevel] = useState<StudentLevel>("week_1_2");
+  const [unit, setUnit] = useState<Unit>("unit_2");
   const [promptQualityNote, setPromptQualityNote] = useState<string | null>(
     null,
   );
@@ -83,6 +91,7 @@ export default function AuthoringPage() {
       );
       setPhase2Required(s.phase_2_required);
       setStudentLevel(s.student_level);
+      setUnit(defaultUnitForLevel(s.student_level));
       setPromptQualityNote(s.prompt_quality_note);
       setHasReviewed(false);
       setLatencyMs(Math.round(performance.now() - t0));
@@ -185,6 +194,7 @@ export default function AuthoringPage() {
         expectedDivergences: divergences,
         phase2Required,
         studentLevel,
+        unit,
         opusGeneratedDimensions: originalScaffolding.spec_gate_dimensions,
         opusGeneratedDivergences: originalScaffolding.expected_divergences,
         opusGeneratedPhase2Required: originalScaffolding.phase_2_required,
@@ -396,37 +406,51 @@ export default function AuthoringPage() {
                 </div>
               </Panel>
 
-              <Panel title="Student level & planning step">
+              <Panel title="Unit & planning step">
                 <div className="space-y-4">
                   <div>
                     <div className="text-xs text-[#858585] mb-2">
-                      Student level
+                      Unit
                     </div>
-                    <div className="flex gap-4">
-                      {LEVELS.map((lvl) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {UNIT_IDS.map((u) => (
                         <label
-                          key={lvl}
-                          className="flex items-center gap-2 text-sm font-mono cursor-pointer"
+                          key={u}
+                          className={`flex items-center gap-3 text-sm cursor-pointer border rounded px-3 py-2 transition-colors ${
+                            unit === u
+                              ? "border-[#007acc] bg-[#04395e]/30"
+                              : "border-[#3e3e42] hover:border-[#858585]"
+                          }`}
                         >
                           <input
                             type="radio"
-                            name="student_level"
-                            checked={studentLevel === lvl}
-                            onChange={() => setStudentLevel(lvl)}
+                            name="unit"
+                            checked={unit === u}
+                            onChange={() => {
+                              setUnit(u);
+                              setStudentLevel(levelForUnit(u));
+                            }}
                             className="accent-[#007acc]"
                           />
-                          <span
-                            className={
-                              studentLevel === lvl
-                                ? "text-[#4ec9b0]"
-                                : "text-[#d4d4d4]"
-                            }
-                          >
-                            {lvl}
+                          <span>
+                            <span
+                              className="font-semibold"
+                              style={{
+                                color: unit === u ? "#dcdcaa" : "#d4d4d4",
+                              }}
+                            >
+                              Unit {UNIT_ROMAN[u]}
+                            </span>
+                            <span className="text-[#858585]"> · </span>
+                            <span>{UNIT_TITLE[u]}</span>
                           </span>
                         </label>
                       ))}
                     </div>
+                    <p className="text-xs text-[#858585] mt-2">
+                      The Opus-calibration level follows from the unit:{" "}
+                      <span className="font-mono">{studentLevel}</span>.
+                    </p>
                   </div>
                   <div>
                     <label className="flex items-center gap-2 text-sm cursor-pointer">

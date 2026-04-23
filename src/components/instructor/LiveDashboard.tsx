@@ -4,6 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Workbench } from "@/components/editor/Workbench";
 import type { LiveSummary, LiveSummaryFlag } from "@/lib/opus/schemas";
+import {
+  UNIT_ROMAN,
+  UNIT_TITLE,
+  isUnit,
+  type Unit,
+} from "@/lib/units";
 
 interface SessionRow {
   sessionId: string;
@@ -11,6 +17,7 @@ interface SessionRow {
   exerciseId: string;
   exerciseTitle: string;
   studentLevel: string;
+  unit: string;
   currentPhase: number;
   startedAt: string;
   mostRecentSummary: LiveSummary | null;
@@ -21,7 +28,7 @@ interface SessionRow {
 interface ExerciseRow {
   id: string;
   title: string;
-  level: string;
+  unit: string;
   sessionCount: number;
 }
 
@@ -143,7 +150,11 @@ export function LiveDashboard({
                   >
                     <div className="text-sm font-medium">{e.title}</div>
                     <div className="text-xs text-[#858585] font-mono">
-                      {e.level} · {e.sessionCount} session
+                      {isUnit(e.unit)
+                        ? `Unit ${UNIT_ROMAN[e.unit]} · ${UNIT_TITLE[e.unit]}`
+                        : e.unit}
+                      {" · "}
+                      {e.sessionCount} session
                       {e.sessionCount === 1 ? "" : "s"}
                     </div>
                   </Link>
@@ -269,7 +280,7 @@ function SessionCard({ session }: { session: SessionRow }) {
                 <span className="font-mono text-[#858585]">
                   {session.studentId.slice(0, 12)}
                 </span>
-                <LevelBadge level={session.studentLevel} />
+                <UnitBadge unit={session.unit} />
                 <PhaseBadge phase={session.currentPhase} />
                 <span className="text-[#858585]">{minutes}m</span>
                 {session.currentPhase === 1 && session.iterationCount > 0 && (
@@ -333,10 +344,15 @@ function PhaseBadge({ phase }: { phase: number }) {
   );
 }
 
-function LevelBadge({ level }: { level: string }) {
+function UnitBadge({ unit }: { unit: string }) {
+  const label = isUnit(unit) ? `Unit ${UNIT_ROMAN[unit as Unit]}` : unit;
+  const title = isUnit(unit) ? UNIT_TITLE[unit as Unit] : undefined;
   return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e] text-[#4ec9b0]">
-      {level}
+    <span
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e] text-[#4ec9b0]"
+      title={title}
+    >
+      {label}
     </span>
   );
 }
