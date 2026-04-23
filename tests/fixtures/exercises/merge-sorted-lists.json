@@ -1,0 +1,137 @@
+{
+  "id": "merge-sorted-lists",
+  "title": "Merge two sorted dict lists",
+  "instructorPromptText": "Write a function that takes two lists of dictionaries, each already sorted by a 'timestamp' key, and returns a single merged list, sorted by 'timestamp'. Do not re-sort — merge in linear time.",
+  "authoredAt": "2026-04-23T00:03:58.597Z",
+  "publishedAt": "2026-04-23T00:03:58.596Z",
+  "specGateDimensions": [
+    {
+      "id": "tie_breaking",
+      "description": "When two dictionaries (one from each list) have equal 'timestamp' values, which one comes first in the merged output?",
+      "rationale": "Stability in merging is the classic unstated assumption; committing to 'list A first on ties' or similar prevents silent ordering bugs that only surface on equal keys.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_inputs",
+      "description": "What should the function return when one or both input lists are empty?",
+      "rationale": "Empty-list handling is the edge case that most often breaks merge implementations written with index pointers, because the while-loop guards must be correct.",
+      "source": "opus"
+    },
+    {
+      "id": "missing_timestamp_key",
+      "description": "What happens if a dictionary in either list is missing the 'timestamp' key, or has a non-comparable value for it?",
+      "rationale": "Forcing a commitment to the data contract (assume well-formed vs. validate) keeps the student from conflating a spec omission with a runtime bug.",
+      "source": "opus"
+    },
+    {
+      "id": "input_mutation",
+      "description": "Is it acceptable to mutate or consume the input lists (e.g. via .pop(0)), or must the originals be left untouched?",
+      "rationale": "Mutation vs. purity is a real design decision here, and .pop(0) would also silently violate the linear-time requirement.",
+      "source": "opus"
+    },
+    {
+      "id": "linear_time_commitment",
+      "description": "What concretely does 'linear time' mean for this function — O(n+m) comparisons and a single pass over each list, with no call to sorted() or .sort()?",
+      "rationale": "The prompt explicitly forbids re-sorting; the spec must restate this as a commitment so the student cannot later justify a sort-based solution as 'close enough'.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Student's spec commits to O(n+m) merge, but code concatenates the two lists and calls sorted(..., key=lambda d: d['timestamp']) — violates the linear-time requirement despite producing correct output",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Merge loop handles the interleaving correctly but forgets to append the tail of whichever list still has remaining elements after the other is exhausted",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses list.pop(0) to consume from the front of each list — correct output but O((n+m)^2) due to pop(0) being linear, silently violating the complexity contract",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Index pointers i and j are incremented incorrectly (e.g. both advance on every iteration, or the wrong one advances), producing out-of-order or truncated output",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Comparison written as `a['timestamp'] > b['timestamp']` where `<` was meant (or vice versa), producing a reverse-sorted or scrambled merge",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes index pointers i and j with a while loop; code uses heapq.merge(a, b, key=lambda d: d['timestamp']) — coherent stdlib substitution that still satisfies linear-time, but may surprise the student if they didn't commit to allowing it in the spec",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes a single while loop with compound condition; code uses two sequential while loops (main interleave, then drain) — coherent restructure with identical complexity",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": true,
+  "studentLevel": "week_7_plus",
+  "opusGeneratedDimensions": [
+    {
+      "id": "tie_breaking",
+      "description": "When two dictionaries (one from each list) have equal 'timestamp' values, which one comes first in the merged output?",
+      "rationale": "Stability in merging is the classic unstated assumption; committing to 'list A first on ties' or similar prevents silent ordering bugs that only surface on equal keys."
+    },
+    {
+      "id": "empty_inputs",
+      "description": "What should the function return when one or both input lists are empty?",
+      "rationale": "Empty-list handling is the edge case that most often breaks merge implementations written with index pointers, because the while-loop guards must be correct."
+    },
+    {
+      "id": "missing_timestamp_key",
+      "description": "What happens if a dictionary in either list is missing the 'timestamp' key, or has a non-comparable value for it?",
+      "rationale": "Forcing a commitment to the data contract (assume well-formed vs. validate) keeps the student from conflating a spec omission with a runtime bug."
+    },
+    {
+      "id": "input_mutation",
+      "description": "Is it acceptable to mutate or consume the input lists (e.g. via .pop(0)), or must the originals be left untouched?",
+      "rationale": "Mutation vs. purity is a real design decision here, and .pop(0) would also silently violate the linear-time requirement."
+    },
+    {
+      "id": "linear_time_commitment",
+      "description": "What concretely does 'linear time' mean for this function — O(n+m) comparisons and a single pass over each list, with no call to sorted() or .sort()?",
+      "rationale": "The prompt explicitly forbids re-sorting; the spec must restate this as a commitment so the student cannot later justify a sort-based solution as 'close enough'."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Student's spec commits to O(n+m) merge, but code concatenates the two lists and calls sorted(..., key=lambda d: d['timestamp']) — violates the linear-time requirement despite producing correct output"
+    },
+    {
+      "category": "drift",
+      "pattern": "Merge loop handles the interleaving correctly but forgets to append the tail of whichever list still has remaining elements after the other is exhausted"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses list.pop(0) to consume from the front of each list — correct output but O((n+m)^2) due to pop(0) being linear, silently violating the complexity contract"
+    },
+    {
+      "category": "bug",
+      "pattern": "Index pointers i and j are incremented incorrectly (e.g. both advance on every iteration, or the wrong one advances), producing out-of-order or truncated output"
+    },
+    {
+      "category": "bug",
+      "pattern": "Comparison written as `a['timestamp'] > b['timestamp']` where `<` was meant (or vice versa), producing a reverse-sorted or scrambled merge"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes index pointers i and j with a while loop; code uses heapq.merge(a, b, key=lambda d: d['timestamp']) — coherent stdlib substitution that still satisfies linear-time, but may surprise the student if they didn't commit to allowing it in the spec"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes a single while loop with compound condition; code uses two sequential while loops (main interleave, then drain) — coherent restructure with identical complexity"
+    }
+  ],
+  "opusGeneratedPhase2Required": true,
+  "opusGeneratedStudentLevel": "week_7_plus"
+}

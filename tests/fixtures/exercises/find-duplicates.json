@@ -1,0 +1,137 @@
+{
+  "id": "find-duplicates",
+  "title": "Find duplicates in a list",
+  "instructorPromptText": "Write a function that takes a list and returns a new list containing only the items that appear more than once. Each duplicate should appear only once in the result.",
+  "authoredAt": "2026-04-23T00:02:30.473Z",
+  "publishedAt": "2026-04-23T00:02:30.472Z",
+  "specGateDimensions": [
+    {
+      "id": "order_of_result",
+      "description": "In what order should duplicates appear in the returned list — order of first occurrence, order of second occurrence, sorted, or unspecified?",
+      "rationale": "The prompt does not specify ordering, but any concrete implementation will produce *some* order. Forcing commitment prevents the student from writing code whose output order differs from what their spec implies.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_and_no_duplicates",
+      "description": "What should be returned when the input list is empty or contains no duplicates?",
+      "rationale": "Returning an empty list is the obvious answer, but the spec should say so explicitly rather than leaving it to accident.",
+      "source": "opus"
+    },
+    {
+      "id": "element_types",
+      "description": "Can the list contain mixed or unhashable types (lists, dicts), or only hashable items like numbers and strings?",
+      "rationale": "This choice determines whether a set/dict-based solution is viable; surfacing it forces the student to notice their implementation strategy depends on a type assumption.",
+      "source": "opus"
+    },
+    {
+      "id": "triple_or_more_occurrences",
+      "description": "If an item appears 3+ times, does it still appear exactly once in the result?",
+      "rationale": "The prompt says 'each duplicate should appear only once', but novices often write code that emits the item once per extra occurrence (e.g., twice for a triple). Committing to 'exactly once regardless of count' clarifies the contract.",
+      "source": "opus"
+    },
+    {
+      "id": "mutation_of_input",
+      "description": "Is the original list left unchanged, or may it be modified (e.g., sorted in place)?",
+      "rationale": "Some intuitive solutions sort the input first; students rarely realize this mutates the caller's list. Making the no-mutation guarantee explicit prevents a subtle class of bugs.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Student's spec says each duplicate appears once, but code appends inside a nested loop without tracking what's already been added, so an item appearing 3 times shows up twice in the result",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to preserving order of first occurrence, but code uses `set()` somewhere that destroys the order",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses a dict/counter to tally occurrences then filters for count > 1; code uses `[x for x in set(lst) if lst.count(x) > 1]` — coherent but O(n²)",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes two passes (count, then collect); code uses a single pass with a 'seen' set and a 'duplicates' set — coherent optimization",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Nested loop with `if lst[i] == lst[j]` but indices not constrained (i != j or j > i), causing every element to match itself and be flagged as duplicate",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `list.count()` inside a loop over the same list without deduplicating the result, producing duplicates-of-duplicates in the output",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Modifies the input list via `.remove()` or `.sort()` while iterating, causing skipped elements or incorrect results",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": true,
+  "studentLevel": "week_3_6",
+  "opusGeneratedDimensions": [
+    {
+      "id": "order_of_result",
+      "description": "In what order should duplicates appear in the returned list — order of first occurrence, order of second occurrence, sorted, or unspecified?",
+      "rationale": "The prompt does not specify ordering, but any concrete implementation will produce *some* order. Forcing commitment prevents the student from writing code whose output order differs from what their spec implies."
+    },
+    {
+      "id": "empty_and_no_duplicates",
+      "description": "What should be returned when the input list is empty or contains no duplicates?",
+      "rationale": "Returning an empty list is the obvious answer, but the spec should say so explicitly rather than leaving it to accident."
+    },
+    {
+      "id": "element_types",
+      "description": "Can the list contain mixed or unhashable types (lists, dicts), or only hashable items like numbers and strings?",
+      "rationale": "This choice determines whether a set/dict-based solution is viable; surfacing it forces the student to notice their implementation strategy depends on a type assumption."
+    },
+    {
+      "id": "triple_or_more_occurrences",
+      "description": "If an item appears 3+ times, does it still appear exactly once in the result?",
+      "rationale": "The prompt says 'each duplicate should appear only once', but novices often write code that emits the item once per extra occurrence (e.g., twice for a triple). Committing to 'exactly once regardless of count' clarifies the contract."
+    },
+    {
+      "id": "mutation_of_input",
+      "description": "Is the original list left unchanged, or may it be modified (e.g., sorted in place)?",
+      "rationale": "Some intuitive solutions sort the input first; students rarely realize this mutates the caller's list. Making the no-mutation guarantee explicit prevents a subtle class of bugs."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Student's spec says each duplicate appears once, but code appends inside a nested loop without tracking what's already been added, so an item appearing 3 times shows up twice in the result"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to preserving order of first occurrence, but code uses `set()` somewhere that destroys the order"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses a dict/counter to tally occurrences then filters for count > 1; code uses `[x for x in set(lst) if lst.count(x) > 1]` — coherent but O(n²)"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes two passes (count, then collect); code uses a single pass with a 'seen' set and a 'duplicates' set — coherent optimization"
+    },
+    {
+      "category": "bug",
+      "pattern": "Nested loop with `if lst[i] == lst[j]` but indices not constrained (i != j or j > i), causing every element to match itself and be flagged as duplicate"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `list.count()` inside a loop over the same list without deduplicating the result, producing duplicates-of-duplicates in the output"
+    },
+    {
+      "category": "bug",
+      "pattern": "Modifies the input list via `.remove()` or `.sort()` while iterating, causing skipped elements or incorrect results"
+    }
+  ],
+  "opusGeneratedPhase2Required": true,
+  "opusGeneratedStudentLevel": "week_3_6"
+}

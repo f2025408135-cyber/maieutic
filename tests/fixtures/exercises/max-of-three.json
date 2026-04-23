@@ -1,0 +1,97 @@
+{
+  "id": "max-of-three",
+  "title": "Maximum of three",
+  "instructorPromptText": "Write a function that takes three numbers and returns the largest one. Do not use the built-in max() function.",
+  "authoredAt": "2026-04-23T00:01:48.349Z",
+  "publishedAt": "2026-04-23T00:01:48.348Z",
+  "specGateDimensions": [
+    {
+      "id": "ties_behavior",
+      "description": "What should the function return when two or all three inputs are equal (e.g., max_of_three(5, 5, 3))?",
+      "rationale": "Ties have an obvious answer (return the tied value) but force the student to notice that their comparison operators — < vs <= — don't actually matter for correctness here, which is a useful observation.",
+      "source": "opus"
+    },
+    {
+      "id": "numeric_types",
+      "description": "Does the function need to handle floats, negative numbers, and mixed int/float inputs, or only positive integers?",
+      "rationale": "Students often implicitly assume positive integers and write code that happens to work for negatives anyway; committing to the contract clarifies what the tests should cover.",
+      "source": "opus"
+    },
+    {
+      "id": "comparison_strategy",
+      "description": "Will you compare the three numbers with a chain of if/elif branches, or reduce pairwise (find max of first two, then compare to third)?",
+      "rationale": "Both strategies are valid and the student must commit to one before coding, since mixing them mid-implementation is a common source of tangled logic.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student writes `if a > b and a > c` / `elif b > a and b > c` but omits the final `else` or a third branch, so certain tie configurations fall through and return None",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `if a > b > c` thinking it checks 'a is the largest', misunderstanding Python's chained comparison semantics",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to handling negatives but code initializes a running maximum to 0 instead of to one of the inputs, causing wrong answers on all-negative inputs",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes three if/elif branches; code uses a running-maximum accumulator pattern (`m = a; if b > m: m = b; if c > m: m = c`) — coherent simplification",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student sorts a list of the three values and returns the last element — satisfies the spec and avoids max() but sidesteps the comparison logic the exercise is meant to teach",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "opusGeneratedDimensions": [
+    {
+      "id": "ties_behavior",
+      "description": "What should the function return when two or all three inputs are equal (e.g., max_of_three(5, 5, 3))?",
+      "rationale": "Ties have an obvious answer (return the tied value) but force the student to notice that their comparison operators — < vs <= — don't actually matter for correctness here, which is a useful observation."
+    },
+    {
+      "id": "numeric_types",
+      "description": "Does the function need to handle floats, negative numbers, and mixed int/float inputs, or only positive integers?",
+      "rationale": "Students often implicitly assume positive integers and write code that happens to work for negatives anyway; committing to the contract clarifies what the tests should cover."
+    },
+    {
+      "id": "comparison_strategy",
+      "description": "Will you compare the three numbers with a chain of if/elif branches, or reduce pairwise (find max of first two, then compare to third)?",
+      "rationale": "Both strategies are valid and the student must commit to one before coding, since mixing them mid-implementation is a common source of tangled logic."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student writes `if a > b and a > c` / `elif b > a and b > c` but omits the final `else` or a third branch, so certain tie configurations fall through and return None"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `if a > b > c` thinking it checks 'a is the largest', misunderstanding Python's chained comparison semantics"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to handling negatives but code initializes a running maximum to 0 instead of to one of the inputs, causing wrong answers on all-negative inputs"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes three if/elif branches; code uses a running-maximum accumulator pattern (`m = a; if b > m: m = b; if c > m: m = c`) — coherent simplification"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student sorts a list of the three values and returns the last element — satisfies the spec and avoids max() but sidesteps the comparison logic the exercise is meant to teach"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

@@ -1,0 +1,88 @@
+{
+  "id": "even-or-odd",
+  "title": "Even or odd",
+  "instructorPromptText": "Write a function that takes an integer and returns the string 'even' or 'odd'.",
+  "authoredAt": "2026-04-23T00:01:34.654Z",
+  "publishedAt": "2026-04-23T00:01:34.653Z",
+  "specGateDimensions": [
+    {
+      "id": "zero_classification",
+      "description": "What should the function return for 0?",
+      "rationale": "Zero is mathematically even but students often forget to consider it; forcing a commitment surfaces whether the student understands modulo behavior on 0.",
+      "source": "opus"
+    },
+    {
+      "id": "negative_integers",
+      "description": "How should negative integers be handled — are -3 and -4 classified the same as 3 and 4?",
+      "rationale": "Some students write `n % 2 == 1` which fails for negative odd numbers in Python; surfacing negatives in the spec forces the student to think about the check, not just the positive case.",
+      "source": "opus"
+    },
+    {
+      "id": "non_integer_input",
+      "description": "What happens if the input is a float, string, or None?",
+      "rationale": "The prompt says 'takes an integer' but does not say whether the function should validate. Committing to a contract (trust the caller vs. validate) prevents silent bugs on floats like 4.0.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student writes `if n % 2 == 1: return 'odd'` which misclassifies negative odd numbers in Python (since -3 % 2 == 1 actually works in Python, but the equivalent in other languages fails — or student writes `== 1` thinking only of positives and is surprised)",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to returning lowercase 'even'/'odd' but code returns 'Even'/'Odd' or True/False",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes an if/else; code uses a ternary `return 'even' if n % 2 == 0 else 'odd'` — coherent simplification",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `//` (floor division) instead of `%` (modulo), returning wrong classification for all inputs",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": false,
+  "studentLevel": "week_1_2",
+  "opusGeneratedDimensions": [
+    {
+      "id": "zero_classification",
+      "description": "What should the function return for 0?",
+      "rationale": "Zero is mathematically even but students often forget to consider it; forcing a commitment surfaces whether the student understands modulo behavior on 0."
+    },
+    {
+      "id": "negative_integers",
+      "description": "How should negative integers be handled — are -3 and -4 classified the same as 3 and 4?",
+      "rationale": "Some students write `n % 2 == 1` which fails for negative odd numbers in Python; surfacing negatives in the spec forces the student to think about the check, not just the positive case."
+    },
+    {
+      "id": "non_integer_input",
+      "description": "What happens if the input is a float, string, or None?",
+      "rationale": "The prompt says 'takes an integer' but does not say whether the function should validate. Committing to a contract (trust the caller vs. validate) prevents silent bugs on floats like 4.0."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student writes `if n % 2 == 1: return 'odd'` which misclassifies negative odd numbers in Python (since -3 % 2 == 1 actually works in Python, but the equivalent in other languages fails — or student writes `== 1` thinking only of positives and is surprised)"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to returning lowercase 'even'/'odd' but code returns 'Even'/'Odd' or True/False"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes an if/else; code uses a ternary `return 'even' if n % 2 == 0 else 'odd'` — coherent simplification"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `//` (floor division) instead of `%` (modulo), returning wrong classification for all inputs"
+    }
+  ],
+  "opusGeneratedPhase2Required": false,
+  "opusGeneratedStudentLevel": "week_1_2"
+}

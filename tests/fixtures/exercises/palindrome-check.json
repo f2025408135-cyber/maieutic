@@ -1,0 +1,117 @@
+{
+  "id": "palindrome-check",
+  "title": "Palindrome check",
+  "instructorPromptText": "Write a function that returns True if a string is a palindrome, ignoring case and non-letter characters.",
+  "authoredAt": "2026-04-23T00:02:01.747Z",
+  "publishedAt": "2026-04-23T00:02:01.745Z",
+  "specGateDimensions": [
+    {
+      "id": "non_letter_definition",
+      "description": "What counts as a 'non-letter character' to ignore — spaces only, spaces and punctuation, or anything that isn't a-z/A-Z (including digits)?",
+      "rationale": "The prompt says 'non-letter' but students often silently interpret this as 'non-alphanumeric'. Forcing a commitment surfaces whether digits like in 'A1A' are stripped or kept.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_string",
+      "description": "What should the function return for an empty string, or a string that contains only non-letter characters (e.g., '!!!')?",
+      "rationale": "After filtering, the working string may be empty; the vacuous-truth case is the classic missed edge in palindrome problems.",
+      "source": "opus"
+    },
+    {
+      "id": "unicode_letters",
+      "description": "Do accented or non-ASCII letters (é, ñ, Ü) count as letters, and if so how are they compared case-insensitively?",
+      "rationale": "The spec must commit to ASCII-only or Unicode-aware handling before the student picks between .isalpha() and a manual a-z check.",
+      "source": "opus"
+    },
+    {
+      "id": "return_type_on_bad_input",
+      "description": "What should happen if the input is not a string (None, a number)?",
+      "rationale": "Committing to a type contract up front prevents the student from discovering a crash and mislabeling it a bug rather than a spec gap.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec commits to ignoring case, but code compares the reversed string to the original without calling .lower(), so 'Aba' is reported as not a palindrome",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec says ignore non-letters, but code only strips spaces (e.g., uses .replace(' ', '')) and fails on 'A man, a plan, a canal: Panama'",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes a two-pointer walk from both ends; code uses `cleaned == cleaned[::-1]` — coherent Pythonic simplification",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes filtering then reversing in two passes; code uses a single comprehension plus slice — coherent consolidation",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `c.isalpha()` but then compares using the raw character instead of the lowercased one, so case-folding is lost mid-pipeline",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Two-pointer version has an off-by-one in the while-loop condition (`<` vs `<=`) and gives wrong results on odd-length inputs",
+      "source": "opus"
+    }
+  ],
+  "phase2Required": true,
+  "studentLevel": "week_3_6",
+  "opusGeneratedDimensions": [
+    {
+      "id": "non_letter_definition",
+      "description": "What counts as a 'non-letter character' to ignore — spaces only, spaces and punctuation, or anything that isn't a-z/A-Z (including digits)?",
+      "rationale": "The prompt says 'non-letter' but students often silently interpret this as 'non-alphanumeric'. Forcing a commitment surfaces whether digits like in 'A1A' are stripped or kept."
+    },
+    {
+      "id": "empty_string",
+      "description": "What should the function return for an empty string, or a string that contains only non-letter characters (e.g., '!!!')?",
+      "rationale": "After filtering, the working string may be empty; the vacuous-truth case is the classic missed edge in palindrome problems."
+    },
+    {
+      "id": "unicode_letters",
+      "description": "Do accented or non-ASCII letters (é, ñ, Ü) count as letters, and if so how are they compared case-insensitively?",
+      "rationale": "The spec must commit to ASCII-only or Unicode-aware handling before the student picks between .isalpha() and a manual a-z check."
+    },
+    {
+      "id": "return_type_on_bad_input",
+      "description": "What should happen if the input is not a string (None, a number)?",
+      "rationale": "Committing to a type contract up front prevents the student from discovering a crash and mislabeling it a bug rather than a spec gap."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "drift",
+      "pattern": "Spec commits to ignoring case, but code compares the reversed string to the original without calling .lower(), so 'Aba' is reported as not a palindrome"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec says ignore non-letters, but code only strips spaces (e.g., uses .replace(' ', '')) and fails on 'A man, a plan, a canal: Panama'"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes a two-pointer walk from both ends; code uses `cleaned == cleaned[::-1]` — coherent Pythonic simplification"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes filtering then reversing in two passes; code uses a single comprehension plus slice — coherent consolidation"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses `c.isalpha()` but then compares using the raw character instead of the lowercased one, so case-folding is lost mid-pipeline"
+    },
+    {
+      "category": "bug",
+      "pattern": "Two-pointer version has an off-by-one in the while-loop condition (`<` vs `<=`) and gives wrong results on odd-length inputs"
+    }
+  ],
+  "opusGeneratedPhase2Required": true,
+  "opusGeneratedStudentLevel": "week_3_6"
+}
