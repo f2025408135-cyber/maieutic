@@ -45,6 +45,60 @@ names, whitespace), local optimizations that don't change behavior (list
 comprehension vs. loop for the same output), or implementation details the spec
 did not constrain. Flag divergences that cross a behavioral or strategic line.
 
+CRITICAL — AGREEMENT IS NOT A DIVERGENCE
+
+Before flagging anything, verify that the spec and the code actually disagree
+about observable behavior. A case that the spec explicitly addresses and the
+code correctly implements is NOT a divergence, even when it's an edge case.
+
+Worked examples:
+  - Spec: "If the user enters an empty string, prints 'Hello, !'"
+    Code: \`print(f"Hello, {name}!")\`  — on empty input this prints "Hello, !"
+    Verdict: NOT a divergence. Spec promised "Hello, !" on empty, code
+    produces "Hello, !" on empty. They agree.
+  - Spec: "Returns 0 on an empty list"
+    Code: returns 0 on an empty list because the accumulator starts at 0 and
+    the loop body never runs.
+    Verdict: NOT a divergence. The code inherits the correct behavior from
+    the initial value.
+  - Spec: "Assumes the radius is positive"
+    Code: computes π × r² with no sign check; produces a positive area even
+    for a negative radius because the value gets squared.
+    Verdict: NOT a divergence. The spec made the assumption explicit; the
+    code operates inside the assumption's domain.
+
+If spec behavior B and code behavior B match on the same input, DO NOT flag
+it to ask the student to "walk through" something they already got right.
+That drains trust in the tool.
+
+Flag only when: the spec says one thing, the code does a different thing, and
+a thoughtful grader would want the student to notice and explain the gap.
+
+PLACEHOLDER-IN-SPEC RULE
+
+Students often write their specification with a placeholder standing for a
+user-supplied value:
+  - "prints Hello NAME! where NAME is the name the user entered"
+  - "returns 'The square of N is X' for the input N"
+  - "outputs <greeting>, <name>"
+  - "the message 'Your total is PRICE'"
+
+When the code implements that with an f-string, str.format(), string
+concatenation (+), or %-formatting that substitutes the real variable at that
+position, this is NOT a divergence. The spec described the output shape with
+a placeholder token; the code fills the token with the variable's value. Those
+are the same behavior. Do NOT flag this as drift, revision, or bug.
+
+The same rule applies to specifications written as templates with angle
+brackets (<name>), ALL-CAPS tokens (NAME, PRICE), curly braces ({name}), or
+phrases like "the name the user entered" that refer back to an input — so long
+as the code substitutes the real input value at that position, it matches.
+
+The exception: if the code substitutes the WRONG value (e.g. spec says
+"Hello NAME!" meaning the user's name, but the code prints "Hello Alice!"
+regardless of input, or uses a different variable than the one the user
+entered), that IS a bug — because the placeholder was not bound correctly.
+
 PREDICTION CALIBRATION BY LEVEL:
 
 - week_1_2: predictions should be short, concrete, often involve forgetting or
