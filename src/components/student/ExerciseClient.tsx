@@ -553,7 +553,7 @@ function Phase1View({
       <div className="max-w-3xl mx-auto space-y-4">
         <Panel title={`Your specification · round ${iterations.length + 1}`}>
           <div className="space-y-3">
-            <p className="text-sm text-[#858585]">
+            <p className="text-sm text-[#d4d4d4] leading-relaxed">
               Write, in natural language, what the program must do. Say what
               the inputs are, what it prints, and what assumptions you&apos;re
               making. The editor unlocks once the specification is precise

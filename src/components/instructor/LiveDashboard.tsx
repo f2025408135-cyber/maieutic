@@ -104,7 +104,7 @@ export function LiveDashboard({
       statusRight={
         <>
           <span>Instructor · live</span>
-          <span>Auto-refresh 90s</span>
+          <span>Snapshot 10s · summary 90s</span>
         </>
       }
     >

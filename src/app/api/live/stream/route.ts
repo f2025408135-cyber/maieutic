@@ -1,9 +1,10 @@
 // Server-Sent Events stream for the instructor live view.
 // Tech Spec §9. Three triggers:
-//  1. 90s timer — refresh all active-session summaries
-//  2. Event-driven — phase_transition, alignment_failure, help_request,
+//  1. 90s timer — refresh all active-session LLM summaries (Opus calls)
+//  2. 10s timer — rebuild + push snapshot from the DB (no LLM); also
+//     doubles as the connection keepalive
+//  3. Event-driven — phase_transition, alignment_failure, help_request,
 //     revision, summary_refresh pushed on sessionEventBus
-//  3. 30s keepalive — prevents proxy timeout
 
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
@@ -87,7 +88,8 @@ export async function GET(req: NextRequest) {
         send({ error: err instanceof Error ? err.message : "snapshot failed" }, "error");
       }
 
-      // 2. 90s summary refresh timer
+      // 2a. 90s LLM-summary refresh timer (expensive: one Opus call per
+      //     active session).
       const refreshTimer = setInterval(async () => {
         try {
           await refreshAllActiveSessions();
@@ -100,6 +102,21 @@ export async function GET(req: NextRequest) {
           );
         }
       }, 90_000);
+
+      // 2b. 10s snapshot tick — rebuild row state (phase, iteration count,
+      //     help-request status, time-since) from the DB without calling
+      //     Opus. Cheap, keeps the UI feeling live.
+      const snapshotTimer = setInterval(async () => {
+        try {
+          const snapshot = await buildSnapshot();
+          send({ sessions: snapshot }, "snapshot");
+        } catch (err) {
+          send(
+            { error: err instanceof Error ? err.message : "snapshot failed" },
+            "error",
+          );
+        }
+      }, 10_000);
 
       // 3. Event-bus push
       const onEvent = async (msg: {
@@ -130,17 +147,13 @@ export async function GET(req: NextRequest) {
       };
       sessionEventBus.on("event", onEvent);
 
-      // 4. Keepalive
-      const keepaliveTimer = setInterval(() => {
-        send({ ts: Date.now() }, "keepalive");
-      }, 30_000);
-
-      // 5. Cleanup on abort
+      // 4. Cleanup on abort. The 10s snapshot tick also serves as
+      //    keepalive — no separate ping timer needed.
       const cleanup = () => {
         if (closed) return;
         closed = true;
         clearInterval(refreshTimer);
-        clearInterval(keepaliveTimer);
+        clearInterval(snapshotTimer);
         sessionEventBus.off("event", onEvent);
         try {
           controller.close();
