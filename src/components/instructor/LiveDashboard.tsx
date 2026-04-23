@@ -23,6 +23,7 @@ interface SessionRow {
   mostRecentSummary: LiveSummary | null;
   iterationCount: number;
   helpRequestActive: boolean;
+  helpRequestedAt: string | null;
 }
 
 interface ExerciseRow {
@@ -109,6 +110,8 @@ export function LiveDashboard({
     >
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_22rem] overflow-hidden">
         <section className="overflow-y-auto p-6 space-y-4">
+          <HelpRequestBanner sessions={sessions} />
+
           <header className="space-y-1">
             <h1 className="text-xl font-semibold">Who needs me right now?</h1>
             <p className="text-sm text-[#858585]">
@@ -190,6 +193,60 @@ export function LiveDashboard({
       </div>
     </Workbench>
   );
+}
+
+function HelpRequestBanner({ sessions }: { sessions: SessionRow[] }) {
+  const pending = sessions.filter((s) => s.helpRequestActive);
+  if (pending.length === 0) return null;
+  return (
+    <div
+      role="alert"
+      className="rounded border border-[#f14c4c] bg-[#3a1616] p-4 space-y-2"
+    >
+      <div className="flex items-center gap-2 text-sm font-semibold text-[#f48771]">
+        <span aria-hidden>🙋</span>
+        <span>
+          {pending.length === 1
+            ? "1 student needs help"
+            : `${pending.length} students need help`}
+        </span>
+      </div>
+      <ul className="space-y-1">
+        {pending.map((s) => (
+          <li key={s.sessionId}>
+            <Link
+              href={`/reasoning/${s.sessionId}`}
+              className="flex items-center justify-between gap-3 px-2 py-1.5 rounded bg-[#2a0e0e] hover:bg-[#4a1c1c] transition-colors"
+            >
+              <div className="flex items-center gap-2 text-xs font-mono min-w-0">
+                <span className="text-[#d4d4d4] truncate">
+                  {s.studentId.slice(0, 16)}
+                </span>
+                <PhaseBadge phase={s.currentPhase} />
+                <span className="text-[#858585] truncate">
+                  {s.exerciseTitle}
+                </span>
+              </div>
+              <span className="text-xs text-[#f48771] shrink-0">
+                {formatAgo(s.helpRequestedAt)} · Open →
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function formatAgo(iso: string | null): string {
+  if (!iso) return "just now";
+  const ms = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 1) return "just now";
+  if (mins === 1) return "1 min ago";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  return hours === 1 ? "1 hr ago" : `${hours} hr ago`;
 }
 
 function Panel({

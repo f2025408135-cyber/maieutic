@@ -469,62 +469,59 @@ function HelpImStuckButton({
   sessionId: string;
   phase: number;
 }) {
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
 
-  async function send() {
-    setSending(true);
+  async function handleClick() {
+    if (status !== "idle") return;
+    setStatus("sending");
     try {
-      await fetch(`/api/session/${sessionId}/help`, {
+      const res = await fetch(`/api/session/${sessionId}/help`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: message.trim() || "(no details provided)",
+          message: "(student pressed Help, I'm stuck)",
           phaseState: { phase },
         }),
       });
-      setSent(true);
-      setTimeout(() => {
-        setOpen(false);
-        setSent(false);
-        setMessage("");
-      }, 1200);
-    } finally {
-      setSending(false);
+      setStatus(res.ok ? "sent" : "error");
+    } catch {
+      setStatus("error");
     }
   }
+
+  const dialogOpen = status === "sent" || status === "error";
 
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#a94444] hover:bg-[#bf5555] text-white text-sm font-medium transition-colors"
+        onClick={handleClick}
+        disabled={status === "sending"}
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#a94444] hover:bg-[#bf5555] disabled:opacity-60 text-white text-sm font-medium transition-colors"
       >
         <span aria-hidden>🙋</span>
         <span>Help, I&apos;m stuck</span>
       </button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) setStatus("idle");
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ask the instructor or TA</DialogTitle>
+            <DialogTitle>
+              {status === "error" ? "Couldn’t send notification" : "Notification sent"}
+            </DialogTitle>
             <DialogDescription>
-              This sends a notification to the instructor dashboard with your
-              current session state.
+              {status === "error"
+                ? "Something went wrong reaching the server. Please try again in a moment."
+                : "A notification has been sent to your teacher."}
             </DialogDescription>
           </DialogHeader>
-          <StudentTextarea
-            value={message}
-            onChange={setMessage}
-            rows={4}
-            placeholder="What are you stuck on?"
-            disabled={sending || sent}
-          />
           <DialogFooter>
-            <Button onClick={send} disabled={sending || sent}>
-              {sent ? "Sent" : sending ? "Sending…" : "Send"}
-            </Button>
+            <Button onClick={() => setStatus("idle")}>OK</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

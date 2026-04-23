@@ -24,6 +24,7 @@ interface ActiveSessionRow {
   mostRecentSummary: LiveSummary | null;
   iterationCount: number;
   helpRequestActive: boolean;
+  helpRequestedAt: string | null;
 }
 
 async function buildSnapshot(): Promise<ActiveSessionRow[]> {
@@ -39,6 +40,10 @@ async function buildSnapshot(): Promise<ActiveSessionRow[]> {
       ? summaries[summaries.length - 1]
       : null;
     const phase1 = Phase1Data.parse(s.phase1Data);
+    const unresolved = phase1.helpRequests.filter((h) => h.resolution === null);
+    const oldestUnresolved = unresolved.length
+      ? unresolved.reduce((a, b) => (a.timestamp < b.timestamp ? a : b))
+      : null;
     return {
       sessionId: s.id,
       studentId: s.studentId,
@@ -49,7 +54,8 @@ async function buildSnapshot(): Promise<ActiveSessionRow[]> {
       startedAt: s.startedAt.toISOString(),
       mostRecentSummary,
       iterationCount: phase1.iterations.length,
-      helpRequestActive: phase1.helpRequests.some((h) => h.resolution === null),
+      helpRequestActive: unresolved.length > 0,
+      helpRequestedAt: oldestUnresolved?.timestamp ?? null,
     };
   });
 }
