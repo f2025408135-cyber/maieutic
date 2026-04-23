@@ -301,7 +301,7 @@ export function ExerciseClient({
   // ── layout ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
       <TopNav
         back={{ href: "/exercises", label: "Back to exercises" }}
         right={
@@ -447,7 +447,7 @@ function ExerciseTitle({
   );
 
   return (
-    <div className="px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
+    <div className="shrink-0 px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
       <div className={aside ? "max-w-6xl mx-auto" : "max-w-3xl mx-auto"}>
         {aside ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -1154,7 +1154,7 @@ function ChatPanel({
   }, [exchanges.length]);
 
   return (
-    <aside className="flex flex-col h-[60vh] lg:h-auto bg-[#252526] min-h-0">
+    <aside className="flex flex-col h-[60vh] lg:h-full bg-[#252526] min-h-0">
       <div className="px-4 py-2.5 border-b border-[#3e3e42] flex items-center gap-2">
         <div className="w-6 h-6 rounded-full bg-[#007acc] text-white flex items-center justify-center text-[10px] font-semibold">
           OP

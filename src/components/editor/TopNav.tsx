@@ -14,7 +14,7 @@ export function TopNav({
   right?: React.ReactNode;
 }) {
   return (
-    <header className="border-b border-[#3e3e42] px-6 py-3.5 bg-[#1e1e1e] sticky top-0 z-30">
+    <header className="shrink-0 border-b border-[#3e3e42] px-6 py-3.5 bg-[#1e1e1e] sticky top-0 z-30">
       <div className="flex items-center gap-5">
         <Link
           href="/"
