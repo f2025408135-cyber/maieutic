@@ -188,7 +188,7 @@ export function CohortView({
 
           <Panel>
             <div className="text-[11px] uppercase tracking-wider text-[#858585] mb-3">
-              Spec iterations
+              Specification iterations
             </div>
             <div className="text-3xl font-semibold text-[#dcdcaa]">
               {iterMedian || "—"}

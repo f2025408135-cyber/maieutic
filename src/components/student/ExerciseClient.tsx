@@ -14,6 +14,7 @@ import {
 import { PythonEditor } from "@/components/student/PythonEditor";
 import { TopNav } from "@/components/editor/TopNav";
 import { FileTabBar } from "@/components/editor/FileTab";
+import { StatusBar } from "@/components/editor/StatusBar";
 import type {
   OpusMode,
   Phase1Data,
@@ -47,6 +48,14 @@ export interface ExerciseClientProps {
     phase3: Phase3Data;
   };
 }
+
+const PHASE_LABEL: Record<number, string> = {
+  1: "specification",
+  2: "plan",
+  3: "writing",
+  4: "review",
+  5: "closed",
+};
 
 interface DivergenceQuestion {
   divergenceId: string;
@@ -386,6 +395,25 @@ export function ExerciseClient({
           divergences={divergences}
         />
       )}
+
+      <StatusBar
+        left={
+          <>
+            <span>✓ claude-opus-4-7</span>
+            <span>
+              phase {session.currentPhase} · {PHASE_LABEL[session.currentPhase] ?? ""}
+            </span>
+          </>
+        }
+        right={
+          <>
+            <span className="font-mono">{exercise.studentLevel}</span>
+            <span>
+              Unit {UNIT_ROMAN[exercise.unit]} · {UNIT_TITLE[exercise.unit]}
+            </span>
+          </>
+        }
+      />
     </div>
   );
 }
@@ -531,7 +559,8 @@ function Phase1View({
             <p className="text-sm text-[#858585]">
               Write, in natural language, what the program must do. Say what
               the inputs are, what it prints, and what assumptions you&apos;re
-              making. The editor unlocks once the spec is precise enough.
+              making. The editor unlocks once the specification is precise
+              enough.
             </p>
             <StudentTextarea
               value={draft}
@@ -542,7 +571,9 @@ function Phase1View({
             />
             <div className="flex items-center gap-3">
               <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
-                {submitting ? "Reviewing…" : "Submit spec for review"}
+                {submitting
+                  ? "Reviewing…"
+                  : "Submit specification for review"}
               </Button>
               {error && (
                 <span className="text-sm text-[#f48771] font-mono">
@@ -594,7 +625,7 @@ function HintsPanel({ hints, round }: { hints: string[]; round: number }) {
       </ul>
       <p className="text-xs text-[#858585] mt-3">
         These are suggestions — decide for yourself which ones to pin down in
-        your next spec.
+        your next specification.
       </p>
     </section>
   );
@@ -696,7 +727,7 @@ function Phase3View({
             <div className="min-w-0">
               {finalSubmitting && (
                 <span className="text-xs text-[#858585]">
-                  Comparing your code against your spec — 15–25 s…
+                  Comparing your code against your specification — 15–25 s…
                 </span>
               )}
               {error && !finalSubmitting && (
@@ -770,8 +801,8 @@ function Phase4View({
         {divergences.length === 0 ? (
           <Panel title="Review">
             <div className="text-sm">
-              Opus found no meaningful divergences between your spec/plan and
-              your code. Nicely done.
+              Opus found no meaningful divergences between your
+              specification/plan and your code. Nicely done.
             </div>
           </Panel>
         ) : (
@@ -905,9 +936,9 @@ function Phase5View({
             <p>
               You answered {divergences.length} divergence{" "}
               {divergences.length === 1 ? "question" : "questions"}. Your
-              instructor can see everything from here — the spec iterations,
-              your plan, your code, the chat, and the reasoning behind each
-              divergence.
+              instructor can see everything from here — your specification
+              iterations, your plan, your code, the chat, and the reasoning
+              behind each divergence.
             </p>
             <p className="text-[#858585]">
               Nothing more to do. Head back to <Link href="/exercises" className="text-[#569cd6] hover:text-white underline">Available exercises</Link> for another.
@@ -946,7 +977,7 @@ function SpecAndHistoryTop({
   return (
     <div className={compact ? "space-y-1.5" : "space-y-2"}>
       <CollapseRow
-        label={`Your spec${finalSpec ? "" : " (empty)"}`}
+        label={`Your specification${finalSpec ? "" : " (empty)"}`}
         defaultOpen={defaultOpen}
       >
         <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
@@ -962,7 +993,7 @@ function SpecAndHistoryTop({
       )}
       {iterations.length > 0 && (
         <CollapseRow
-          label={`Spec iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
+          label={`Specification iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
           defaultOpen={defaultOpen}
         >
           <IterationHistory iterations={iterations} />
@@ -1053,7 +1084,7 @@ function AcceptedSpecInline({ text }: { text: string }) {
       <div className="px-3 py-1.5 border-b border-[#4ec9b0]/25 bg-[#4ec9b0]/10 flex items-center gap-2">
         <span className="text-[#89d185] text-xs">✓</span>
         <span className="text-[11px] font-semibold tracking-wider uppercase text-[#4ec9b0]">
-          Your accepted spec
+          Your accepted specification
         </span>
       </div>
       <div className="px-3 py-2 text-[13px] whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto text-[#d4d4d4]">

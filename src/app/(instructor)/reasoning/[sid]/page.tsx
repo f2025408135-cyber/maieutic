@@ -113,7 +113,7 @@ export default async function Page({
           <section className="space-y-4">
             <ColumnHeader>What the student saw</ColumnHeader>
 
-            <Panel title="Spec iterations">
+            <Panel title="Specification iterations">
               {phase1.iterations.length === 0 ? (
                 <Empty />
               ) : (
@@ -243,7 +243,7 @@ export default async function Page({
             </ColumnHeader>
 
             {phase1.iterations.length > 0 && (
-              <Panel title="Spec-gate reasoning per round">
+              <Panel title="Specification-gate reasoning per round">
                 <div className="space-y-3">
                   {phase1.iterations.map((it, i) => (
                     <div
@@ -331,7 +331,9 @@ export default async function Page({
                         </div>
                         <ul className="ml-4 list-disc text-[#d4d4d4] mt-0.5 space-y-0.5">
                           <li>
-                            <span className="text-[#858585]">spec:</span>{" "}
+                            <span className="text-[#858585]">
+                              specification:
+                            </span>{" "}
                             {d.evidenceFromSpec}
                           </li>
                           {d.evidenceFromPlan && (

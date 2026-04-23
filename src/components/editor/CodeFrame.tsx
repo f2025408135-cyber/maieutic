@@ -7,6 +7,7 @@
 
 import * as React from "react";
 import { TopNav } from "./TopNav";
+import { StatusBar } from "./StatusBar";
 
 export const SYNTAX = {
   comment: "#6a9955",
@@ -93,21 +94,6 @@ function TabBar({ fileName }: { fileName: string }) {
         <span>{fileName}</span>
         <span className="text-[#858585] ml-1">×</span>
       </div>
-    </div>
-  );
-}
-
-function StatusBar({
-  left,
-  right,
-}: {
-  left: React.ReactNode;
-  right: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between bg-[#007acc] text-white text-[12px] px-4 py-1.5 font-mono">
-      <div className="flex items-center gap-5">{left}</div>
-      <div className="flex items-center gap-5">{right}</div>
     </div>
   );
 }

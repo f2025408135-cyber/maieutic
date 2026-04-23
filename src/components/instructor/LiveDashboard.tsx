@@ -329,7 +329,7 @@ function decidePriority(
 
 function PhaseBadge({ phase }: { phase: number }) {
   const labels: Record<number, string> = {
-    1: "spec gate",
+    1: "specification",
     2: "plan",
     3: "writing",
     4: "review",

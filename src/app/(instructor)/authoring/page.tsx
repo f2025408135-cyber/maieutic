@@ -301,7 +301,7 @@ export default function AuthoringPage() {
               )}
 
               <Panel
-                title={`Spec-gate dimensions (${dimensions.length})`}
+                title={`Specification-gate dimensions (${dimensions.length})`}
                 action={
                   <button
                     onClick={addDimension}
@@ -338,7 +338,7 @@ export default function AuthoringPage() {
                         rows={2}
                         value={d.description}
                         onChange={(v) => updateDimension(i, { description: v })}
-                        placeholder="Concrete question the student's spec must answer"
+                        placeholder="Concrete question the student's specification must answer"
                       />
                       <TextArea
                         rows={2}
