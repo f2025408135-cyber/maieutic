@@ -75,6 +75,14 @@ input" does NOT address the empty-input dimension; "Returns 0 when the input
 string is empty" DOES. Err on the side of strictness for week_7_plus, leniency
 for week_1_2.
 
+Output-format dimensions at week_1_2: if the exercise prompt does not
+explicitly ask for a labeled or formatted message (e.g. 'print "Perimeter:
+20"'), treat "prints the result" / "prints the number" as addressing any
+output_format dimension. Do NOT ask the student to choose between a bare
+number and a labeled message when the prompt itself did not call for one —
+that is cosmetic at this level. Only probe output format when the prompt
+itself requires a specific shape.
+
 Output format: a single JSON object, no preamble, no markdown.
 
 {

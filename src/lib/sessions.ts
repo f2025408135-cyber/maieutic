@@ -3,6 +3,7 @@
 // JSON blobs in the DB are always known-good shapes.
 
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { prisma } from "./db";
 import { sessionEventBus } from "./events";
 import { defaultUnitForLevel } from "@/lib/units";
@@ -159,6 +160,7 @@ export async function advancePhase(
     },
   });
   await appendSessionEvent(sessionId, "phase_transition", { from, to });
+  if (to === 5) revalidatePath("/exercises");
 }
 
 // ─── Phase 1 ───────────────────────────────────────────────────────────────

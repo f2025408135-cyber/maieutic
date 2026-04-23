@@ -463,12 +463,9 @@ export function ExerciseClient({
           </>
         }
         right={
-          <>
-            <span className="font-mono">{exercise.studentLevel}</span>
-            <span>
-              Unit {UNIT_ROMAN[exercise.unit]} · {UNIT_TITLE[exercise.unit]}
-            </span>
-          </>
+          <span>
+            Unit {UNIT_ROMAN[exercise.unit]} · {UNIT_TITLE[exercise.unit]}
+          </span>
         }
       />
 
@@ -663,12 +660,21 @@ function Phase1View({
       <div className="max-w-3xl mx-auto space-y-4">
         <Panel title={`Your specification · round ${iterations.length + 1}`}>
           <div className="space-y-3">
-            <p className="text-sm text-[#d4d4d4] leading-relaxed">
-              Write, in natural language, what the program must do. Say what
-              the inputs are, what it prints, and what assumptions you&apos;re
-              making. The editor unlocks once the specification is precise
-              enough.
-            </p>
+            <div className="text-sm text-[#d4d4d4] leading-relaxed space-y-2">
+              <p>
+                Write, in natural language, what the program must do. Be clear
+                in specifying:
+              </p>
+              <ol className="list-decimal pl-6 space-y-1">
+                <li>What the inputs and outputs are</li>
+                <li>What functions and structures you will use</li>
+                <li>What assumptions you are making</li>
+              </ol>
+              <p>
+                The editor will unlock once the specification is precise
+                enough.
+              </p>
+            </div>
             <StudentTextarea
               value={draft}
               onChange={setDraft}
