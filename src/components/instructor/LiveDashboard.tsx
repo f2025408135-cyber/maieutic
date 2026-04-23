@@ -20,10 +20,20 @@ interface SessionRow {
   unit: string;
   currentPhase: number;
   startedAt: string;
+  lastActiveAt: string;
   mostRecentSummary: LiveSummary | null;
   iterationCount: number;
   helpRequestActive: boolean;
   helpRequestedAt: string | null;
+}
+
+type Presence = "live" | "stepped_away" | "left";
+
+function derivePresence(lastActiveAt: string): Presence {
+  const ms = Date.now() - new Date(lastActiveAt).getTime();
+  if (ms < 30_000) return "live";
+  if (ms < 5 * 60_000) return "stepped_away";
+  return "left";
 }
 
 interface ExerciseRow {
@@ -316,6 +326,7 @@ function SessionCard({ session }: { session: SessionRow }) {
   const minutes = Math.floor(
     (Date.now() - new Date(session.startedAt).getTime()) / 60000,
   );
+  const presence = derivePresence(session.lastActiveAt);
   const priority = decidePriority(flags, session);
   const stripe =
     priority === "red"
@@ -325,10 +336,13 @@ function SessionCard({ session }: { session: SessionRow }) {
         : priority === "green"
           ? "#4ec9b0"
           : "#3e3e42";
+  const dimmed = presence !== "live" && !session.helpRequestActive;
 
   return (
     <Link href={`/reasoning/${session.sessionId}`} className="block">
-      <div className="group flex rounded border border-[#3e3e42] bg-[#252526] hover:border-[#007acc] transition-colors overflow-hidden">
+      <div
+        className={`group flex rounded border border-[#3e3e42] bg-[#252526] hover:border-[#007acc] transition-colors overflow-hidden ${dimmed ? "opacity-60" : ""}`}
+      >
         <div className="w-1 shrink-0" style={{ backgroundColor: stripe }} aria-hidden />
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-start justify-between gap-3">
@@ -339,6 +353,10 @@ function SessionCard({ session }: { session: SessionRow }) {
                 </span>
                 <UnitBadge unit={session.unit} />
                 <PhaseBadge phase={session.currentPhase} />
+                <PresenceBadge
+                  presence={presence}
+                  lastActiveAt={session.lastActiveAt}
+                />
                 <span className="text-[#858585]">{minutes}m</span>
                 {session.currentPhase === 1 && session.iterationCount > 0 && (
                   <span className="text-[#858585]">
@@ -397,6 +415,31 @@ function PhaseBadge({ phase }: { phase: number }) {
       <span className="text-[#858585]">phase</span>
       <span className="text-[#569cd6]">{phase}</span>
       <span className="text-[#858585]">· {labels[phase] ?? "?"}</span>
+    </span>
+  );
+}
+
+function PresenceBadge({
+  presence,
+  lastActiveAt,
+}: {
+  presence: Presence;
+  lastActiveAt: string;
+}) {
+  if (presence === "live") return null;
+  const ago = formatAgo(lastActiveAt);
+  const label =
+    presence === "stepped_away" ? `Stepped away · ${ago}` : `Left session · ${ago}`;
+  const color =
+    presence === "stepped_away"
+      ? { bg: "#4f3b17", fg: "#dcdcaa" }
+      : { bg: "#2d2d30", fg: "#858585" };
+  return (
+    <span
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono"
+      style={{ backgroundColor: color.bg, color: color.fg }}
+    >
+      {label}
     </span>
   );
 }

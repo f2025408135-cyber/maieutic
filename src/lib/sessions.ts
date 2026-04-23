@@ -204,6 +204,33 @@ export async function appendHelpRequest(
   });
 }
 
+export async function resolveHelpRequests(
+  sessionId: string,
+  resolution: string = "help_arrived",
+): Promise<{ resolved: number }> {
+  const session = await prisma.session.findUniqueOrThrow({
+    where: { id: sessionId },
+  });
+  const phase1 = Phase1Data.parse(session.phase1Data);
+  let resolved = 0;
+  for (const req of phase1.helpRequests) {
+    if (req.resolution === null) {
+      req.resolution = resolution;
+      resolved++;
+    }
+  }
+  if (resolved === 0) return { resolved: 0 };
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { phase1Data: asJson(phase1) },
+  });
+  await appendSessionEvent(sessionId, "help_resolved", {
+    phase: session.currentPhase,
+    count: resolved,
+  });
+  return { resolved };
+}
+
 // ─── Phase 2 ───────────────────────────────────────────────────────────────
 
 export async function setPhase2Plan(

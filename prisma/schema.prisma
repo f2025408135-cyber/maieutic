@@ -39,6 +39,7 @@ model Session {
   exerciseId    String
   exercise      Exercise @relation(fields: [exerciseId], references: [id])
   startedAt     DateTime @default(now())
+  lastActiveAt  DateTime @default(now())
   completedAt   DateTime?
   currentPhase  Int      // 1, 2, 3, 4, or 5 (closed)
 
@@ -52,6 +53,7 @@ model Session {
 
   @@index([exerciseId])
   @@index([completedAt])
+  @@index([lastActiveAt])
 }
 
 model SessionEvent {

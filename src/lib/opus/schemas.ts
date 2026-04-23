@@ -239,6 +239,7 @@ export const SessionEventKind = z.enum([
   "phase_transition",
   "alignment_failure",
   "help_request",
+  "help_resolved",
   "revision",
   "summary_refresh",
 ]);
@@ -263,6 +264,12 @@ export const HelpRequestPayload = z.object({
 });
 export type HelpRequestPayload = z.infer<typeof HelpRequestPayload>;
 
+export const HelpResolvedPayload = z.object({
+  phase: z.number().int(),
+  count: z.number().int(),
+});
+export type HelpResolvedPayload = z.infer<typeof HelpResolvedPayload>;
+
 export const RevisionPayload = z.object({
   amendmentText: z.string(),
   justificationText: z.string(),
@@ -281,6 +288,7 @@ export const SessionEventPayloadSchemaByKind = {
   phase_transition: PhaseTransitionPayload,
   alignment_failure: AlignmentFailurePayload,
   help_request: HelpRequestPayload,
+  help_resolved: HelpResolvedPayload,
   revision: RevisionPayload,
   summary_refresh: SummaryRefreshPayload,
 } as const;
@@ -289,6 +297,7 @@ export type SessionEventPayloadByKind = {
   phase_transition: PhaseTransitionPayload;
   alignment_failure: AlignmentFailurePayload;
   help_request: HelpRequestPayload;
+  help_resolved: HelpResolvedPayload;
   revision: RevisionPayload;
   summary_refresh: SummaryRefreshPayload;
 };

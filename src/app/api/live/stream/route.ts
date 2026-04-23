@@ -22,6 +22,7 @@ interface ActiveSessionRow {
   studentLevel: string;
   currentPhase: number;
   startedAt: string;
+  lastActiveAt: string;
   mostRecentSummary: LiveSummary | null;
   iterationCount: number;
   helpRequestActive: boolean;
@@ -31,9 +32,9 @@ interface ActiveSessionRow {
 async function buildSnapshot(): Promise<ActiveSessionRow[]> {
   const cutoff = new Date(Date.now() - 30 * 60 * 1000);
   const sessions = await prisma.session.findMany({
-    where: { completedAt: null, startedAt: { gte: cutoff } },
+    where: { completedAt: null, lastActiveAt: { gte: cutoff } },
     include: { exercise: true },
-    orderBy: { startedAt: "desc" },
+    orderBy: { lastActiveAt: "desc" },
   });
   return sessions.map((s) => {
     const summaries = (s.liveSummaries as unknown as LiveSummary[]) ?? [];
@@ -53,6 +54,7 @@ async function buildSnapshot(): Promise<ActiveSessionRow[]> {
       studentLevel: s.exercise.studentLevel,
       currentPhase: s.currentPhase,
       startedAt: s.startedAt.toISOString(),
+      lastActiveAt: s.lastActiveAt.toISOString(),
       mostRecentSummary,
       iterationCount: phase1.iterations.length,
       helpRequestActive: unresolved.length > 0,
@@ -131,6 +133,7 @@ export async function GET(req: NextRequest) {
           msg.kind === "phase_transition" ||
           msg.kind === "alignment_failure" ||
           msg.kind === "help_request" ||
+          msg.kind === "help_resolved" ||
           msg.kind === "revision" ||
           msg.kind === "summary_refresh"
         ) {

@@ -97,11 +97,63 @@ export function ExerciseClient({
   const [divergences, setDivergences] = useState<DivergenceQuestion[]>([]);
   const [divergenceIndex, setDivergenceIndex] = useState(0);
 
+  const [helpActive, setHelpActive] = useState(() =>
+    initialSession.phase1.helpRequests.some((h) => h.resolution === null),
+  );
+  const [helpDismissing, setHelpDismissing] = useState(false);
+
+  async function dismissHelp(
+    resolution: "help_arrived" | "student_cancelled" = "help_arrived",
+  ) {
+    if (helpDismissing) return;
+    setHelpDismissing(true);
+    try {
+      const res = await fetch(`/api/session/${session.id}/help/resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resolution }),
+      });
+      if (res.ok) setHelpActive(false);
+    } finally {
+      setHelpDismissing(false);
+    }
+  }
+
   const inPhase1 = session.currentPhase === 1;
   const inPhase2 = session.currentPhase === 2;
   const inPhase3 = session.currentPhase === 3;
   const inPhase4 = session.currentPhase === 4;
   const closed = session.currentPhase >= 5;
+
+  // ── presence heartbeat ──────────────────────────────────────────────
+  // Pings the server every 15s while the page is visible so the teacher
+  // dashboard can tell whether the student is still at the exercise. If
+  // the heartbeat stops (tab closed, navigated away, laptop shut), the
+  // dashboard labels the session "Stepped away" then "Left session".
+  useEffect(() => {
+    if (closed) return;
+    const sessionId = session.id;
+    let stopped = false;
+    async function ping() {
+      if (stopped || document.visibilityState !== "visible") return;
+      try {
+        await fetch(`/api/session/${sessionId}/heartbeat`, { method: "POST" });
+      } catch {
+        /* network blip — next tick will retry */
+      }
+    }
+    void ping();
+    const timer = setInterval(ping, 15_000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void ping();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [session.id, closed]);
 
   // ── actions ──────────────────────────────────────────────────────────
   async function submitSpec() {
@@ -306,7 +358,12 @@ export function ExerciseClient({
         back={{ href: "/exercises", label: "Back to exercises" }}
         right={
           !closed && (
-            <HelpImStuckButton sessionId={session.id} phase={session.currentPhase} />
+            <HelpImStuckButton
+              sessionId={session.id}
+              phase={session.currentPhase}
+              disabled={helpActive}
+              onRequested={() => setHelpActive(true)}
+            />
           )
         }
       />
@@ -414,6 +471,13 @@ export function ExerciseClient({
           </>
         }
       />
+
+      {helpActive && (
+        <HelpPendingOverlay
+          onDismiss={dismissHelp}
+          dismissing={helpDismissing}
+        />
+      )}
     </div>
   );
 }
@@ -465,16 +529,18 @@ function ExerciseTitle({
 function HelpImStuckButton({
   sessionId,
   phase,
+  disabled,
+  onRequested,
 }: {
   sessionId: string;
   phase: number;
+  disabled?: boolean;
+  onRequested: () => void;
 }) {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
 
   async function handleClick() {
-    if (status !== "idle") return;
+    if (status === "sending" || disabled) return;
     setStatus("sending");
     try {
       const res = await fetch(`/api/session/${sessionId}/help`, {
@@ -485,39 +551,39 @@ function HelpImStuckButton({
           phaseState: { phase },
         }),
       });
-      setStatus(res.ok ? "sent" : "error");
+      if (res.ok) {
+        setStatus("idle");
+        onRequested();
+      } else {
+        setStatus("error");
+      }
     } catch {
       setStatus("error");
     }
   }
 
-  const dialogOpen = status === "sent" || status === "error";
-
   return (
     <>
       <button
         onClick={handleClick}
-        disabled={status === "sending"}
+        disabled={disabled || status === "sending"}
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#a94444] hover:bg-[#bf5555] disabled:opacity-60 text-white text-sm font-medium transition-colors"
       >
         <span aria-hidden>🙋</span>
         <span>Help, I&apos;m stuck</span>
       </button>
       <Dialog
-        open={dialogOpen}
+        open={status === "error"}
         onOpenChange={(open) => {
           if (!open) setStatus("idle");
         }}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {status === "error" ? "Couldn’t send notification" : "Notification sent"}
-            </DialogTitle>
+            <DialogTitle>Couldn’t send notification</DialogTitle>
             <DialogDescription>
-              {status === "error"
-                ? "Something went wrong reaching the server. Please try again in a moment."
-                : "A notification has been sent to your teacher."}
+              Something went wrong reaching the server. Please try again in a
+              moment.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -526,6 +592,50 @@ function HelpImStuckButton({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function HelpPendingOverlay({
+  onDismiss,
+  dismissing,
+}: {
+  onDismiss: (resolution: "help_arrived" | "student_cancelled") => void;
+  dismissing: boolean;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="help-pending-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+    >
+      <div className="max-w-md mx-4 rounded-lg border border-[#a94444] bg-[#1e1e1e] shadow-xl p-8 text-center space-y-4">
+        <div className="text-5xl" aria-hidden>
+          🙋
+        </div>
+        <h2 id="help-pending-title" className="text-xl font-semibold">
+          Help is on the way
+        </h2>
+        <p className="text-sm text-[#d4d4d4] leading-relaxed">
+          Your teacher has been notified. Hang tight — when they reach you,
+          press the button below to resume.
+        </p>
+        <button
+          onClick={() => onDismiss("help_arrived")}
+          disabled={dismissing}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded bg-[#4ec9b0] hover:bg-[#5fd9c0] disabled:opacity-60 text-[#1e1e1e] text-sm font-semibold transition-colors"
+        >
+          {dismissing ? "Resuming…" : "Help is here"}
+        </button>
+        <button
+          onClick={() => onDismiss("student_cancelled")}
+          disabled={dismissing}
+          className="text-xs text-[#858585] hover:text-[#d4d4d4] underline underline-offset-2 disabled:opacity-60 transition-colors"
+        >
+          Never mind, I figured it out
+        </button>
+      </div>
+    </div>
   );
 }
 

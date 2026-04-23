@@ -5,9 +5,9 @@ import { Phase1Data, LiveSummary } from "@/lib/opus/schemas";
 async function getInitialSnapshot() {
   const cutoff = new Date(Date.now() - 30 * 60 * 1000);
   const sessions = await prisma.session.findMany({
-    where: { completedAt: null, startedAt: { gte: cutoff } },
+    where: { completedAt: null, lastActiveAt: { gte: cutoff } },
     include: { exercise: true },
-    orderBy: { startedAt: "desc" },
+    orderBy: { lastActiveAt: "desc" },
   });
   return sessions.map((s) => {
     const summaries = (s.liveSummaries as unknown as LiveSummary[]) ?? [];
@@ -28,6 +28,7 @@ async function getInitialSnapshot() {
       unit: s.exercise.unit,
       currentPhase: s.currentPhase,
       startedAt: s.startedAt.toISOString(),
+      lastActiveAt: s.lastActiveAt.toISOString(),
       mostRecentSummary,
       iterationCount: phase1.iterations.length,
       helpRequestActive: unresolved.length > 0,
