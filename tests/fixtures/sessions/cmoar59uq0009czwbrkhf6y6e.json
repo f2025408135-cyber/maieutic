@@ -1,0 +1,127 @@
+{
+  "id": "cmoar59uq0009czwbrkhf6y6e",
+  "studentId": "carmen_student",
+  "exerciseId": "fibonacci-demo",
+  "startedAt": "2026-04-23T00:37:23.619Z",
+  "completedAt": null,
+  "currentPhase": 1,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-23T00:37:29.120Z",
+        "studentSpecText": "The program asks the user for a number and prints the nth Fibonacci number.",
+        "opusQuestions": [
+          "Your spec says the program asks for 'a number', but the exercise specifies a non-negative integer. What should the program do if the user enters a negative number, a non-integer like 'hello', or a float like 3.5?",
+          "What specifically should the program print when n=0 and when n=1? Pinning these down gives you concrete base cases to check your code against.",
+          "When the program prints the result, should it print only the number (e.g. '55') or something more descriptive (e.g. 'fib(10) = 55')?"
+        ],
+        "gapsIdentified": [
+          "input_validation",
+          "base_cases",
+          "output_format"
+        ],
+        "gapsAddressedThisRound": [],
+        "emergentGaps": [
+          {
+            "description": "The spec says 'asks the user for a number' but doesn't specify the prompt text or how the input is read.",
+            "question": "What exact prompt text (if any) should the program show when asking for the input?"
+          }
+        ],
+        "passed": false
+      },
+      {
+        "timestamp": "2026-04-23T00:37:33.573Z",
+        "studentSpecText": "The program asks the user for an integer n and prints the nth Fibonacci number. It handles negative input appropriately.",
+        "opusQuestions": [
+          "You wrote that the program 'handles negative input appropriately' — what does 'appropriately' mean concretely? Does it re-prompt, print an error message and exit, raise an exception? And what about non-integer inputs like 'hello' or 3.5?",
+          "What exact value does the program print when the user enters 0, and what does it print when the user enters 1? Write these two outputs down explicitly.",
+          "When n=10 and the answer is 55, what exactly appears on the screen — just '55', or something like 'fib(10) = 55', or something else?"
+        ],
+        "gapsIdentified": [
+          "input_validation",
+          "base_cases",
+          "output_format"
+        ],
+        "gapsAddressedThisRound": [],
+        "emergentGaps": [],
+        "passed": false
+      },
+      {
+        "timestamp": "2026-04-23T00:37:38.310Z",
+        "studentSpecText": "The program asks for an integer n >= 0 and prints the nth Fibonacci number (fib(0) = 0, fib(1) = 1). Negative inputs are handled.",
+        "opusQuestions": [
+          "You've written 'negative inputs are handled' for two rounds now without saying how. Concretely: when the user types -3, what does the program do — print an error message, re-prompt, crash with an exception? Pick one and write it down. And what happens for non-integer input like 'hello' or 3.5?",
+          "When n=10 and fib(10)=55, what exactly appears on screen? Just the characters '55' followed by a newline? Or 'fib(10) = 55'? Or something else? Commit to the literal output."
+        ],
+        "gapsIdentified": [
+          "input_validation",
+          "output_format"
+        ],
+        "gapsAddressedThisRound": [
+          "base_cases"
+        ],
+        "emergentGaps": [],
+        "passed": false
+      }
+    ],
+    "finalSpecText": null,
+    "instructorConfiguredDimensionsAddressed": [
+      "base_cases"
+    ],
+    "helpRequests": [
+      {
+        "timestamp": "2026-04-23T00:37:38.315Z",
+        "stateAtRequest": {
+          "phase": 1,
+          "attemptNumber": 3
+        },
+        "message": "I don't understand what 'handles negative input appropriately' is supposed to mean. Can someone come explain?",
+        "resolution": null
+      }
+    ]
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "",
+    "finalCode": null,
+    "submittedAt": null
+  },
+  "phase4Data": null,
+  "liveSummaries": [
+    {
+      "timestamp": "2026-04-23T00:37:40.734Z",
+      "summaryText": "Spec iteration 3, has written 'negative inputs are handled' twice without specifying behavior; Opus pushed for concrete behavior and student raised hand asking what 'handles appropriately' means.",
+      "flags": [
+        "help_requested",
+        "stuck_signal"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "cmoar5l73000bczwbpe6v64g3",
+      "sessionId": "cmoar59uq0009czwbrkhf6y6e",
+      "kind": "help_request",
+      "payload": {
+        "message": "I don't understand what 'handles negative input appropriately' is supposed to mean. Can someone come explain?",
+        "phase": 1
+      },
+      "createdAt": "2026-04-23T00:37:38.319Z"
+    },
+    {
+      "id": "cmoar5n29000dczwbwa2y0xum",
+      "sessionId": "cmoar59uq0009czwbrkhf6y6e",
+      "kind": "summary_refresh",
+      "payload": {
+        "summary": "Spec iteration 3, has written 'negative inputs are handled' twice without specifying behavior; Opus pushed for concrete behavior and student raised hand asking what 'handles appropriately' means.",
+        "flags": [
+          "help_requested",
+          "stuck_signal"
+        ]
+      },
+      "createdAt": "2026-04-23T00:37:40.737Z"
+    }
+  ]
+}

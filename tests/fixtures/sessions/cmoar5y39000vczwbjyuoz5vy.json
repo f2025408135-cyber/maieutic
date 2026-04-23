@@ -1,0 +1,96 @@
+{
+  "id": "cmoar5y39000vczwbjyuoz5vy",
+  "studentId": "cohort_student_2",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-23T00:37:55.029Z",
+  "completedAt": "2026-04-23T00:38:02.204Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-23T00:37:56.699Z",
+        "studentSpecText": "Asks for a string via input(). Prints just the integer count of vowels (both lowercase aeiou and uppercase AEIOU, 'y' not counted). Empty string → prints 0.",
+        "opusQuestions": [],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "output_format",
+          "empty_input"
+        ],
+        "emergentGaps": [],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "Asks for a string via input(). Prints just the integer count of vowels (both lowercase aeiou and uppercase AEIOU, 'y' not counted). Empty string → prints 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "output_format",
+      "empty_input"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "print(sum(1 for c in input() if c in 'aeiou'))\n",
+    "finalCode": "print(sum(1 for c in input() if c in 'aeiou'))\n",
+    "submittedAt": "2026-04-23T00:37:56.711Z"
+  },
+  "phase4Data": {
+    "divergences": [
+      {
+        "divergenceId": "uppercase_vowels_missed",
+        "initialClassification": "drift",
+        "initialConfidence": "high",
+        "predictedJustification": "I forgot about the uppercase letters.",
+        "studentFacingQuestion": "Your spec said the count should include uppercase vowels like A, E, I, O, U. I noticed the code checks `c in 'aeiou'`. Can you tell me what happens if someone types in a capital A?",
+        "evidenceFromSpec": "both lowercase aeiou and uppercase AEIOU",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "if c in 'aeiou'",
+        "studentResponse": "I guess I forgot to add the uppercase ones.",
+        "alignment": "aligned",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student confirmed they forgot to include the uppercase letters, indicating unintentional drift from the plan.",
+        "respondedAt": "2026-04-23T00:38:02.184Z"
+      }
+    ],
+    "startedAt": "2026-04-23T00:38:00.160Z",
+    "completedAt": "2026-04-23T00:38:02.184Z"
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoar5zdw000xczwbmj8jk04r",
+      "sessionId": "cmoar5y39000vczwbjyuoz5vy",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-23T00:37:56.709Z"
+    },
+    {
+      "id": "cmoar621w000zczwbnbzzabou",
+      "sessionId": "cmoar5y39000vczwbjyuoz5vy",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-23T00:38:00.165Z"
+    },
+    {
+      "id": "cmoar63mv0011czwbdqecd9pz",
+      "sessionId": "cmoar5y39000vczwbjyuoz5vy",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-23T00:38:02.216Z"
+    }
+  ]
+}

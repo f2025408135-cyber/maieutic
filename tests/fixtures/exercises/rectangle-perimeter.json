@@ -1,42 +1,48 @@
 {
   "id": "rectangle-perimeter",
   "title": "Perimeter of a rectangle",
-  "instructorPromptText": "Write a function that takes the width and height of a rectangle (two numbers) and returns its perimeter (2 × width + 2 × height).",
+  "instructorPromptText": "Write a program that asks the user for the width and height of a rectangle, then prints its perimeter (2 × width + 2 × height).",
   "authoredAt": "2026-04-23T00:18:31.766Z",
   "publishedAt": "2026-04-23T00:18:31.764Z",
   "specGateDimensions": [
     {
-      "id": "numeric_type_contract",
-      "description": "Should the function accept only integers, or also floats? What happens if one or both inputs are non-numeric (string, None)?",
-      "rationale": "The prompt says 'two numbers' without specifying type; committing forces the student to think about input contracts before the formula.",
+      "id": "input_type",
+      "description": "Should width and height be read as integers or as floating-point numbers (so decimals like 2.5 are accepted)?",
+      "rationale": "The prompt doesn't specify numeric type; committing forces the student to choose between `int(input())` and `float(input())` rather than discovering the mismatch when a test case uses a decimal.",
       "source": "opus"
     },
     {
-      "id": "negative_or_zero_dimensions",
-      "description": "What should happen if width or height is zero or negative? Return the computed value anyway, return 0, or reject the input?",
-      "rationale": "A negative perimeter is geometrically meaningless; surfacing this forces the student to decide between 'trust the caller' and 'validate'.",
+      "id": "output_format",
+      "description": "Should the perimeter be printed as a bare number, or as a labeled message like 'The perimeter is 14'?",
+      "rationale": "Novices often assume print format doesn't matter; surfacing it prevents drift between a spec that promises a sentence and code that prints a raw number.",
+      "source": "opus"
+    },
+    {
+      "id": "invalid_or_negative_input",
+      "description": "What should happen if the user enters a negative number, zero, or something non-numeric?",
+      "rationale": "The prompt is silent on validation; the student should decide whether to trust input or guard against it, rather than ignoring the question.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
+      "category": "bug",
+      "pattern": "Student forgets to convert `input()` return values from string to number, so `2 * width + 2 * height` concatenates/repeats strings instead of doing arithmetic",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Operator precedence or parenthesization error, e.g. writing `2 * width + height` instead of `2 * width + 2 * height`",
+      "source": "opus"
+    },
+    {
       "category": "drift",
-      "pattern": "Spec commits to rejecting negative inputs, but code computes the formula unconditionally with no validation",
+      "pattern": "Spec commits to accepting decimal inputs but code uses `int(input(...))`, rejecting valid floats",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes computing `2*width + 2*height`; code uses the equivalent `2 * (width + height)` — coherent factoring",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student prints the result inside the function instead of returning it, so the caller receives None",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `^` (XOR) instead of `*` for multiplication, carrying over a math-notation habit",
+      "pattern": "Plan computes `2 * width + 2 * height`; code uses the equivalent `2 * (width + height)` — coherent algebraic simplification",
       "source": "opus"
     }
   ],
@@ -45,32 +51,37 @@
   "unit": "unit_1",
   "opusGeneratedDimensions": [
     {
-      "id": "numeric_type_contract",
-      "description": "Should the function accept only integers, or also floats? What happens if one or both inputs are non-numeric (string, None)?",
-      "rationale": "The prompt says 'two numbers' without specifying type; committing forces the student to think about input contracts before the formula."
+      "id": "input_type",
+      "description": "Should width and height be read as integers or as floating-point numbers (so decimals like 2.5 are accepted)?",
+      "rationale": "The prompt doesn't specify numeric type; committing forces the student to choose between `int(input())` and `float(input())` rather than discovering the mismatch when a test case uses a decimal."
     },
     {
-      "id": "negative_or_zero_dimensions",
-      "description": "What should happen if width or height is zero or negative? Return the computed value anyway, return 0, or reject the input?",
-      "rationale": "A negative perimeter is geometrically meaningless; surfacing this forces the student to decide between 'trust the caller' and 'validate'."
+      "id": "output_format",
+      "description": "Should the perimeter be printed as a bare number, or as a labeled message like 'The perimeter is 14'?",
+      "rationale": "Novices often assume print format doesn't matter; surfacing it prevents drift between a spec that promises a sentence and code that prints a raw number."
+    },
+    {
+      "id": "invalid_or_negative_input",
+      "description": "What should happen if the user enters a negative number, zero, or something non-numeric?",
+      "rationale": "The prompt is silent on validation; the student should decide whether to trust input or guard against it, rather than ignoring the question."
     }
   ],
   "opusGeneratedDivergences": [
     {
+      "category": "bug",
+      "pattern": "Student forgets to convert `input()` return values from string to number, so `2 * width + 2 * height` concatenates/repeats strings instead of doing arithmetic"
+    },
+    {
+      "category": "bug",
+      "pattern": "Operator precedence or parenthesization error, e.g. writing `2 * width + height` instead of `2 * width + 2 * height`"
+    },
+    {
       "category": "drift",
-      "pattern": "Spec commits to rejecting negative inputs, but code computes the formula unconditionally with no validation"
+      "pattern": "Spec commits to accepting decimal inputs but code uses `int(input(...))`, rejecting valid floats"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes computing `2*width + 2*height`; code uses the equivalent `2 * (width + height)` — coherent factoring"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student prints the result inside the function instead of returning it, so the caller receives None"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `^` (XOR) instead of `*` for multiplication, carrying over a math-notation habit"
+      "pattern": "Plan computes `2 * width + 2 * height`; code uses the equivalent `2 * (width + height)` — coherent algebraic simplification"
     }
   ],
   "opusGeneratedPhase2Required": false,

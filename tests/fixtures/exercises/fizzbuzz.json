@@ -1,64 +1,64 @@
 {
   "id": "fizzbuzz",
   "title": "FizzBuzz",
-  "instructorPromptText": "Write a function that takes a positive integer n and returns a list of strings for numbers 1 through n. For multiples of 3 use 'Fizz'. For multiples of 5 use 'Buzz'. For multiples of both use 'FizzBuzz'. For other numbers, use the number as a string.",
+  "instructorPromptText": "Write a program that asks the user for a positive integer n, then prints one line per number from 1 through n. For multiples of 3 print 'Fizz'. For multiples of 5 print 'Buzz'. For multiples of both print 'FizzBuzz'. For other numbers, print the number.",
   "authoredAt": "2026-04-23T00:02:46.784Z",
   "publishedAt": "2026-04-23T00:02:46.782Z",
   "specGateDimensions": [
     {
-      "id": "fizzbuzz_precedence",
-      "description": "When a number is a multiple of both 3 and 5, must 'FizzBuzz' be produced, and how does the spec ensure this case is checked before the individual 3/5 cases?",
-      "rationale": "The classic FizzBuzz trap: checking 3 first and 5 second produces 'Fizz' for 15. Forcing the spec to commit to order surfaces the precedence issue before coding.",
+      "id": "multiple_of_both_precedence",
+      "description": "How does the program ensure that multiples of 15 print 'FizzBuzz' rather than just 'Fizz' or just 'Buzz'?",
+      "rationale": "The order of conditional checks is the central pedagogical point of FizzBuzz; forcing the student to articulate why 15 must be tested first (or how `and` handles it) surfaces the core logic before coding.",
       "source": "opus"
     },
     {
-      "id": "number_as_string",
-      "description": "For non-multiples, must the value be a string representation (e.g. '7'), not the integer 7?",
-      "rationale": "The prompt says 'list of strings', but novices frequently return a mixed list of ints and strings. Committing explicitly prevents type drift.",
+      "id": "invalid_input_handling",
+      "description": "What happens if the user enters 0, a negative number, or a non-integer like 'abc'?",
+      "rationale": "The prompt says 'positive integer' but doesn't specify enforcement; committing to re-prompt, crash, or silently accept prevents a vague validation strategy.",
       "source": "opus"
     },
     {
-      "id": "range_bounds",
-      "description": "Does the output include both 1 and n (inclusive on both ends)?",
-      "rationale": "Off-by-one in the loop range is the single most common FizzBuzz bug; the spec must name the exact bounds.",
+      "id": "output_for_n",
+      "description": "Is the number n itself included in the output (1 through n inclusive) or excluded?",
+      "rationale": "Off-by-one on the loop bound is the most common FizzBuzz drift; the spec should commit to inclusive before `range` is written.",
       "source": "opus"
     },
     {
-      "id": "n_less_than_one",
-      "description": "What should the function return if n is 0 or negative, given the prompt says 'positive integer'?",
-      "rationale": "The prompt restricts input but does not say what to do on violation; the spec must commit to empty list, error, or assume-valid.",
+      "id": "number_print_type",
+      "description": "When printing a non-Fizz/Buzz number, is it printed as an integer or as a string, and does that matter for the output format?",
+      "rationale": "Students sometimes mix print styles across branches; committing to a uniform output prevents surprise formatting mismatches.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student checks `i % 3 == 0` before `i % 15 == 0` (or before the combined 3-and-5 check), so multiples of 15 produce 'Fizz' instead of 'FizzBuzz'",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Loop uses `range(n)` instead of `range(1, n+1)`, producing output for 0..n-1 and mis-labeling every multiple",
+      "pattern": "Student checks `n % 3 == 0` before `n % 15 == 0`, so multiples of 15 print 'Fizz' and the 'FizzBuzz' branch is unreachable",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Non-multiples appended as integers (e.g. `result.append(i)`) rather than strings, violating the 'list of strings' contract",
+      "pattern": "Loop uses `range(1, n)` instead of `range(1, n+1)`, omitting n from the output despite spec saying '1 through n'",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to validating input, but code calls `int(input(...))` without a try/except or range check, crashing on bad input",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes four separate if/elif branches; code builds the string by concatenation (`s = ''; if i%3: s+='Fizz'; if i%5: s+='Buzz'; s or str(i)`) — coherent alternative that still satisfies spec",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes imperative loop with append; code uses a list comprehension — coherent Pythonic refactor",
+      "pattern": "Plan describes four-branch if/elif chain; code uses string concatenation (`out = ''; if i%3==0: out+='Fizz'; ...`) — coherent alternative that naturally handles the FizzBuzz case",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Returns None because the student printed each value inside the loop instead of appending to a list and returning it",
+      "pattern": "Uses `or` instead of `and` when checking for multiples of both 3 and 5, so every multiple of 3 or 5 prints 'FizzBuzz'",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Prints `i` on the Fizz/Buzz branches too (e.g., forgets `else`), producing both the word and the number",
       "source": "opus"
     }
   ],
@@ -67,50 +67,50 @@
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "fizzbuzz_precedence",
-      "description": "When a number is a multiple of both 3 and 5, must 'FizzBuzz' be produced, and how does the spec ensure this case is checked before the individual 3/5 cases?",
-      "rationale": "The classic FizzBuzz trap: checking 3 first and 5 second produces 'Fizz' for 15. Forcing the spec to commit to order surfaces the precedence issue before coding."
+      "id": "multiple_of_both_precedence",
+      "description": "How does the program ensure that multiples of 15 print 'FizzBuzz' rather than just 'Fizz' or just 'Buzz'?",
+      "rationale": "The order of conditional checks is the central pedagogical point of FizzBuzz; forcing the student to articulate why 15 must be tested first (or how `and` handles it) surfaces the core logic before coding."
     },
     {
-      "id": "number_as_string",
-      "description": "For non-multiples, must the value be a string representation (e.g. '7'), not the integer 7?",
-      "rationale": "The prompt says 'list of strings', but novices frequently return a mixed list of ints and strings. Committing explicitly prevents type drift."
+      "id": "invalid_input_handling",
+      "description": "What happens if the user enters 0, a negative number, or a non-integer like 'abc'?",
+      "rationale": "The prompt says 'positive integer' but doesn't specify enforcement; committing to re-prompt, crash, or silently accept prevents a vague validation strategy."
     },
     {
-      "id": "range_bounds",
-      "description": "Does the output include both 1 and n (inclusive on both ends)?",
-      "rationale": "Off-by-one in the loop range is the single most common FizzBuzz bug; the spec must name the exact bounds."
+      "id": "output_for_n",
+      "description": "Is the number n itself included in the output (1 through n inclusive) or excluded?",
+      "rationale": "Off-by-one on the loop bound is the most common FizzBuzz drift; the spec should commit to inclusive before `range` is written."
     },
     {
-      "id": "n_less_than_one",
-      "description": "What should the function return if n is 0 or negative, given the prompt says 'positive integer'?",
-      "rationale": "The prompt restricts input but does not say what to do on violation; the spec must commit to empty list, error, or assume-valid."
+      "id": "number_print_type",
+      "description": "When printing a non-Fizz/Buzz number, is it printed as an integer or as a string, and does that matter for the output format?",
+      "rationale": "Students sometimes mix print styles across branches; committing to a uniform output prevents surprise formatting mismatches."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student checks `i % 3 == 0` before `i % 15 == 0` (or before the combined 3-and-5 check), so multiples of 15 produce 'Fizz' instead of 'FizzBuzz'"
-    },
-    {
-      "category": "bug",
-      "pattern": "Loop uses `range(n)` instead of `range(1, n+1)`, producing output for 0..n-1 and mis-labeling every multiple"
+      "pattern": "Student checks `n % 3 == 0` before `n % 15 == 0`, so multiples of 15 print 'Fizz' and the 'FizzBuzz' branch is unreachable"
     },
     {
       "category": "drift",
-      "pattern": "Non-multiples appended as integers (e.g. `result.append(i)`) rather than strings, violating the 'list of strings' contract"
+      "pattern": "Loop uses `range(1, n)` instead of `range(1, n+1)`, omitting n from the output despite spec saying '1 through n'"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to validating input, but code calls `int(input(...))` without a try/except or range check, crashing on bad input"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes four separate if/elif branches; code builds the string by concatenation (`s = ''; if i%3: s+='Fizz'; if i%5: s+='Buzz'; s or str(i)`) — coherent alternative that still satisfies spec"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes imperative loop with append; code uses a list comprehension — coherent Pythonic refactor"
+      "pattern": "Plan describes four-branch if/elif chain; code uses string concatenation (`out = ''; if i%3==0: out+='Fizz'; ...`) — coherent alternative that naturally handles the FizzBuzz case"
     },
     {
       "category": "bug",
-      "pattern": "Returns None because the student printed each value inside the loop instead of appending to a list and returning it"
+      "pattern": "Uses `or` instead of `and` when checking for multiples of both 3 and 5, so every multiple of 3 or 5 prints 'FizzBuzz'"
+    },
+    {
+      "category": "bug",
+      "pattern": "Prints `i` on the Fizz/Buzz branches too (e.g., forgets `else`), producing both the word and the number"
     }
   ],
   "opusGeneratedPhase2Required": false,

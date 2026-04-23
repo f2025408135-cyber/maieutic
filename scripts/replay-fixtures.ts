@@ -32,6 +32,7 @@ type ExerciseJson = {
   expectedDivergences: unknown;
   phase2Required: boolean;
   studentLevel: string;
+  unit?: string;
   opusGeneratedDimensions: unknown;
   opusGeneratedDivergences: unknown;
   opusGeneratedPhase2Required: boolean;
@@ -100,6 +101,7 @@ async function replayExercise(ex: ExerciseJson) {
       expectedDivergences: ex.expectedDivergences as never,
       phase2Required: ex.phase2Required,
       studentLevel: ex.studentLevel,
+      unit: ex.unit ?? "unit_2",
       opusGeneratedDimensions: ex.opusGeneratedDimensions as never,
       opusGeneratedDivergences: ex.opusGeneratedDivergences as never,
       opusGeneratedPhase2Required: ex.opusGeneratedPhase2Required,

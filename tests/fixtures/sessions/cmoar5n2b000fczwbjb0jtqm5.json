@@ -1,0 +1,96 @@
+{
+  "id": "cmoar5n2b000fczwbjb0jtqm5",
+  "studentId": "cohort_student_0",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-23T00:37:40.739Z",
+  "completedAt": "2026-04-23T00:37:47.530Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-23T00:37:42.431Z",
+        "studentSpecText": "The program asks for a string with input() and prints just the integer count of vowels (no extra text). Counts lowercase aeiou and uppercase AEIOU. 'y' is not a vowel. Empty input → prints 0.",
+        "opusQuestions": [],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "output_format",
+          "empty_input"
+        ],
+        "emergentGaps": [],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "The program asks for a string with input() and prints just the integer count of vowels (no extra text). Counts lowercase aeiou and uppercase AEIOU. 'y' is not a vowel. Empty input → prints 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "output_format",
+      "empty_input"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "s = input()\ncount = 0\nfor c in s:\n    if c in 'aeiou':\n        count += 1\nprint(count)\n",
+    "finalCode": "s = input()\ncount = 0\nfor c in s:\n    if c in 'aeiou':\n        count += 1\nprint(count)\n",
+    "submittedAt": "2026-04-23T00:37:42.436Z"
+  },
+  "phase4Data": {
+    "divergences": [
+      {
+        "divergenceId": "uppercase_vowels_missed",
+        "initialClassification": "drift",
+        "initialConfidence": "high",
+        "predictedJustification": "I forgot about the uppercase letters.",
+        "studentFacingQuestion": "Your spec said the program counts both lowercase aeiou and uppercase AEIOU. I noticed the if-statement only checks 'aeiou'. Can you tell me what happened there?",
+        "evidenceFromSpec": "Counts lowercase aeiou and uppercase AEIOU",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "if c in 'aeiou': — no uppercase letters included",
+        "studentResponse": "I forgot about the capital letters.",
+        "alignment": "aligned",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student confirmed they forgot about capital letters, indicating the divergence was unintentional.",
+        "respondedAt": "2026-04-23T00:37:47.527Z"
+      }
+    ],
+    "startedAt": "2026-04-23T00:37:45.724Z",
+    "completedAt": "2026-04-23T00:37:47.527Z"
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoar5odf000hczwb4hwthio5",
+      "sessionId": "cmoar5n2b000fczwbjb0jtqm5",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-23T00:37:42.435Z"
+    },
+    {
+      "id": "cmoar5qwv000jczwb23no5mh0",
+      "sessionId": "cmoar5n2b000fczwbjb0jtqm5",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-23T00:37:45.728Z"
+    },
+    {
+      "id": "cmoar5sb0000lczwb07uijqh3",
+      "sessionId": "cmoar5n2b000fczwbjb0jtqm5",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-23T00:37:47.532Z"
+    }
+  ]
+}

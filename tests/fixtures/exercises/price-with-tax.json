@@ -1,48 +1,48 @@
 {
   "id": "price-with-tax",
   "title": "Price with tax",
-  "instructorPromptText": "Write a function that takes a price (a number) and a tax rate expressed as a percentage (e.g. 19.0 for 19%), and returns the total price including tax.",
+  "instructorPromptText": "Write a program that asks the user for a price and a tax rate (as a percentage, e.g. 19.0 for 19%), then prints the total price including tax.",
   "authoredAt": "2026-04-23T00:18:41.808Z",
   "publishedAt": "2026-04-23T00:18:41.807Z",
   "specGateDimensions": [
     {
+      "id": "input_types",
+      "description": "Are the price and tax rate read as floats, integers, or strings that get converted? What happens if the user types something non-numeric?",
+      "rationale": "CS1 students often forget input() returns a string; committing to a conversion strategy in the spec prevents the classic TypeError on arithmetic.",
+      "source": "opus"
+    },
+    {
       "id": "tax_rate_interpretation",
-      "description": "Does the function treat the tax_rate argument as a percentage (19.0 means 19%, so multiply by rate/100) or as a decimal fraction (0.19)?",
-      "rationale": "The prompt specifies percentage form, but students often default to treating the input as a decimal and divide by the wrong factor. Forcing the spec to commit makes this visible before coding.",
+      "description": "If the user enters 19.0, is that treated as 19% (divide by 100) or as a multiplier of 19.0x? The prompt gives the example '19.0 for 19%' — the spec must commit to the /100 conversion.",
+      "rationale": "The most common bug in this exercise is forgetting to divide by 100, producing absurd totals. Surfacing this in the spec forces the student to articulate the formula.",
       "source": "opus"
     },
     {
-      "id": "return_rounding",
-      "description": "Should the returned total be rounded to 2 decimal places (currency), or returned as a raw float?",
-      "rationale": "Prices imply currency, which implies rounding, but the prompt says nothing about it. The spec must commit because the student will otherwise produce values like 11.899999999999999 and be surprised.",
-      "source": "opus"
-    },
-    {
-      "id": "negative_or_zero_inputs",
-      "description": "What should happen if price or tax_rate is negative or zero? Are they accepted, rejected, or undefined behavior?",
-      "rationale": "Zero tax is realistic; negative values are nonsense. Surfacing this decides whether the function needs validation or operates on trust.",
+      "id": "output_format",
+      "description": "How should the total be displayed — raw float, rounded to 2 decimals, with a currency symbol, with a label?",
+      "rationale": "Float arithmetic produces noisy output like 119.00000000001; the student should commit to a formatting choice before discovering this at runtime.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec says 'multiply by rate/100' but code writes `price * tax_rate` or `price + tax_rate`, forgetting the percentage conversion entirely",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec commits to rounding to 2 decimals but code returns the raw float product",
+      "category": "bug",
+      "pattern": "Student multiplies price by tax_rate directly without dividing by 100, so a $100 item at 19% becomes $1900 instead of $119",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student computes only the tax amount (`price * tax_rate / 100`) and returns that instead of the total (price + tax)",
+      "pattern": "Student forgets float() conversion on input() and gets a TypeError when multiplying string by number, or gets string repetition instead of arithmetic",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to 2-decimal rounded output but code prints the raw float, exposing floating-point noise",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes computing tax_amount then adding it; code uses the equivalent one-liner `price * (1 + tax_rate/100)` — coherent simplification",
+      "pattern": "Plan computes tax amount and total in two steps; code collapses to a single expression like price * (1 + rate/100) — coherent simplification",
       "source": "opus"
     }
   ],
@@ -51,37 +51,37 @@
   "unit": "unit_1",
   "opusGeneratedDimensions": [
     {
+      "id": "input_types",
+      "description": "Are the price and tax rate read as floats, integers, or strings that get converted? What happens if the user types something non-numeric?",
+      "rationale": "CS1 students often forget input() returns a string; committing to a conversion strategy in the spec prevents the classic TypeError on arithmetic."
+    },
+    {
       "id": "tax_rate_interpretation",
-      "description": "Does the function treat the tax_rate argument as a percentage (19.0 means 19%, so multiply by rate/100) or as a decimal fraction (0.19)?",
-      "rationale": "The prompt specifies percentage form, but students often default to treating the input as a decimal and divide by the wrong factor. Forcing the spec to commit makes this visible before coding."
+      "description": "If the user enters 19.0, is that treated as 19% (divide by 100) or as a multiplier of 19.0x? The prompt gives the example '19.0 for 19%' — the spec must commit to the /100 conversion.",
+      "rationale": "The most common bug in this exercise is forgetting to divide by 100, producing absurd totals. Surfacing this in the spec forces the student to articulate the formula."
     },
     {
-      "id": "return_rounding",
-      "description": "Should the returned total be rounded to 2 decimal places (currency), or returned as a raw float?",
-      "rationale": "Prices imply currency, which implies rounding, but the prompt says nothing about it. The spec must commit because the student will otherwise produce values like 11.899999999999999 and be surprised."
-    },
-    {
-      "id": "negative_or_zero_inputs",
-      "description": "What should happen if price or tax_rate is negative or zero? Are they accepted, rejected, or undefined behavior?",
-      "rationale": "Zero tax is realistic; negative values are nonsense. Surfacing this decides whether the function needs validation or operates on trust."
+      "id": "output_format",
+      "description": "How should the total be displayed — raw float, rounded to 2 decimals, with a currency symbol, with a label?",
+      "rationale": "Float arithmetic produces noisy output like 119.00000000001; the student should commit to a formatting choice before discovering this at runtime."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec says 'multiply by rate/100' but code writes `price * tax_rate` or `price + tax_rate`, forgetting the percentage conversion entirely"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec commits to rounding to 2 decimals but code returns the raw float product"
+      "category": "bug",
+      "pattern": "Student multiplies price by tax_rate directly without dividing by 100, so a $100 item at 19% becomes $1900 instead of $119"
     },
     {
       "category": "bug",
-      "pattern": "Student computes only the tax amount (`price * tax_rate / 100`) and returns that instead of the total (price + tax)"
+      "pattern": "Student forgets float() conversion on input() and gets a TypeError when multiplying string by number, or gets string repetition instead of arithmetic"
+    },
+    {
+      "category": "drift",
+      "pattern": "Spec commits to 2-decimal rounded output but code prints the raw float, exposing floating-point noise"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes computing tax_amount then adding it; code uses the equivalent one-liner `price * (1 + tax_rate/100)` — coherent simplification"
+      "pattern": "Plan computes tax amount and total in two steps; code collapses to a single expression like price * (1 + rate/100) — coherent simplification"
     }
   ],
   "opusGeneratedPhase2Required": false,

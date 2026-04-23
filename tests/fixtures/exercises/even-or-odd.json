@@ -1,48 +1,53 @@
 {
   "id": "even-or-odd",
   "title": "Even or odd",
-  "instructorPromptText": "Write a function that takes an integer and returns the string 'even' or 'odd'.",
+  "instructorPromptText": "Write a program that asks the user for an integer, then prints 'even' or 'odd'.",
   "authoredAt": "2026-04-23T00:01:34.654Z",
   "publishedAt": "2026-04-23T00:01:34.653Z",
   "specGateDimensions": [
     {
       "id": "zero_classification",
-      "description": "What should the function return for 0?",
-      "rationale": "Zero is mathematically even but students often forget to consider it; forcing a commitment surfaces whether the student understands modulo behavior on 0.",
+      "description": "Should 0 be classified as 'even', 'odd', or treated as a special case?",
+      "rationale": "Zero is the canonical edge case for parity; forcing the student to commit prevents an untested assumption.",
       "source": "opus"
     },
     {
-      "id": "negative_integers",
-      "description": "How should negative integers be handled — are -3 and -4 classified the same as 3 and 4?",
-      "rationale": "Some students write `n % 2 == 1` which fails for negative odd numbers in Python; surfacing negatives in the spec forces the student to think about the check, not just the positive case.",
+      "id": "negative_numbers",
+      "description": "How should negative integers be handled — classified normally, rejected, or treated specially?",
+      "rationale": "The prompt says 'integer' without qualification; negative parity often surprises novices who reason only about positives.",
       "source": "opus"
     },
     {
-      "id": "non_integer_input",
-      "description": "What happens if the input is a float, string, or None?",
-      "rationale": "The prompt says 'takes an integer' but does not say whether the function should validate. Committing to a contract (trust the caller vs. validate) prevents silent bugs on floats like 4.0.",
+      "id": "invalid_input",
+      "description": "What should happen if the user enters something that isn't an integer (e.g. 'hello' or '3.5')?",
+      "rationale": "input() returns a string; the student must commit to whether to crash, reprompt, or print an error, since the spec implies int conversion.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student writes `if n % 2 == 1: return 'odd'` which misclassifies negative odd numbers in Python (since -3 % 2 == 1 actually works in Python, but the equivalent in other languages fails — or student writes `== 1` thinking only of positives and is surprised)",
+      "category": "drift",
+      "pattern": "Spec commits to rejecting non-integer input, but code calls int(input(...)) directly and crashes with a ValueError on bad input",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to returning lowercase 'even'/'odd' but code returns 'Even'/'Odd' or True/False",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes an if/else; code uses a ternary `return 'even' if n % 2 == 0 else 'odd'` — coherent simplification",
+      "pattern": "Spec says program prints 'even' or 'odd' as lowercase words, but code prints 'Even'/'Odd' or the boolean result of n % 2 == 0",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student uses `//` (floor division) instead of `%` (modulo), returning wrong classification for all inputs",
+      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative integers in Python since -3 % 2 == 1 actually works, but the inverse `if n % 2 == -1` logic (sometimes attempted) does not",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to convert input() to int and does string comparison or modulo on a string, raising TypeError",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses if/else with explicit comparison; code uses a ternary or direct print of `'even' if n % 2 == 0 else 'odd'` — coherent simplification",
       "source": "opus"
     }
   ],
@@ -52,36 +57,40 @@
   "opusGeneratedDimensions": [
     {
       "id": "zero_classification",
-      "description": "What should the function return for 0?",
-      "rationale": "Zero is mathematically even but students often forget to consider it; forcing a commitment surfaces whether the student understands modulo behavior on 0."
+      "description": "Should 0 be classified as 'even', 'odd', or treated as a special case?",
+      "rationale": "Zero is the canonical edge case for parity; forcing the student to commit prevents an untested assumption."
     },
     {
-      "id": "negative_integers",
-      "description": "How should negative integers be handled — are -3 and -4 classified the same as 3 and 4?",
-      "rationale": "Some students write `n % 2 == 1` which fails for negative odd numbers in Python; surfacing negatives in the spec forces the student to think about the check, not just the positive case."
+      "id": "negative_numbers",
+      "description": "How should negative integers be handled — classified normally, rejected, or treated specially?",
+      "rationale": "The prompt says 'integer' without qualification; negative parity often surprises novices who reason only about positives."
     },
     {
-      "id": "non_integer_input",
-      "description": "What happens if the input is a float, string, or None?",
-      "rationale": "The prompt says 'takes an integer' but does not say whether the function should validate. Committing to a contract (trust the caller vs. validate) prevents silent bugs on floats like 4.0."
+      "id": "invalid_input",
+      "description": "What should happen if the user enters something that isn't an integer (e.g. 'hello' or '3.5')?",
+      "rationale": "input() returns a string; the student must commit to whether to crash, reprompt, or print an error, since the spec implies int conversion."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student writes `if n % 2 == 1: return 'odd'` which misclassifies negative odd numbers in Python (since -3 % 2 == 1 actually works in Python, but the equivalent in other languages fails — or student writes `== 1` thinking only of positives and is surprised)"
+      "category": "drift",
+      "pattern": "Spec commits to rejecting non-integer input, but code calls int(input(...)) directly and crashes with a ValueError on bad input"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to returning lowercase 'even'/'odd' but code returns 'Even'/'Odd' or True/False"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes an if/else; code uses a ternary `return 'even' if n % 2 == 0 else 'odd'` — coherent simplification"
+      "pattern": "Spec says program prints 'even' or 'odd' as lowercase words, but code prints 'Even'/'Odd' or the boolean result of n % 2 == 0"
     },
     {
       "category": "bug",
-      "pattern": "Student uses `//` (floor division) instead of `%` (modulo), returning wrong classification for all inputs"
+      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative integers in Python since -3 % 2 == 1 actually works, but the inverse `if n % 2 == -1` logic (sometimes attempted) does not"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to convert input() to int and does string comparison or modulo on a string, raising TypeError"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan uses if/else with explicit comparison; code uses a ternary or direct print of `'even' if n % 2 == 0 else 'odd'` — coherent simplification"
     }
   ],
   "opusGeneratedPhase2Required": false,

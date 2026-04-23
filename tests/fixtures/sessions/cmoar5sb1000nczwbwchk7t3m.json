@@ -1,0 +1,96 @@
+{
+  "id": "cmoar5sb1000nczwbwchk7t3m",
+  "studentId": "cohort_student_1",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-23T00:37:47.533Z",
+  "completedAt": "2026-04-23T00:37:55.024Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-23T00:37:49.316Z",
+        "studentSpecText": "Reads a string with input() and prints the number of vowels — just the number, nothing else. Counts a,e,i,o,u and A,E,I,O,U. y is not counted. Empty string → prints 0.",
+        "opusQuestions": [],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "output_format",
+          "empty_input"
+        ],
+        "emergentGaps": [],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "Reads a string with input() and prints the number of vowels — just the number, nothing else. Counts a,e,i,o,u and A,E,I,O,U. y is not counted. Empty string → prints 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "output_format",
+      "empty_input"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "text = input()\ntotal = 0\nfor ch in text:\n    if ch in 'aeiou':\n        total = total + 1\nprint(total)\n",
+    "finalCode": "text = input()\ntotal = 0\nfor ch in text:\n    if ch in 'aeiou':\n        total = total + 1\nprint(total)\n",
+    "submittedAt": "2026-04-23T00:37:49.327Z"
+  },
+  "phase4Data": {
+    "divergences": [
+      {
+        "divergenceId": "uppercase_vowels_missed",
+        "initialClassification": "drift",
+        "initialConfidence": "high",
+        "predictedJustification": "I forgot about the capital letters.",
+        "studentFacingQuestion": "Your spec said the program should count both lowercase and uppercase vowels like A, E, I, O, U. I noticed your check is `if ch in 'aeiou'`. Can you tell me what happens if the user types a word with capital letters?",
+        "evidenceFromSpec": "Counts a,e,i,o,u and A,E,I,O,U",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "if ch in 'aeiou': — only lowercase vowels are checked",
+        "studentResponse": "I didn't think about uppercase.",
+        "alignment": "aligned",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student confirmed they didn't consider the uppercase case, indicating an unintended omission rather than a deliberate design choice.",
+        "respondedAt": "2026-04-23T00:37:55.017Z"
+      }
+    ],
+    "startedAt": "2026-04-23T00:37:53.118Z",
+    "completedAt": "2026-04-23T00:37:55.017Z"
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoar5tot000pczwbpipwzcdt",
+      "sessionId": "cmoar5sb1000nczwbwchk7t3m",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-23T00:37:49.325Z"
+    },
+    {
+      "id": "cmoar5wmb000rczwbq2n6tg1j",
+      "sessionId": "cmoar5sb1000nczwbwchk7t3m",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-23T00:37:53.123Z"
+    },
+    {
+      "id": "cmoar5y37000tczwb8z14lf9e",
+      "sessionId": "cmoar5sb1000nczwbwchk7t3m",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-23T00:37:55.027Z"
+    }
+  ]
+}

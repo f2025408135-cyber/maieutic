@@ -1,48 +1,48 @@
 {
   "id": "greet-by-name",
   "title": "Greet by name",
-  "instructorPromptText": "Write a function that takes a person's name (a string) and returns a friendly greeting like 'Hello, Alice!'.",
+  "instructorPromptText": "Write a program that asks the user for their name, then prints a friendly greeting like 'Hello, Alice!'.",
   "authoredAt": "2026-04-23T00:18:14.494Z",
   "publishedAt": "2026-04-23T00:18:14.490Z",
   "specGateDimensions": [
     {
-      "id": "empty_name",
-      "description": "What should the function return when the name is an empty string — 'Hello, !' or some other fallback like 'Hello, friend!'?",
-      "rationale": "Empty string is the canonical missed case; forcing a commitment here surfaces whether the student has thought past the happy path.",
+      "id": "prompt_text",
+      "description": "What exact text should the program display when asking the user for their name?",
+      "rationale": "Students often skip committing to the input prompt wording and then produce a bare `input()` with no visible cue, which confuses users running the program.",
+      "source": "opus"
+    },
+    {
+      "id": "greeting_format",
+      "description": "What is the exact format of the greeting — does it use a comma, an exclamation mark, the literal word 'Hello', and where does the name appear?",
+      "rationale": "The example 'Hello, Alice!' is illustrative; the spec must commit to a concrete template before the student chooses between concatenation, f-strings, or commas in print.",
       "source": "opus"
     },
     {
       "id": "whitespace_handling",
-      "description": "Should leading/trailing whitespace in the name be stripped, or preserved verbatim in the greeting?",
-      "rationale": "Students rarely think about input hygiene; surfacing it in the spec prevents output like 'Hello,   Alice  !'.",
-      "source": "opus"
-    },
-    {
-      "id": "return_vs_print",
-      "description": "Does the function return the greeting string or print it?",
-      "rationale": "Novices routinely conflate return and print; the prompt says 'returns' but students often write print() and then cannot use the result.",
+      "description": "If the user types leading/trailing spaces or hits enter without typing anything, should the program strip the input, reject it, or greet as-is?",
+      "rationale": "Novices rarely think about whitespace from `input()`; surfacing it prevents greetings like 'Hello,  !' without forcing them to handle it — they just have to commit.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student uses print() instead of return, so the function technically outputs the greeting but returns None",
+      "category": "drift",
+      "pattern": "Spec commits to a specific greeting format (e.g. 'Hello, {name}!') but code prints 'Hello ' + name with no comma or exclamation",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes string concatenation with '+'; code uses an f-string — coherent idiomatic substitution",
+      "pattern": "Plan uses string concatenation with `+`; code uses an f-string — coherent Pythonic refactor",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Forgets the comma or exclamation mark, producing 'Hello Alice' or 'Hello, Alice' instead of the specified format",
+      "pattern": "Student calls `input` without parentheses or assigns `input` to the variable instead of `input()`, so the name variable holds the function object",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Spec committed to stripping whitespace but code passes the name through unchanged",
+      "category": "bug",
+      "pattern": "Student uses `print('Hello, name!')` with the variable name inside the string literal rather than interpolating it",
       "source": "opus"
     }
   ],
@@ -51,37 +51,37 @@
   "unit": "unit_1",
   "opusGeneratedDimensions": [
     {
-      "id": "empty_name",
-      "description": "What should the function return when the name is an empty string — 'Hello, !' or some other fallback like 'Hello, friend!'?",
-      "rationale": "Empty string is the canonical missed case; forcing a commitment here surfaces whether the student has thought past the happy path."
+      "id": "prompt_text",
+      "description": "What exact text should the program display when asking the user for their name?",
+      "rationale": "Students often skip committing to the input prompt wording and then produce a bare `input()` with no visible cue, which confuses users running the program."
+    },
+    {
+      "id": "greeting_format",
+      "description": "What is the exact format of the greeting — does it use a comma, an exclamation mark, the literal word 'Hello', and where does the name appear?",
+      "rationale": "The example 'Hello, Alice!' is illustrative; the spec must commit to a concrete template before the student chooses between concatenation, f-strings, or commas in print."
     },
     {
       "id": "whitespace_handling",
-      "description": "Should leading/trailing whitespace in the name be stripped, or preserved verbatim in the greeting?",
-      "rationale": "Students rarely think about input hygiene; surfacing it in the spec prevents output like 'Hello,   Alice  !'."
-    },
-    {
-      "id": "return_vs_print",
-      "description": "Does the function return the greeting string or print it?",
-      "rationale": "Novices routinely conflate return and print; the prompt says 'returns' but students often write print() and then cannot use the result."
+      "description": "If the user types leading/trailing spaces or hits enter without typing anything, should the program strip the input, reject it, or greet as-is?",
+      "rationale": "Novices rarely think about whitespace from `input()`; surfacing it prevents greetings like 'Hello,  !' without forcing them to handle it — they just have to commit."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student uses print() instead of return, so the function technically outputs the greeting but returns None"
+      "category": "drift",
+      "pattern": "Spec commits to a specific greeting format (e.g. 'Hello, {name}!') but code prints 'Hello ' + name with no comma or exclamation"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes string concatenation with '+'; code uses an f-string — coherent idiomatic substitution"
+      "pattern": "Plan uses string concatenation with `+`; code uses an f-string — coherent Pythonic refactor"
     },
     {
       "category": "bug",
-      "pattern": "Forgets the comma or exclamation mark, producing 'Hello Alice' or 'Hello, Alice' instead of the specified format"
+      "pattern": "Student calls `input` without parentheses or assigns `input` to the variable instead of `input()`, so the name variable holds the function object"
     },
     {
-      "category": "drift",
-      "pattern": "Spec committed to stripping whitespace but code passes the name through unchanged"
+      "category": "bug",
+      "pattern": "Student uses `print('Hello, name!')` with the variable name inside the string literal rather than interpolating it"
     }
   ],
   "opusGeneratedPhase2Required": false,

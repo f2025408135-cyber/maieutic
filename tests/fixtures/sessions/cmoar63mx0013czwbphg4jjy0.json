@@ -1,0 +1,80 @@
+{
+  "id": "cmoar63mx0013czwbphg4jjy0",
+  "studentId": "cohort_student_3",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-23T00:38:02.217Z",
+  "completedAt": "2026-04-23T00:38:05.467Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-23T00:38:04.184Z",
+        "studentSpecText": "Asks the user for a string with input(), then prints the number of vowels as a single integer with no extra message (lowercase aeiou AND uppercase AEIOU, 'y' is NOT a vowel). Empty string → prints 0.",
+        "opusQuestions": [],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "output_format",
+          "empty_input"
+        ],
+        "emergentGaps": [],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "Asks the user for a string with input(), then prints the number of vowels as a single integer with no extra message (lowercase aeiou AND uppercase AEIOU, 'y' is NOT a vowel). Empty string → prints 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "output_format",
+      "empty_input"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "print(sum(1 for c in input() if c in 'aeiouAEIOU'))\n",
+    "finalCode": "print(sum(1 for c in input() if c in 'aeiouAEIOU'))\n",
+    "submittedAt": "2026-04-23T00:38:04.191Z"
+  },
+  "phase4Data": {
+    "divergences": [],
+    "startedAt": "2026-04-23T00:38:05.459Z",
+    "completedAt": null
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoar655q0015czwbltqkdsd8",
+      "sessionId": "cmoar63mx0013czwbphg4jjy0",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-23T00:38:04.190Z"
+    },
+    {
+      "id": "cmoar66550017czwb77nm0ivc",
+      "sessionId": "cmoar63mx0013czwbphg4jjy0",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-23T00:38:05.465Z"
+    },
+    {
+      "id": "cmoar66590019czwbow6121my",
+      "sessionId": "cmoar63mx0013czwbphg4jjy0",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-23T00:38:05.469Z"
+    }
+  ]
+}

@@ -1,53 +1,64 @@
 {
   "id": "max-of-three",
   "title": "Maximum of three",
-  "instructorPromptText": "Write a function that takes three numbers and returns the largest one. Do not use the built-in max() function.",
+  "instructorPromptText": "Write a program that asks the user for three numbers, then prints the largest one. Do not use the built-in max() — decide with conditionals.",
   "authoredAt": "2026-04-23T00:01:48.349Z",
   "publishedAt": "2026-04-23T00:01:48.348Z",
   "specGateDimensions": [
     {
-      "id": "ties_behavior",
-      "description": "What should the function return when two or all three inputs are equal (e.g., max_of_three(5, 5, 3))?",
-      "rationale": "Ties have an obvious answer (return the tied value) but force the student to notice that their comparison operators — < vs <= — don't actually matter for correctness here, which is a useful observation.",
+      "id": "input_type",
+      "description": "Are the three inputs expected to be integers, floats, or either? How should the program convert the raw input() strings?",
+      "rationale": "input() returns strings; the student must commit to a conversion (int vs float) before writing code, or comparisons will silently misbehave (string comparison) or crash.",
       "source": "opus"
     },
     {
-      "id": "numeric_types",
-      "description": "Does the function need to handle floats, negative numbers, and mixed int/float inputs, or only positive integers?",
-      "rationale": "Students often implicitly assume positive integers and write code that happens to work for negatives anyway; committing to the contract clarifies what the tests should cover.",
+      "id": "tie_handling",
+      "description": "If two or all three numbers are equal to the maximum, what does the program print — the value once, a message about the tie, or something else?",
+      "rationale": "The prompt says 'the largest one' as if it is unique. Ties are the canonical missed case for max-of-N problems and the conditional structure the student picks depends on this commitment.",
       "source": "opus"
     },
     {
-      "id": "comparison_strategy",
-      "description": "Will you compare the three numbers with a chain of if/elif branches, or reduce pairwise (find max of first two, then compare to third)?",
-      "rationale": "Both strategies are valid and the student must commit to one before coding, since mixing them mid-implementation is a common source of tangled logic.",
+      "id": "comparison_structure",
+      "description": "Will the spec describe comparing all three at once (nested/compound conditionals) or tracking a running maximum across pairwise comparisons?",
+      "rationale": "The prompt forbids max() and mandates conditionals, so the student must commit to a decision strategy in the spec rather than discovering it while typing.",
+      "source": "opus"
+    },
+    {
+      "id": "invalid_input",
+      "description": "What should happen if the user types something that isn't a number?",
+      "rationale": "Forces the student to either commit to 'assume valid input' explicitly or plan for conversion errors, rather than letting a crash count as undefined behavior.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student writes `if a > b and a > c` / `elif b > a and b > c` but omits the final `else` or a third branch, so certain tie configurations fall through and return None",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `if a > b > c` thinking it checks 'a is the largest', misunderstanding Python's chained comparison semantics",
+      "pattern": "Student forgets int()/float() conversion and compares strings, so '9' > '10' returns True and the wrong number prints for multi-digit inputs",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to handling negatives but code initializes a running maximum to 0 instead of to one of the inputs, causing wrong answers on all-negative inputs",
+      "pattern": "Spec commits to handling ties with a special message, but code just prints one value because the tie branch was never written",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Chained conditional misses a case — e.g. `if a > b and a > c: print(a); elif b > c: print(b); else: print(c)` works, but a variant like `if a > b: if a > c: print(a)` drops the case where b is largest",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `>` strictly where `>=` was needed (or vice versa) and gets no output when two numbers tie for the maximum",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes three if/elif branches; code uses a running-maximum accumulator pattern (`m = a; if b > m: m = b; if c > m: m = c`) — coherent simplification",
+      "pattern": "Plan describes three-way nested conditionals; code uses a running-maximum pattern (largest = a; if b > largest: largest = b; ...) — coherent restructure that still satisfies the no-max() constraint",
       "source": "opus"
     },
     {
-      "category": "revision",
-      "pattern": "Student sorts a list of the three values and returns the last element — satisfies the spec and avoids max() but sidesteps the comparison logic the exercise is meant to teach",
+      "category": "drift",
+      "pattern": "Student calls input() once with a single prompt expecting three space-separated numbers, when spec said three separate prompts (or vice versa)",
       "source": "opus"
     }
   ],
@@ -56,41 +67,50 @@
   "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
-      "id": "ties_behavior",
-      "description": "What should the function return when two or all three inputs are equal (e.g., max_of_three(5, 5, 3))?",
-      "rationale": "Ties have an obvious answer (return the tied value) but force the student to notice that their comparison operators — < vs <= — don't actually matter for correctness here, which is a useful observation."
+      "id": "input_type",
+      "description": "Are the three inputs expected to be integers, floats, or either? How should the program convert the raw input() strings?",
+      "rationale": "input() returns strings; the student must commit to a conversion (int vs float) before writing code, or comparisons will silently misbehave (string comparison) or crash."
     },
     {
-      "id": "numeric_types",
-      "description": "Does the function need to handle floats, negative numbers, and mixed int/float inputs, or only positive integers?",
-      "rationale": "Students often implicitly assume positive integers and write code that happens to work for negatives anyway; committing to the contract clarifies what the tests should cover."
+      "id": "tie_handling",
+      "description": "If two or all three numbers are equal to the maximum, what does the program print — the value once, a message about the tie, or something else?",
+      "rationale": "The prompt says 'the largest one' as if it is unique. Ties are the canonical missed case for max-of-N problems and the conditional structure the student picks depends on this commitment."
     },
     {
-      "id": "comparison_strategy",
-      "description": "Will you compare the three numbers with a chain of if/elif branches, or reduce pairwise (find max of first two, then compare to third)?",
-      "rationale": "Both strategies are valid and the student must commit to one before coding, since mixing them mid-implementation is a common source of tangled logic."
+      "id": "comparison_structure",
+      "description": "Will the spec describe comparing all three at once (nested/compound conditionals) or tracking a running maximum across pairwise comparisons?",
+      "rationale": "The prompt forbids max() and mandates conditionals, so the student must commit to a decision strategy in the spec rather than discovering it while typing."
+    },
+    {
+      "id": "invalid_input",
+      "description": "What should happen if the user types something that isn't a number?",
+      "rationale": "Forces the student to either commit to 'assume valid input' explicitly or plan for conversion errors, rather than letting a crash count as undefined behavior."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student writes `if a > b and a > c` / `elif b > a and b > c` but omits the final `else` or a third branch, so certain tie configurations fall through and return None"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `if a > b > c` thinking it checks 'a is the largest', misunderstanding Python's chained comparison semantics"
+      "pattern": "Student forgets int()/float() conversion and compares strings, so '9' > '10' returns True and the wrong number prints for multi-digit inputs"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to handling negatives but code initializes a running maximum to 0 instead of to one of the inputs, causing wrong answers on all-negative inputs"
+      "pattern": "Spec commits to handling ties with a special message, but code just prints one value because the tie branch was never written"
+    },
+    {
+      "category": "bug",
+      "pattern": "Chained conditional misses a case — e.g. `if a > b and a > c: print(a); elif b > c: print(b); else: print(c)` works, but a variant like `if a > b: if a > c: print(a)` drops the case where b is largest"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `>` strictly where `>=` was needed (or vice versa) and gets no output when two numbers tie for the maximum"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes three if/elif branches; code uses a running-maximum accumulator pattern (`m = a; if b > m: m = b; if c > m: m = c`) — coherent simplification"
+      "pattern": "Plan describes three-way nested conditionals; code uses a running-maximum pattern (largest = a; if b > largest: largest = b; ...) — coherent restructure that still satisfies the no-max() constraint"
     },
     {
-      "category": "revision",
-      "pattern": "Student sorts a list of the three values and returns the last element — satisfies the spec and avoids max() but sidesteps the comparison logic the exercise is meant to teach"
+      "category": "drift",
+      "pattern": "Student calls input() once with a single prompt expecting three space-separated numbers, when spec said three separate prompts (or vice versa)"
     }
   ],
   "opusGeneratedPhase2Required": false,

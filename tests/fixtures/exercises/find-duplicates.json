@@ -1,75 +1,75 @@
 {
   "id": "find-duplicates",
   "title": "Find duplicates in a list",
-  "instructorPromptText": "Write a function that takes a list and returns a new list containing only the items that appear more than once. Each duplicate should appear only once in the result.",
+  "instructorPromptText": "Write a program that asks the user for a comma-separated list of values, then prints each value that appears more than once. Each duplicate value should be printed only once.",
   "authoredAt": "2026-04-23T00:02:30.473Z",
   "publishedAt": "2026-04-23T00:02:30.472Z",
   "specGateDimensions": [
     {
-      "id": "order_of_result",
-      "description": "In what order should duplicates appear in the returned list — order of first occurrence, order of second occurrence, sorted, or unspecified?",
-      "rationale": "The prompt does not specify ordering, but any concrete implementation will produce *some* order. Forcing commitment prevents the student from writing code whose output order differs from what their spec implies.",
+      "id": "whitespace_handling",
+      "description": "After splitting on commas, should surrounding whitespace be stripped so that 'a, a' is treated as two occurrences of 'a', or are ' a' and 'a' considered distinct values?",
+      "rationale": "Users naturally type spaces after commas; the spec must commit to whether the program normalizes input or treats whitespace literally.",
       "source": "opus"
     },
     {
-      "id": "empty_and_no_duplicates",
-      "description": "What should be returned when the input list is empty or contains no duplicates?",
-      "rationale": "Returning an empty list is the obvious answer, but the spec should say so explicitly rather than leaving it to accident.",
+      "id": "case_sensitivity",
+      "description": "Are 'Apple' and 'apple' considered the same value for duplicate detection?",
+      "rationale": "Values are strings by default; the student must commit to whether comparison is case-sensitive before writing the comparison logic.",
       "source": "opus"
     },
     {
-      "id": "element_types",
-      "description": "Can the list contain mixed or unhashable types (lists, dicts), or only hashable items like numbers and strings?",
-      "rationale": "This choice determines whether a set/dict-based solution is viable; surfacing it forces the student to notice their implementation strategy depends on a type assumption.",
+      "id": "output_order",
+      "description": "In what order should duplicates be printed — order of first appearance, order of second appearance, sorted, or unspecified?",
+      "rationale": "The prompt does not specify ordering, and different data structures (list scan vs. set vs. Counter) naturally produce different orders. The spec must commit so Phase 4 can verify.",
       "source": "opus"
     },
     {
-      "id": "triple_or_more_occurrences",
-      "description": "If an item appears 3+ times, does it still appear exactly once in the result?",
-      "rationale": "The prompt says 'each duplicate should appear only once', but novices often write code that emits the item once per extra occurrence (e.g., twice for a triple). Committing to 'exactly once regardless of count' clarifies the contract.",
+      "id": "empty_and_single_input",
+      "description": "What should the program print when the user enters nothing, or a list with no duplicates?",
+      "rationale": "Empty/no-duplicate cases are the canonical missed paths; the spec should state whether the program prints nothing, a message, or something else.",
       "source": "opus"
     },
     {
-      "id": "mutation_of_input",
-      "description": "Is the original list left unchanged, or may it be modified (e.g., sorted in place)?",
-      "rationale": "Some intuitive solutions sort the input first; students rarely realize this mutates the caller's list. Making the no-mutation guarantee explicit prevents a subtle class of bugs.",
+      "id": "value_type",
+      "description": "Are values treated as strings as typed, or should numeric-looking values ('3' and '3.0') be normalized?",
+      "rationale": "CS1 students often half-convert input; forcing a commitment prevents the 'sometimes it dedupes, sometimes it doesn't' bug class.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Student's spec says each duplicate appears once, but code appends inside a nested loop without tracking what's already been added, so an item appearing 3 times shows up twice in the result",
+      "pattern": "Spec says whitespace is stripped, but code does `input.split(',')` without calling .strip() on each element, so 'a, a' reports no duplicate",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to preserving order of first occurrence, but code uses `set()` somewhere that destroys the order",
+      "pattern": "Spec commits to printing each duplicate once, but code prints the duplicate every time it is encountered after the first (e.g., 'a,a,a' prints 'a' twice)",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses a dict/counter to tally occurrences then filters for count > 1; code uses `[x for x in set(lst) if lst.count(x) > 1]` — coherent but O(n²)",
+      "pattern": "Plan describes nested loops comparing each element to every other; code uses collections.Counter or a seen-set — coherent and more efficient",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes two passes (count, then collect); code uses a single pass with a 'seen' set and a 'duplicates' set — coherent optimization",
+      "pattern": "Plan describes building a count dictionary then filtering; code uses a two-set approach (seen, duplicates) in a single pass — coherent restructure",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Nested loop with `if lst[i] == lst[j]` but indices not constrained (i != j or j > i), causing every element to match itself and be flagged as duplicate",
+      "pattern": "Student uses a set to track duplicates but iterates over the set for output, producing nondeterministic order that may not match the committed order",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Uses `list.count()` inside a loop over the same list without deduplicating the result, producing duplicates-of-duplicates in the output",
+      "pattern": "Code appends to a duplicates list without checking membership, so a value appearing three times is printed twice",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Modifies the input list via `.remove()` or `.sort()` while iterating, causing skipped elements or incorrect results",
+      "pattern": "Forgets to handle the input() return being a single string; tries to iterate characters instead of comma-separated tokens",
       "source": "opus"
     }
   ],
@@ -78,59 +78,59 @@
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "order_of_result",
-      "description": "In what order should duplicates appear in the returned list — order of first occurrence, order of second occurrence, sorted, or unspecified?",
-      "rationale": "The prompt does not specify ordering, but any concrete implementation will produce *some* order. Forcing commitment prevents the student from writing code whose output order differs from what their spec implies."
+      "id": "whitespace_handling",
+      "description": "After splitting on commas, should surrounding whitespace be stripped so that 'a, a' is treated as two occurrences of 'a', or are ' a' and 'a' considered distinct values?",
+      "rationale": "Users naturally type spaces after commas; the spec must commit to whether the program normalizes input or treats whitespace literally."
     },
     {
-      "id": "empty_and_no_duplicates",
-      "description": "What should be returned when the input list is empty or contains no duplicates?",
-      "rationale": "Returning an empty list is the obvious answer, but the spec should say so explicitly rather than leaving it to accident."
+      "id": "case_sensitivity",
+      "description": "Are 'Apple' and 'apple' considered the same value for duplicate detection?",
+      "rationale": "Values are strings by default; the student must commit to whether comparison is case-sensitive before writing the comparison logic."
     },
     {
-      "id": "element_types",
-      "description": "Can the list contain mixed or unhashable types (lists, dicts), or only hashable items like numbers and strings?",
-      "rationale": "This choice determines whether a set/dict-based solution is viable; surfacing it forces the student to notice their implementation strategy depends on a type assumption."
+      "id": "output_order",
+      "description": "In what order should duplicates be printed — order of first appearance, order of second appearance, sorted, or unspecified?",
+      "rationale": "The prompt does not specify ordering, and different data structures (list scan vs. set vs. Counter) naturally produce different orders. The spec must commit so Phase 4 can verify."
     },
     {
-      "id": "triple_or_more_occurrences",
-      "description": "If an item appears 3+ times, does it still appear exactly once in the result?",
-      "rationale": "The prompt says 'each duplicate should appear only once', but novices often write code that emits the item once per extra occurrence (e.g., twice for a triple). Committing to 'exactly once regardless of count' clarifies the contract."
+      "id": "empty_and_single_input",
+      "description": "What should the program print when the user enters nothing, or a list with no duplicates?",
+      "rationale": "Empty/no-duplicate cases are the canonical missed paths; the spec should state whether the program prints nothing, a message, or something else."
     },
     {
-      "id": "mutation_of_input",
-      "description": "Is the original list left unchanged, or may it be modified (e.g., sorted in place)?",
-      "rationale": "Some intuitive solutions sort the input first; students rarely realize this mutates the caller's list. Making the no-mutation guarantee explicit prevents a subtle class of bugs."
+      "id": "value_type",
+      "description": "Are values treated as strings as typed, or should numeric-looking values ('3' and '3.0') be normalized?",
+      "rationale": "CS1 students often half-convert input; forcing a commitment prevents the 'sometimes it dedupes, sometimes it doesn't' bug class."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Student's spec says each duplicate appears once, but code appends inside a nested loop without tracking what's already been added, so an item appearing 3 times shows up twice in the result"
+      "pattern": "Spec says whitespace is stripped, but code does `input.split(',')` without calling .strip() on each element, so 'a, a' reports no duplicate"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to preserving order of first occurrence, but code uses `set()` somewhere that destroys the order"
+      "pattern": "Spec commits to printing each duplicate once, but code prints the duplicate every time it is encountered after the first (e.g., 'a,a,a' prints 'a' twice)"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses a dict/counter to tally occurrences then filters for count > 1; code uses `[x for x in set(lst) if lst.count(x) > 1]` — coherent but O(n²)"
+      "pattern": "Plan describes nested loops comparing each element to every other; code uses collections.Counter or a seen-set — coherent and more efficient"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes two passes (count, then collect); code uses a single pass with a 'seen' set and a 'duplicates' set — coherent optimization"
+      "pattern": "Plan describes building a count dictionary then filtering; code uses a two-set approach (seen, duplicates) in a single pass — coherent restructure"
     },
     {
       "category": "bug",
-      "pattern": "Nested loop with `if lst[i] == lst[j]` but indices not constrained (i != j or j > i), causing every element to match itself and be flagged as duplicate"
+      "pattern": "Student uses a set to track duplicates but iterates over the set for output, producing nondeterministic order that may not match the committed order"
     },
     {
       "category": "bug",
-      "pattern": "Uses `list.count()` inside a loop over the same list without deduplicating the result, producing duplicates-of-duplicates in the output"
+      "pattern": "Code appends to a duplicates list without checking membership, so a value appearing three times is printed twice"
     },
     {
       "category": "bug",
-      "pattern": "Modifies the input list via `.remove()` or `.sort()` while iterating, causing skipped elements or incorrect results"
+      "pattern": "Forgets to handle the input() return being a single string; tries to iterate characters instead of comma-separated tokens"
     }
   ],
   "opusGeneratedPhase2Required": true,

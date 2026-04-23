@@ -1,118 +1,107 @@
 {
   "id": "palindrome-check",
   "title": "Palindrome check",
-  "instructorPromptText": "Write a function that returns True if a string is a palindrome, ignoring case and non-letter characters.",
+  "instructorPromptText": "Write a program that asks the user for a string, then prints True if it's a palindrome (ignoring case and non-letter characters) and False otherwise.",
   "authoredAt": "2026-04-23T00:02:01.747Z",
   "publishedAt": "2026-04-23T00:02:01.745Z",
   "specGateDimensions": [
     {
-      "id": "non_letter_definition",
-      "description": "What counts as a 'non-letter character' to ignore — spaces only, spaces and punctuation, or anything that isn't a-z/A-Z (including digits)?",
-      "rationale": "The prompt says 'non-letter' but students often silently interpret this as 'non-alphanumeric'. Forcing a commitment surfaces whether digits like in 'A1A' are stripped or kept.",
+      "id": "empty_or_all_nonletter",
+      "description": "What should the program print if the input is empty, or contains only non-letter characters (so the filtered string is empty)?",
+      "rationale": "After stripping non-letters, the string may be empty; the spec must commit to whether that counts as a palindrome (True) or not, rather than discovering it at runtime.",
       "source": "opus"
     },
     {
-      "id": "empty_string",
-      "description": "What should the function return for an empty string, or a string that contains only non-letter characters (e.g., '!!!')?",
-      "rationale": "After filtering, the working string may be empty; the vacuous-truth case is the classic missed edge in palindrome problems.",
+      "id": "nonletter_definition",
+      "description": "What exactly counts as a 'non-letter character' to ignore — digits, spaces, punctuation, underscores, accented letters?",
+      "rationale": "The prompt says 'non-letter' but students often silently default to 'non-alphanumeric' or 'non-space'. Forcing commitment prevents a mismatch between spec intent and the isalpha/isalnum choice in code.",
       "source": "opus"
     },
     {
-      "id": "unicode_letters",
-      "description": "Do accented or non-ASCII letters (é, ñ, Ü) count as letters, and if so how are they compared case-insensitively?",
-      "rationale": "The spec must commit to ASCII-only or Unicode-aware handling before the student picks between .isalpha() and a manual a-z check.",
-      "source": "opus"
-    },
-    {
-      "id": "return_type_on_bad_input",
-      "description": "What should happen if the input is not a string (None, a number)?",
-      "rationale": "Committing to a type contract up front prevents the student from discovering a crash and mislabeling it a bug rather than a spec gap.",
+      "id": "output_format",
+      "description": "Should the program print the literal words True and False, or could it print 'yes'/'no' or similar? Is there any other output besides the boolean?",
+      "rationale": "CS1 graders often test output exactly; the spec must commit to printing the Python booleans True/False with no decorative text.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to ignoring case, but code compares the reversed string to the original without calling .lower(), so 'Aba' is reported as not a palindrome",
+      "pattern": "Student's spec commits to ignoring non-letters, but code only lowercases the string and compares to its reverse, so 'A man, a plan' returns False due to the comma and spaces",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec says ignore non-letters, but code only strips spaces (e.g., uses .replace(' ', '')) and fails on 'A man, a plan, a canal: Panama'",
+      "pattern": "Code uses `isalnum()` instead of `isalpha()`, so digits are kept even though spec said 'non-letter characters' are ignored",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a two-pointer walk from both ends; code uses `cleaned == cleaned[::-1]` — coherent Pythonic simplification",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes filtering then reversing in two passes; code uses a single comprehension plus slice — coherent consolidation",
+      "pattern": "Plan describes a two-pointer loop walking inward from both ends; code uses `s == s[::-1]` — coherent Pythonic simplification",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student uses `c.isalpha()` but then compares using the raw character instead of the lowercased one, so case-folding is lost mid-pipeline",
+      "pattern": "Student prints the result inside the loop/comparison logic instead of after it, producing multiple True/False lines",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Two-pointer version has an off-by-one in the while-loop condition (`<` vs `<=`) and gives wrong results on odd-length inputs",
+      "pattern": "Student compares the original filtered string to a reversed version but forgets to lowercase, so 'Racecar' returns False",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `reverse()` (which mutates and returns None) in place of `reversed()` or slicing, causing the comparison to always be False",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
+  "phase2Required": false,
   "studentLevel": "week_3_6",
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "non_letter_definition",
-      "description": "What counts as a 'non-letter character' to ignore — spaces only, spaces and punctuation, or anything that isn't a-z/A-Z (including digits)?",
-      "rationale": "The prompt says 'non-letter' but students often silently interpret this as 'non-alphanumeric'. Forcing a commitment surfaces whether digits like in 'A1A' are stripped or kept."
+      "id": "empty_or_all_nonletter",
+      "description": "What should the program print if the input is empty, or contains only non-letter characters (so the filtered string is empty)?",
+      "rationale": "After stripping non-letters, the string may be empty; the spec must commit to whether that counts as a palindrome (True) or not, rather than discovering it at runtime."
     },
     {
-      "id": "empty_string",
-      "description": "What should the function return for an empty string, or a string that contains only non-letter characters (e.g., '!!!')?",
-      "rationale": "After filtering, the working string may be empty; the vacuous-truth case is the classic missed edge in palindrome problems."
+      "id": "nonletter_definition",
+      "description": "What exactly counts as a 'non-letter character' to ignore — digits, spaces, punctuation, underscores, accented letters?",
+      "rationale": "The prompt says 'non-letter' but students often silently default to 'non-alphanumeric' or 'non-space'. Forcing commitment prevents a mismatch between spec intent and the isalpha/isalnum choice in code."
     },
     {
-      "id": "unicode_letters",
-      "description": "Do accented or non-ASCII letters (é, ñ, Ü) count as letters, and if so how are they compared case-insensitively?",
-      "rationale": "The spec must commit to ASCII-only or Unicode-aware handling before the student picks between .isalpha() and a manual a-z check."
-    },
-    {
-      "id": "return_type_on_bad_input",
-      "description": "What should happen if the input is not a string (None, a number)?",
-      "rationale": "Committing to a type contract up front prevents the student from discovering a crash and mislabeling it a bug rather than a spec gap."
+      "id": "output_format",
+      "description": "Should the program print the literal words True and False, or could it print 'yes'/'no' or similar? Is there any other output besides the boolean?",
+      "rationale": "CS1 graders often test output exactly; the spec must commit to printing the Python booleans True/False with no decorative text."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to ignoring case, but code compares the reversed string to the original without calling .lower(), so 'Aba' is reported as not a palindrome"
+      "pattern": "Student's spec commits to ignoring non-letters, but code only lowercases the string and compares to its reverse, so 'A man, a plan' returns False due to the comma and spaces"
     },
     {
       "category": "drift",
-      "pattern": "Spec says ignore non-letters, but code only strips spaces (e.g., uses .replace(' ', '')) and fails on 'A man, a plan, a canal: Panama'"
+      "pattern": "Code uses `isalnum()` instead of `isalpha()`, so digits are kept even though spec said 'non-letter characters' are ignored"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a two-pointer walk from both ends; code uses `cleaned == cleaned[::-1]` — coherent Pythonic simplification"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes filtering then reversing in two passes; code uses a single comprehension plus slice — coherent consolidation"
+      "pattern": "Plan describes a two-pointer loop walking inward from both ends; code uses `s == s[::-1]` — coherent Pythonic simplification"
     },
     {
       "category": "bug",
-      "pattern": "Student uses `c.isalpha()` but then compares using the raw character instead of the lowercased one, so case-folding is lost mid-pipeline"
+      "pattern": "Student prints the result inside the loop/comparison logic instead of after it, producing multiple True/False lines"
     },
     {
       "category": "bug",
-      "pattern": "Two-pointer version has an off-by-one in the while-loop condition (`<` vs `<=`) and gives wrong results on odd-length inputs"
+      "pattern": "Student compares the original filtered string to a reversed version but forgets to lowercase, so 'Racecar' returns False"
+    },
+    {
+      "category": "bug",
+      "pattern": "Uses `reverse()` (which mutates and returns None) in place of `reversed()` or slicing, causing the comparison to always be False"
     }
   ],
-  "opusGeneratedPhase2Required": true,
+  "opusGeneratedPhase2Required": false,
   "opusGeneratedStudentLevel": "week_3_6"
 }

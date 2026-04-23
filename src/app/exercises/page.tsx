@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { CodeFrame, Comment, SYNTAX } from "@/components/editor/CodeFrame";
 import { prisma } from "@/lib/db";
 import { UNIT_IDS, UNIT_ROMAN, UNIT_TITLE, type Unit } from "@/lib/units";
+
+const STUDENT_COOKIE = "maieutic_student_id";
 
 async function getExercises() {
   return prisma.exercise.findMany({
@@ -11,17 +14,37 @@ async function getExercises() {
   });
 }
 
-type ExerciseRow = { id: string; title: string };
+// Exercises this specific student has completed (reached phase 5).
+async function getDoneExerciseIds(studentId: string): Promise<Set<string>> {
+  if (!studentId) return new Set();
+  const rows = await prisma.session.findMany({
+    where: { studentId, completedAt: { not: null } },
+    select: { exerciseId: true },
+    distinct: ["exerciseId"],
+  });
+  return new Set(rows.map((r) => r.exerciseId));
+}
+
+type ExerciseRow = { id: string; title: string; done: boolean };
 
 export default async function Exercises() {
-  const exercises = await getExercises();
+  const cookieStore = await cookies();
+  const studentId = cookieStore.get(STUDENT_COOKIE)?.value ?? "";
+  const [exercises, doneIds] = await Promise.all([
+    getExercises(),
+    getDoneExerciseIds(studentId),
+  ]);
 
   // Group by unit, preserving publishedAt order within each group.
   const byUnit = new Map<Unit, ExerciseRow[]>();
   for (const ex of exercises) {
     const unit = (ex.unit as Unit) ?? "unit_2";
     if (!byUnit.has(unit)) byUnit.set(unit, []);
-    byUnit.get(unit)!.push({ id: ex.id, title: ex.title });
+    byUnit.get(unit)!.push({
+      id: ex.id,
+      title: ex.title,
+      done: doneIds.has(ex.id),
+    });
   }
   const orderedGroups = UNIT_IDS.filter((u) => byUnit.has(u)).map((u) => ({
     unit: u,
@@ -48,7 +71,7 @@ export default async function Exercises() {
       if (gi > 0) lines.push(<span />);
       lines.push(<UnitHeader unit={group.unit} />);
       for (const ex of group.items) {
-        lines.push(<ExerciseLine id={ex.id} title={ex.title} />);
+        lines.push(<ExerciseLine id={ex.id} title={ex.title} done={ex.done} />);
       }
     });
   }
@@ -68,6 +91,8 @@ export default async function Exercises() {
   );
   lines.push(<span />);
 
+  const doneCount = doneIds.size;
+
   return (
     <CodeFrame
       fileName="exercises.md"
@@ -79,6 +104,11 @@ export default async function Exercises() {
             {exercises.length} exercise{exercises.length === 1 ? "" : "s"}{" "}
             available
           </span>
+          {doneCount > 0 && (
+            <span>
+              ✅ {doneCount} completed
+            </span>
+          )}
         </>
       }
       statusRight={<span>Markdown · UTF-8</span>}
@@ -98,14 +128,28 @@ function UnitHeader({ unit }: { unit: Unit }) {
   );
 }
 
-function ExerciseLine({ id, title }: { id: string; title: string }) {
+function ExerciseLine({
+  id,
+  title,
+  done,
+}: {
+  id: string;
+  title: string;
+  done: boolean;
+}) {
   return (
     <Link
       href={`/exercise/${id}`}
       className="group inline-flex items-center gap-3 pl-6 pr-3 -ml-3 rounded transition-colors hover:bg-[#2a2d2e] focus:outline-none focus:bg-[#04395e]"
     >
-      <span className="text-[16px] leading-none">📘</span>
-      <span style={{ color: SYNTAX.function }}>{title}</span>
+      <span className="text-[16px] leading-none">{done ? "✅" : "📘"}</span>
+      <span
+        style={{
+          color: done ? SYNTAX.comment : SYNTAX.function,
+        }}
+      >
+        {title}
+      </span>
       <span
         className="opacity-0 group-hover:opacity-100 transition-opacity ml-2"
         style={{ color: SYNTAX.muted }}

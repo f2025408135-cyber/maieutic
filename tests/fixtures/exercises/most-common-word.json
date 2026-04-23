@@ -1,64 +1,70 @@
 {
   "id": "most-common-word",
   "title": "Most common word",
-  "instructorPromptText": "Write a function that takes a string of space-separated words and returns the word that appears most often. Break ties by returning the word that appears first.",
+  "instructorPromptText": "Write a program that asks the user for a line of space-separated words, then prints the word that appears most often. If there is a tie, print the word that appears first in the input.",
   "authoredAt": "2026-04-23T00:02:14.874Z",
   "publishedAt": "2026-04-23T00:02:14.873Z",
   "specGateDimensions": [
     {
       "id": "case_sensitivity",
-      "description": "Are 'The' and 'the' treated as the same word, or as distinct words?",
-      "rationale": "This is the single biggest source of disagreement between student intent and test behavior in word-frequency problems; forcing a commitment surfaces the assumption.",
+      "description": "Are 'Cat' and 'cat' considered the same word, or different words?",
+      "rationale": "The prompt does not say; the spec must commit so that counting behavior is unambiguous before coding starts.",
       "source": "opus"
     },
     {
-      "id": "punctuation_handling",
-      "description": "If a word has attached punctuation (e.g. 'cat,' vs 'cat'), are they the same word or different?",
-      "rationale": "The prompt says 'space-separated' but does not say 'clean'; the student must decide whether to strip punctuation or treat tokens literally.",
+      "id": "tie_breaking_rule",
+      "description": "When two or more words tie for most frequent, 'first in the input' means the word whose first occurrence comes earliest — how will the spec express and enforce that ordering?",
+      "rationale": "This is the key non-trivial rule in the problem. Students often reduce it to 'the first key in a dict' or 'min()' without thinking about whether that matches 'first in input'.",
       "source": "opus"
     },
     {
-      "id": "empty_string_behavior",
-      "description": "What does the function return for an empty string (or a string with only whitespace)?",
-      "rationale": "There is no 'most common word' when there are no words; the spec must commit to a sentinel (None, empty string, or raise) rather than discovering the gap at runtime.",
+      "id": "empty_input",
+      "description": "What should the program do if the user enters an empty line or only whitespace?",
+      "rationale": "There is no most common word in an empty input; the spec must commit to printing a message, printing nothing, or some other behavior rather than crashing on an IndexError.",
       "source": "opus"
     },
     {
-      "id": "tie_break_semantics",
-      "description": "Does 'appears first' mean first occurrence in the input string, or first alphabetically?",
-      "rationale": "The prompt says 'appears first' which is unambiguous to a careful reader but frequently misread; surfacing it prevents a subtle drift where the student sorts alphabetically.",
+      "id": "single_word_input",
+      "description": "If the user enters exactly one word, is that word the answer?",
+      "rationale": "The degenerate case surfaces whether the student's counting logic works at count=1 without any tie machinery firing incorrectly.",
+      "source": "opus"
+    },
+    {
+      "id": "whitespace_handling",
+      "description": "Are multiple spaces between words collapsed, and is leading/trailing whitespace stripped?",
+      "rationale": "`split(' ')` vs `split()` produces different word lists; the student must commit to one interpretation before coding.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to case-insensitive matching but code uses `split()` and counts raw tokens, so 'The' and 'the' are counted separately",
+      "pattern": "Student's spec commits to case-insensitive comparison but code compares raw tokens, so 'The the the' is counted as two distinct words",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Student builds frequency counts correctly but on ties returns the alphabetically-first or last-seen word instead of the first-occurring word",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes building a dict with a manual loop; code uses `collections.Counter` — coherent library substitution",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes two passes (count, then find max); code does it in one pass tracking best-so-far — coherent optimization",
+      "pattern": "Spec commits to 'first in input' tie-breaking but code returns `max(counts, key=counts.get)`, which returns an arbitrary tied key dependent on insertion/iteration order rather than enforced first-occurrence",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Uses `max(counts, key=counts.get)` which does not guarantee the tie-break rule required by the spec (it returns an arbitrary max key on ties)",
+      "pattern": "Crashes with ValueError or IndexError on empty input because `max()` is called on an empty sequence",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Iterates over dict keys to find the max but relies on insertion order without realizing earlier Python versions or set-based intermediates break that assumption",
+      "pattern": "Uses `split(' ')` and then treats empty strings from consecutive spaces as a valid 'word' that wins the count",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes a manual dictionary accumulator; code uses `collections.Counter` — coherent simplification, though tie-breaking via `Counter.most_common()` may silently violate the first-in-input rule",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes two passes (build counts, then scan input order for the first max); code fuses into a single pass tracking best-so-far — coherent restructure",
       "source": "opus"
     }
   ],
@@ -68,49 +74,54 @@
   "opusGeneratedDimensions": [
     {
       "id": "case_sensitivity",
-      "description": "Are 'The' and 'the' treated as the same word, or as distinct words?",
-      "rationale": "This is the single biggest source of disagreement between student intent and test behavior in word-frequency problems; forcing a commitment surfaces the assumption."
+      "description": "Are 'Cat' and 'cat' considered the same word, or different words?",
+      "rationale": "The prompt does not say; the spec must commit so that counting behavior is unambiguous before coding starts."
     },
     {
-      "id": "punctuation_handling",
-      "description": "If a word has attached punctuation (e.g. 'cat,' vs 'cat'), are they the same word or different?",
-      "rationale": "The prompt says 'space-separated' but does not say 'clean'; the student must decide whether to strip punctuation or treat tokens literally."
+      "id": "tie_breaking_rule",
+      "description": "When two or more words tie for most frequent, 'first in the input' means the word whose first occurrence comes earliest — how will the spec express and enforce that ordering?",
+      "rationale": "This is the key non-trivial rule in the problem. Students often reduce it to 'the first key in a dict' or 'min()' without thinking about whether that matches 'first in input'."
     },
     {
-      "id": "empty_string_behavior",
-      "description": "What does the function return for an empty string (or a string with only whitespace)?",
-      "rationale": "There is no 'most common word' when there are no words; the spec must commit to a sentinel (None, empty string, or raise) rather than discovering the gap at runtime."
+      "id": "empty_input",
+      "description": "What should the program do if the user enters an empty line or only whitespace?",
+      "rationale": "There is no most common word in an empty input; the spec must commit to printing a message, printing nothing, or some other behavior rather than crashing on an IndexError."
     },
     {
-      "id": "tie_break_semantics",
-      "description": "Does 'appears first' mean first occurrence in the input string, or first alphabetically?",
-      "rationale": "The prompt says 'appears first' which is unambiguous to a careful reader but frequently misread; surfacing it prevents a subtle drift where the student sorts alphabetically."
+      "id": "single_word_input",
+      "description": "If the user enters exactly one word, is that word the answer?",
+      "rationale": "The degenerate case surfaces whether the student's counting logic works at count=1 without any tie machinery firing incorrectly."
+    },
+    {
+      "id": "whitespace_handling",
+      "description": "Are multiple spaces between words collapsed, and is leading/trailing whitespace stripped?",
+      "rationale": "`split(' ')` vs `split()` produces different word lists; the student must commit to one interpretation before coding."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to case-insensitive matching but code uses `split()` and counts raw tokens, so 'The' and 'the' are counted separately"
+      "pattern": "Student's spec commits to case-insensitive comparison but code compares raw tokens, so 'The the the' is counted as two distinct words"
     },
     {
       "category": "drift",
-      "pattern": "Student builds frequency counts correctly but on ties returns the alphabetically-first or last-seen word instead of the first-occurring word"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes building a dict with a manual loop; code uses `collections.Counter` — coherent library substitution"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes two passes (count, then find max); code does it in one pass tracking best-so-far — coherent optimization"
+      "pattern": "Spec commits to 'first in input' tie-breaking but code returns `max(counts, key=counts.get)`, which returns an arbitrary tied key dependent on insertion/iteration order rather than enforced first-occurrence"
     },
     {
       "category": "bug",
-      "pattern": "Uses `max(counts, key=counts.get)` which does not guarantee the tie-break rule required by the spec (it returns an arbitrary max key on ties)"
+      "pattern": "Crashes with ValueError or IndexError on empty input because `max()` is called on an empty sequence"
     },
     {
       "category": "bug",
-      "pattern": "Iterates over dict keys to find the max but relies on insertion order without realizing earlier Python versions or set-based intermediates break that assumption"
+      "pattern": "Uses `split(' ')` and then treats empty strings from consecutive spaces as a valid 'word' that wins the count"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes a manual dictionary accumulator; code uses `collections.Counter` — coherent simplification, though tie-breaking via `Counter.most_common()` may silently violate the first-in-input rule"
+    },
+    {
+      "category": "revision",
+      "pattern": "Plan describes two passes (build counts, then scan input order for the first max); code fuses into a single pass tracking best-so-far — coherent restructure"
     }
   ],
   "opusGeneratedPhase2Required": true,

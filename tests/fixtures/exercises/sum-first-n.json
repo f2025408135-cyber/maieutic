@@ -1,48 +1,53 @@
 {
   "id": "sum-first-n",
   "title": "Sum the first N integers",
-  "instructorPromptText": "Write a function that takes a positive integer n and returns the sum of the integers from 1 to n.",
+  "instructorPromptText": "Write a program that asks the user for a positive integer n, then prints the sum of the integers from 1 to n.",
   "authoredAt": "2026-04-23T00:01:24.745Z",
   "publishedAt": "2026-04-23T00:01:24.744Z",
   "specGateDimensions": [
     {
-      "id": "inclusive_of_n",
-      "description": "Does the sum include n itself (1+2+...+n) or stop before n (1+2+...+n-1)?",
-      "rationale": "The phrase 'from 1 to n' is the classic off-by-one trigger; forcing commitment in the spec prevents the student from silently choosing one and testing the other.",
-      "source": "opus"
-    },
-    {
-      "id": "n_equals_zero_or_one",
-      "description": "What should the function return when n is 1, and what about n=0 (which the prompt excludes as 'positive' but students often pass anyway)?",
-      "rationale": "Boundary values are where CS1 students most often fail; the spec should commit to a return value for the smallest legal input and decide whether n=0 is rejected or returns 0.",
+      "id": "inclusive_range",
+      "description": "Does the sum include n itself (1+2+...+n) or stop at n-1?",
+      "rationale": "Off-by-one on the upper bound is the classic bug in range-sum problems; the spec must commit to inclusivity before any range() call is written.",
       "source": "opus"
     },
     {
       "id": "invalid_input_handling",
-      "description": "What should happen if n is negative or not an integer — raise, return 0, return None?",
-      "rationale": "The prompt says 'positive integer' but does not say how to enforce it; the student must decide whether the function trusts its caller or validates.",
+      "description": "What should the program do if the user enters 0, a negative number, or something that isn't an integer?",
+      "rationale": "The prompt says 'positive integer' but doesn't say what happens when the user disobeys. Forcing a commitment (reprompt, crash, print error, treat as 0) prevents the student from claiming a crash is 'out of scope'.",
+      "source": "opus"
+    },
+    {
+      "id": "output_format",
+      "description": "What exactly is printed — just the number, or a sentence like 'The sum is X'?",
+      "rationale": "Phase 4 needs something concrete to diff against; 'prints the sum' is ambiguous between bare integer and formatted string.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec says 'sum from 1 to n inclusive' but code uses `range(1, n)` which stops at n-1",
+      "category": "bug",
+      "pattern": "Student writes `range(1, n)` instead of `range(1, n+1)`, excluding n from the sum",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input to int, so `input()` returns a string and either concatenation happens or a type error is raised",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a for-loop with an accumulator; code uses `sum(range(1, n+1))` or the closed-form `n*(n+1)//2` — coherent simplifications that still meet spec",
+      "pattern": "Plan describes an accumulator loop; code uses `sum(range(1, n+1))` — coherent Pythonic simplification",
       "source": "opus"
     },
     {
-      "category": "bug",
-      "pattern": "Uses `/` instead of `//` in the closed-form formula and returns a float instead of an int",
+      "category": "revision",
+      "pattern": "Plan describes a loop; code uses the closed-form `n*(n+1)//2` — coherent mathematical shortcut",
       "source": "opus"
     },
     {
-      "category": "bug",
-      "pattern": "Initializes accumulator inside the loop instead of before it, so the sum resets each iteration and the function returns only n",
+      "category": "drift",
+      "pattern": "Spec commits to validating positive input but code accepts any integer without checking",
       "source": "opus"
     }
   ],
@@ -51,37 +56,41 @@
   "unit": "unit_2",
   "opusGeneratedDimensions": [
     {
-      "id": "inclusive_of_n",
-      "description": "Does the sum include n itself (1+2+...+n) or stop before n (1+2+...+n-1)?",
-      "rationale": "The phrase 'from 1 to n' is the classic off-by-one trigger; forcing commitment in the spec prevents the student from silently choosing one and testing the other."
-    },
-    {
-      "id": "n_equals_zero_or_one",
-      "description": "What should the function return when n is 1, and what about n=0 (which the prompt excludes as 'positive' but students often pass anyway)?",
-      "rationale": "Boundary values are where CS1 students most often fail; the spec should commit to a return value for the smallest legal input and decide whether n=0 is rejected or returns 0."
+      "id": "inclusive_range",
+      "description": "Does the sum include n itself (1+2+...+n) or stop at n-1?",
+      "rationale": "Off-by-one on the upper bound is the classic bug in range-sum problems; the spec must commit to inclusivity before any range() call is written."
     },
     {
       "id": "invalid_input_handling",
-      "description": "What should happen if n is negative or not an integer — raise, return 0, return None?",
-      "rationale": "The prompt says 'positive integer' but does not say how to enforce it; the student must decide whether the function trusts its caller or validates."
+      "description": "What should the program do if the user enters 0, a negative number, or something that isn't an integer?",
+      "rationale": "The prompt says 'positive integer' but doesn't say what happens when the user disobeys. Forcing a commitment (reprompt, crash, print error, treat as 0) prevents the student from claiming a crash is 'out of scope'."
+    },
+    {
+      "id": "output_format",
+      "description": "What exactly is printed — just the number, or a sentence like 'The sum is X'?",
+      "rationale": "Phase 4 needs something concrete to diff against; 'prints the sum' is ambiguous between bare integer and formatted string."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec says 'sum from 1 to n inclusive' but code uses `range(1, n)` which stops at n-1"
+      "category": "bug",
+      "pattern": "Student writes `range(1, n)` instead of `range(1, n+1)`, excluding n from the sum"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to cast input to int, so `input()` returns a string and either concatenation happens or a type error is raised"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a for-loop with an accumulator; code uses `sum(range(1, n+1))` or the closed-form `n*(n+1)//2` — coherent simplifications that still meet spec"
+      "pattern": "Plan describes an accumulator loop; code uses `sum(range(1, n+1))` — coherent Pythonic simplification"
     },
     {
-      "category": "bug",
-      "pattern": "Uses `/` instead of `//` in the closed-form formula and returns a float instead of an int"
+      "category": "revision",
+      "pattern": "Plan describes a loop; code uses the closed-form `n*(n+1)//2` — coherent mathematical shortcut"
     },
     {
-      "category": "bug",
-      "pattern": "Initializes accumulator inside the loop instead of before it, so the sum resets each iteration and the function returns only n"
+      "category": "drift",
+      "pattern": "Spec commits to validating positive input but code accepts any integer without checking"
     }
   ],
   "opusGeneratedPhase2Required": false,

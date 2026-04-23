@@ -10,6 +10,7 @@ import {
   PostHocOutput,
 } from "@/lib/opus/schemas";
 import {
+  advancePhase,
   getExercise,
   getSession,
   recordDivergenceResponse,
@@ -104,6 +105,13 @@ export async function POST(
     postHoc.final_classification,
     postHoc.final_classification_reason,
   );
+
+  // Once every divergence has a response, close the session. This sets
+  // Session.completedAt (used by /exercises to show the ✅ check) and emits
+  // the phase_transition event.
+  if (allAnswered) {
+    await advancePhase(sid, 5);
+  }
 
   return NextResponse.json({
     ok: true,

@@ -1,0 +1,120 @@
+{
+  "id": "cmoar4x5g0001czwblnk5sd5w",
+  "studentId": "ana_student",
+  "exerciseId": "vowels-demo",
+  "startedAt": "2026-04-23T00:37:07.157Z",
+  "completedAt": "2026-04-23T00:37:23.611Z",
+  "currentPhase": 5,
+  "phase1Data": {
+    "iterations": [
+      {
+        "timestamp": "2026-04-23T00:37:10.942Z",
+        "studentSpecText": "The program asks the user for a string and prints the number of vowels in it.",
+        "opusQuestions": [
+          "Which letters count as vowels — just a, e, i, o, u, or does y count too? And should uppercase letters like 'A' or 'E' be counted as well?",
+          "When the program prints the result, what exactly should it print — just a number like '3', or a full sentence? And what should it print if the user just presses Enter without typing anything?"
+        ],
+        "gapsIdentified": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "output_format",
+          "empty_input"
+        ],
+        "gapsAddressedThisRound": [],
+        "emergentGaps": [],
+        "passed": false
+      },
+      {
+        "timestamp": "2026-04-23T00:37:16.585Z",
+        "studentSpecText": "The program asks the user for a string with input() and prints just the integer count of vowels (no accompanying text). Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. If the user enters an empty string, it prints 0.",
+        "opusQuestions": [
+          "Your spec is concrete enough to pass the gate. One optional thing to consider if you want: what should happen with characters that aren't letters at all, like spaces, digits, or punctuation?"
+        ],
+        "gapsIdentified": [],
+        "gapsAddressedThisRound": [
+          "case_sensitivity",
+          "y_as_vowel",
+          "output_format",
+          "empty_input"
+        ],
+        "emergentGaps": [
+          {
+            "description": "Behavior when the input contains non-letter characters (digits, spaces, punctuation) — implicitly these don't count, but it's not stated.",
+            "question": "What should happen with characters that aren't letters at all, like spaces, digits, or punctuation — are they just ignored?"
+          }
+        ],
+        "passed": true
+      }
+    ],
+    "finalSpecText": "The program asks the user for a string with input() and prints just the integer count of vowels (no accompanying text). Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. If the user enters an empty string, it prints 0.",
+    "instructorConfiguredDimensionsAddressed": [
+      "case_sensitivity",
+      "y_as_vowel",
+      "output_format",
+      "empty_input"
+    ],
+    "helpRequests": []
+  },
+  "phase2Data": null,
+  "phase3Data": {
+    "opusExchanges": [],
+    "revisions": [],
+    "currentCode": "s = input(\"Enter a string: \")\ncount = 0\nfor c in s:\n    if c in 'aeiou':\n        count = count + 1\nprint(count)\n",
+    "finalCode": "s = input(\"Enter a string: \")\ncount = 0\nfor c in s:\n    if c in 'aeiou':\n        count = count + 1\nprint(count)\n",
+    "submittedAt": "2026-04-23T00:37:16.594Z"
+  },
+  "phase4Data": {
+    "divergences": [
+      {
+        "divergenceId": "uppercase_vowels_missed",
+        "initialClassification": "drift",
+        "initialConfidence": "high",
+        "predictedJustification": "I forgot about the capital letters.",
+        "studentFacingQuestion": "Your spec said vowels include both lowercase a,e,i,o,u and uppercase A,E,I,O,U. I noticed your code checks if c in 'aeiou'. Can you tell me what happens there?",
+        "evidenceFromSpec": "Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U",
+        "evidenceFromPlan": null,
+        "evidenceFromCode": "if c in 'aeiou': — only lowercase vowels",
+        "studentResponse": "I forgot about the capital letters.",
+        "alignment": "aligned",
+        "finalClassification": "drift",
+        "finalClassificationReason": "The student confirmed they forgot about capitalization, indicating unintended divergence.",
+        "respondedAt": "2026-04-23T00:37:23.607Z"
+      }
+    ],
+    "startedAt": "2026-04-23T00:37:19.910Z",
+    "completedAt": "2026-04-23T00:37:23.607Z"
+  },
+  "liveSummaries": [],
+  "events": [
+    {
+      "id": "cmoar54fk0003czwbasx1ef2b",
+      "sessionId": "cmoar4x5g0001czwblnk5sd5w",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 1,
+        "to": 3
+      },
+      "createdAt": "2026-04-23T00:37:16.593Z"
+    },
+    {
+      "id": "cmoar56zu0005czwb3j1x6zwl",
+      "sessionId": "cmoar4x5g0001czwblnk5sd5w",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 3,
+        "to": 4
+      },
+      "createdAt": "2026-04-23T00:37:19.914Z"
+    },
+    {
+      "id": "cmoar59um0007czwbhpgvpxmj",
+      "sessionId": "cmoar4x5g0001czwblnk5sd5w",
+      "kind": "phase_transition",
+      "payload": {
+        "from": 4,
+        "to": 5
+      },
+      "createdAt": "2026-04-23T00:37:23.614Z"
+    }
+  ]
+}

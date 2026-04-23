@@ -1,116 +1,107 @@
 {
   "id": "fibonacci-demo",
   "title": "Nth Fibonacci number",
-  "instructorPromptText": "Write a function that returns the nth Fibonacci number, where fib(0) = 0 and fib(1) = 1.",
+  "instructorPromptText": "Write a program that asks the user for a non-negative integer n, then prints the nth Fibonacci number, where fib(0) = 0 and fib(1) = 1.",
   "authoredAt": "2026-04-22T21:51:45.536Z",
   "publishedAt": "2026-04-22T21:51:45.534Z",
   "specGateDimensions": [
     {
-      "id": "negative_input",
-      "description": "What should the function do if n is negative?",
-      "rationale": "The prompt defines the sequence for n=0 and n=1 but says nothing about negative n; the student must commit to raising, returning 0, or treating it as undefined behavior before coding.",
+      "id": "input_validation",
+      "description": "What should the program do if the user enters a negative number, a non-integer string, or a float like 3.5?",
+      "rationale": "The prompt says 'non-negative integer' but doesn't specify enforcement; the student must commit to either trusting input, re-prompting, or raising/printing an error.",
       "source": "opus"
     },
     {
-      "id": "non_integer_input",
-      "description": "What happens if n is not an integer (a float like 3.0, a string, None)?",
-      "rationale": "Type contract is a common blind spot; surfacing it in the spec prevents 'it crashed' being treated as a separate bug later.",
+      "id": "base_cases",
+      "description": "What does the program print for n=0 and n=1 specifically?",
+      "rationale": "The prompt defines fib(0)=0 and fib(1)=1; the spec should restate this so the student's base cases in code can be checked against an explicit commitment rather than re-derived.",
       "source": "opus"
     },
     {
-      "id": "implementation_approach",
-      "description": "Will the function compute fib(n) recursively, iteratively, or with memoization — and does the spec care, or only about the return value?",
-      "rationale": "Fibonacci is the canonical exercise where naive recursion is exponentially slow; the student should decide whether performance is part of the contract or only correctness.",
+      "id": "output_format",
+      "description": "Should the output be just the number, or something like 'fib(10) = 55'?",
+      "rationale": "'Prints the nth Fibonacci number' is ambiguous about formatting; committing early prevents mismatches between planned output and actual output.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec says fib(0) = 0 but code's recursive base case returns 1 for n <= 1, shifting the whole sequence by one",
+      "pattern": "Spec commits to validating input but code calls int(input(...)) directly and crashes on non-numeric input",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Student writes naive recursion that is correct but hangs for n=40+; spec did not mention performance so student calls it done, but the function is unusable for realistic inputs",
+      "pattern": "Student's loop computes fib(n+1) or fib(n-1) due to off-by-one in range bounds or initial values of a, b",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes recursion; code uses an iterative loop with two accumulator variables — coherent switch to a more efficient strategy",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes iteration; code uses functools.lru_cache on a recursive definition — coherent memoization refactor",
+      "pattern": "Plan describes an iterative loop with a, b = 0, 1; code uses recursion instead (or vice versa) — coherent alternative strategy",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Off-by-one in iterative version: loop runs n times instead of n-1 times (or vice versa), so fib(5) returns fib(4) or fib(6)",
+      "pattern": "Recursive solution without memoization hangs or becomes extremely slow for moderately large n (e.g. n=40)",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Recursive call uses fib(n) + fib(n-1) instead of fib(n-1) + fib(n-2), causing infinite recursion or wrong values",
+      "pattern": "Iterative loop updates a and b in the wrong order (a = b, then b = a + b, which makes b = 2*b instead of a + b)",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Iterative version initializes a, b = 1, 1 instead of 0, 1, producing the sequence starting from fib(1) and breaking the fib(0) = 0 contract",
+      "pattern": "Handles n=0 correctly but returns 1 for n=1, or vice versa, because the loop starts from the wrong base",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
+  "phase2Required": true,
   "studentLevel": "week_3_6",
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "negative_input",
-      "description": "What should the function do if n is negative?",
-      "rationale": "The prompt defines the sequence for n=0 and n=1 but says nothing about negative n; the student must commit to raising, returning 0, or treating it as undefined behavior before coding."
+      "id": "input_validation",
+      "description": "What should the program do if the user enters a negative number, a non-integer string, or a float like 3.5?",
+      "rationale": "The prompt says 'non-negative integer' but doesn't specify enforcement; the student must commit to either trusting input, re-prompting, or raising/printing an error."
     },
     {
-      "id": "non_integer_input",
-      "description": "What happens if n is not an integer (a float like 3.0, a string, None)?",
-      "rationale": "Type contract is a common blind spot; surfacing it in the spec prevents 'it crashed' being treated as a separate bug later."
+      "id": "base_cases",
+      "description": "What does the program print for n=0 and n=1 specifically?",
+      "rationale": "The prompt defines fib(0)=0 and fib(1)=1; the spec should restate this so the student's base cases in code can be checked against an explicit commitment rather than re-derived."
     },
     {
-      "id": "implementation_approach",
-      "description": "Will the function compute fib(n) recursively, iteratively, or with memoization — and does the spec care, or only about the return value?",
-      "rationale": "Fibonacci is the canonical exercise where naive recursion is exponentially slow; the student should decide whether performance is part of the contract or only correctness."
+      "id": "output_format",
+      "description": "Should the output be just the number, or something like 'fib(10) = 55'?",
+      "rationale": "'Prints the nth Fibonacci number' is ambiguous about formatting; committing early prevents mismatches between planned output and actual output."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec says fib(0) = 0 but code's recursive base case returns 1 for n <= 1, shifting the whole sequence by one"
+      "pattern": "Spec commits to validating input but code calls int(input(...)) directly and crashes on non-numeric input"
     },
     {
       "category": "drift",
-      "pattern": "Student writes naive recursion that is correct but hangs for n=40+; spec did not mention performance so student calls it done, but the function is unusable for realistic inputs"
+      "pattern": "Student's loop computes fib(n+1) or fib(n-1) due to off-by-one in range bounds or initial values of a, b"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes recursion; code uses an iterative loop with two accumulator variables — coherent switch to a more efficient strategy"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes iteration; code uses functools.lru_cache on a recursive definition — coherent memoization refactor"
+      "pattern": "Plan describes an iterative loop with a, b = 0, 1; code uses recursion instead (or vice versa) — coherent alternative strategy"
     },
     {
       "category": "bug",
-      "pattern": "Off-by-one in iterative version: loop runs n times instead of n-1 times (or vice versa), so fib(5) returns fib(4) or fib(6)"
+      "pattern": "Recursive solution without memoization hangs or becomes extremely slow for moderately large n (e.g. n=40)"
     },
     {
       "category": "bug",
-      "pattern": "Recursive call uses fib(n) + fib(n-1) instead of fib(n-1) + fib(n-2), causing infinite recursion or wrong values"
+      "pattern": "Iterative loop updates a and b in the wrong order (a = b, then b = a + b, which makes b = 2*b instead of a + b)"
     },
     {
       "category": "bug",
-      "pattern": "Iterative version initializes a, b = 1, 1 instead of 0, 1, producing the sequence starting from fib(1) and breaking the fib(0) = 0 contract"
+      "pattern": "Handles n=0 correctly but returns 1 for n=1, or vice versa, because the loop starts from the wrong base"
     }
   ],
-  "opusGeneratedPhase2Required": false,
+  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_3_6"
 }
