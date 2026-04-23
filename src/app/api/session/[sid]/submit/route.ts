@@ -88,7 +88,10 @@ export async function POST(
 
   const divergences = intentDiffOutputToDivergences(diff);
   await setPhase4Divergences(sid, divergences);
-  await advancePhase(sid, 4);
+  // No divergences → the student's work is already accepted; skip the
+  // question loop and mark the session complete so the exercise shows
+  // as done in the list.
+  await advancePhase(sid, divergences.length === 0 ? 5 : 4);
 
   // Return only student-visible fields. Classification, prediction, and
   // confidence stay on the server (visible to instructors only).

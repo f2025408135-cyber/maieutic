@@ -799,12 +799,27 @@ function Phase4View({
         />
 
         {divergences.length === 0 ? (
-          <Panel title="Review">
-            <div className="text-sm">
-              Opus found no meaningful divergences between your
-              specification/plan and your code. Nicely done.
+          <>
+            <section className="border border-[#4ec9b0]/45 bg-[#162521] rounded">
+              <div className="px-4 py-2.5 border-b border-[#4ec9b0]/30">
+                <h2 className="text-[11px] font-semibold tracking-wider uppercase text-[#4ec9b0]">
+                  ✅ Review
+                </h2>
+              </div>
+              <div className="p-4 text-sm text-[#d4d4d4]">
+                Opus found no meaningful divergences between your
+                specification/plan and your code. Nicely done.
+              </div>
+            </section>
+            <div className="flex justify-end">
+              <Link
+                href="/exercises"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-mono"
+              >
+                ← Back to exercises
+              </Link>
             </div>
-          </Panel>
+          </>
         ) : (
           <>
             <div className="flex items-center justify-between text-xs text-[#858585] font-mono">
@@ -934,11 +949,22 @@ function Phase5View({
         <Panel title="Session complete ✓">
           <div className="space-y-3 text-sm">
             <p>
-              You answered {divergences.length} divergence{" "}
-              {divergences.length === 1 ? "question" : "questions"}. Your
-              instructor can see everything from here — your specification
-              iterations, your plan, your code, the chat, and the reasoning
-              behind each divergence.
+              {divergences.length === 0 ? (
+                <>
+                  Opus found no meaningful divergences between your
+                  specification/plan and your code. Your instructor can see
+                  everything from here — your specification iterations, your
+                  plan, your code, and the chat.
+                </>
+              ) : (
+                <>
+                  You answered {divergences.length} divergence{" "}
+                  {divergences.length === 1 ? "question" : "questions"}. Your
+                  instructor can see everything from here — your specification
+                  iterations, your plan, your code, the chat, and the reasoning
+                  behind each divergence.
+                </>
+              )}
             </p>
             <p className="text-[#858585]">
               Nothing more to do. Head back to <Link href="/exercises" className="text-[#569cd6] hover:text-white underline">Available exercises</Link> for another.

@@ -30,6 +30,7 @@ const DISABLED_ASSIST_OPTIONS: MonacoProps["options"] = {
   minimap: { enabled: false },
   fontSize: 14,
   scrollBeyondLastLine: false,
+  lineNumbers: "on",
   lineNumbersMinChars: 3,
   padding: { top: 8 },
 };
