@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -839,8 +839,9 @@ function Phase3View({
           <div className="px-6 py-3 border-t border-[#3e3e42] bg-[#252526] flex items-center justify-between gap-3">
             <div className="min-w-0">
               {finalSubmitting && (
-                <span className="text-xs text-[#858585]">
-                  Comparing your code against your specification — 15–25 s…
+                <span className="text-sm font-medium text-[#569cd6] inline-flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#569cd6] animate-pulse" />
+                  Comparing your code against your specification…
                 </span>
               )}
               {error && !finalSubmitting && (
@@ -1278,7 +1279,7 @@ function ChatPanel({
         <div>
           <div className="text-sm font-semibold">Chat with Opus</div>
           <div className="text-[10px] text-[#858585] font-mono">
-            interrogative for your code · direct for syntax
+            asks about your logic · explains syntax
           </div>
         </div>
       </div>
@@ -1464,15 +1465,31 @@ function RoundBadge({ n }: { n: number }) {
 
 // ─── Dialogs ─────────────────────────────────────────────────────────
 
+type RevisionReason = "faster" | "simpler" | "more correct" | "other";
+
 function RevisePlanDialog({ sessionId }: { sessionId: string }) {
   const [open, setOpen] = useState(false);
   const [amendment, setAmendment] = useState("");
-  const [justification, setJustification] = useState("");
+  const [reason, setReason] = useState<RevisionReason>("faster");
+  const [reasonDetail, setReasonDetail] = useState("");
   const [sending, setSending] = useState(false);
-  const [question, setQuestion] = useState<string | null>(null);
+
+  const justification = useMemo(() => {
+    if (reason !== "other") return reason;
+    const trimmed = reasonDetail.trim();
+    return trimmed ? `other: ${trimmed}` : "";
+  }, [reason, reasonDetail]);
+
+  const canSubmit = amendment.trim().length > 0 && justification.length > 0;
+
+  const reset = useCallback(() => {
+    setAmendment("");
+    setReason("faster");
+    setReasonDetail("");
+  }, []);
 
   const submit = useCallback(async () => {
-    if (!amendment.trim() || !justification.trim()) return;
+    if (!canSubmit) return;
     setSending(true);
     try {
       const res = await fetch(`/api/session/${sessionId}/revise`, {
@@ -1481,12 +1498,12 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
         body: JSON.stringify({ amendment, justification }),
       });
       if (!res.ok) throw new Error(await readError(res));
-      const body = (await res.json()) as { question: string };
-      setQuestion(body.question);
+      setOpen(false);
+      setTimeout(reset, 200);
     } finally {
       setSending(false);
     }
-  }, [amendment, justification, sessionId]);
+  }, [amendment, canSubmit, justification, reset, sessionId]);
 
   return (
     <>
@@ -1494,67 +1511,55 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
         onClick={() => setOpen(true)}
         className="text-sm px-3 py-1.5 rounded border border-[#3e3e42] bg-[#2d2d30] text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors"
       >
-        Revise plan
+        Change of plan
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Revise your plan</DialogTitle>
+            <DialogTitle>Change of plan</DialogTitle>
             <DialogDescription>
-              Tell Opus what you want to change and why. Your original plan is
-              preserved; this is recorded as a proactive revision.
+              What&apos;s changing, and why? Your original plan stays on
+              record, and the revision is factored into the final review.
             </DialogDescription>
           </DialogHeader>
-          {question ? (
-            <div className="space-y-3">
-              <div className="text-sm text-[#858585]">Opus asks:</div>
-              <div className="text-sm bg-[#1e3a5c] border border-[#007acc] rounded p-3">
-                {question}
-              </div>
-              <p className="text-xs text-[#858585]">
-                This revision is saved. Close this dialog and keep coding.
-              </p>
+          <div className="space-y-3">
+            <StudentTextarea
+              value={amendment}
+              onChange={setAmendment}
+              rows={3}
+              placeholder="What are you changing?"
+              disabled={sending}
+            />
+            <div className="space-y-2">
+              <label className="text-xs text-[#858585] font-mono block">
+                Why?
+              </label>
+              <select
+                value={reason}
+                onChange={(e) => setReason(e.target.value as RevisionReason)}
+                disabled={sending}
+                className="w-full bg-[#1e1e1e] border border-[#3e3e42] text-[#d4d4d4] text-sm rounded px-3 py-2 font-mono focus:outline-none focus:border-[#007acc]"
+              >
+                <option value="faster">Faster</option>
+                <option value="simpler">Simpler</option>
+                <option value="more correct">More correct</option>
+                <option value="other">Other</option>
+              </select>
+              {reason === "other" && (
+                <StudentTextarea
+                  value={reasonDetail}
+                  onChange={setReasonDetail}
+                  rows={2}
+                  placeholder="What's the reason?"
+                  disabled={sending}
+                />
+              )}
             </div>
-          ) : (
-            <>
-              <StudentTextarea
-                value={amendment}
-                onChange={setAmendment}
-                rows={3}
-                placeholder="What are you changing?"
-                disabled={sending}
-              />
-              <StudentTextarea
-                value={justification}
-                onChange={setJustification}
-                rows={3}
-                placeholder="Why — faster, simpler, or more correct?"
-                disabled={sending}
-              />
-            </>
-          )}
+          </div>
           <DialogFooter>
-            {question ? (
-              <Button
-                onClick={() => {
-                  setOpen(false);
-                  setTimeout(() => {
-                    setAmendment("");
-                    setJustification("");
-                    setQuestion(null);
-                  }, 200);
-                }}
-              >
-                Close
-              </Button>
-            ) : (
-              <Button
-                onClick={submit}
-                disabled={sending || !amendment.trim() || !justification.trim()}
-              >
-                {sending ? "Recording…" : "Record revision"}
-              </Button>
-            )}
+            <Button onClick={submit} disabled={sending || !canSubmit}>
+              {sending ? "Saving…" : "Save revision"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

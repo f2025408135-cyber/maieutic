@@ -99,6 +99,20 @@ The exception: if the code substitutes the WRONG value (e.g. spec says
 regardless of input, or uses a different variable than the one the user
 entered), that IS a bug — because the placeholder was not bound correctly.
 
+IN-SESSION REVISIONS RULE
+
+If the student recorded one or more in-session plan revisions (see the
+IN-SESSION PLAN REVISIONS block in the user turn), treat each revision's
+amendment as part of the student's stated intent. The effective plan is the
+original plan AS MODIFIED by the revisions, in order. Code that implements
+what a revision described is NOT a divergence — the student already disclosed
+the change and gave a reason (faster, simpler, more correct, or other).
+
+Only flag a divergence against the effective (revised) plan — for example,
+the code does something the revision did not authorize, or the code still
+diverges from the spec after applying the revision. Do not flag code that
+matches the revised plan merely because it differs from the original plan.
+
 PREDICTION CALIBRATION BY LEVEL:
 
 - week_1_2: predictions should be short, concrete, often involve forgetting or

@@ -175,8 +175,10 @@ export const Phase3Revision = z.object({
   timestamp: z.string(),
   amendmentText: z.string(),
   justificationText: z.string(),
-  opusQuestion: z.string(),
-  opusFollowupQuestion: z.string().nullable(),
+  // Older records may carry an Opus-generated follow-up question; new revisions
+  // don't (the dropdown-based justification makes that round-trip redundant).
+  opusQuestion: z.string().optional(),
+  opusFollowupQuestion: z.string().nullable().optional(),
 });
 export type Phase3Revision = z.infer<typeof Phase3Revision>;
 
@@ -393,12 +395,6 @@ export const Phase3ChatOutput = z.object({
 });
 export type Phase3ChatOutput = z.infer<typeof Phase3ChatOutput>;
 
-// 8. Revise-plan follow-up (Tech Spec §Phase 4 task 3)
-export const RevisePlanOutput = z.object({
-  question: z.string(),
-  followup_question: z.string().nullable(),
-});
-export type RevisePlanOutput = z.infer<typeof RevisePlanOutput>;
 
 // ─── LLM-output → internal-storage converters ────────────────────────────
 
