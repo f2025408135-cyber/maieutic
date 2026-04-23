@@ -63,7 +63,16 @@ export function ExerciseClient({
   initialSession,
 }: ExerciseClientProps) {
   const [session, setSession] = useState(initialSession);
-  const [specDraft, setSpecDraft] = useState("");
+  // Seed the spec textarea from the most recent iteration so that on reload
+  // (or after a failed submission) the student can edit their last attempt
+  // instead of retyping from scratch.
+  const [specDraft, setSpecDraft] = useState(() => {
+    const last =
+      initialSession.phase1.iterations[
+        initialSession.phase1.iterations.length - 1
+      ];
+    return last?.studentSpecText ?? "";
+  });
   const [planDraft, setPlanDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +128,8 @@ export function ExerciseClient({
           ),
         },
       }));
-      if (!body.passed) setSpecDraft("");
+      // Intentionally leave specDraft alone on a failed submission — the
+      // student should edit their last attempt, not start from a blank slate.
     } catch (err) {
       setError(err instanceof Error ? err.message : "unknown error");
     } finally {
@@ -283,18 +293,36 @@ export function ExerciseClient({
 
   return (
     <div className="min-h-screen bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
-      <TopNav back={{ href: "/exercises", label: "Back to exercises" }} />
+      <TopNav
+        back={{ href: "/exercises", label: "Back to exercises" }}
+        right={
+          !closed && (
+            <HelpImStuckButton sessionId={session.id} phase={session.currentPhase} />
+          )
+        }
+      />
       <FileTabBar fileName={`${exercise.id}.py`} />
 
       <ExerciseTitle
         title={exercise.title}
         promptText={exercise.instructorPromptText}
         unit={exercise.unit}
+        aside={
+          inPhase3 ? (
+            <>
+              <AcceptedSpecInline
+                text={session.phase1.finalSpecText ?? ""}
+              />
+              {session.phase2?.planText && (
+                <FrozenSpecInline
+                  label="Your plan"
+                  text={session.phase2.planText}
+                />
+              )}
+            </>
+          ) : undefined
+        }
       />
-
-      {!closed && (
-        <HelpImStuckButton sessionId={session.id} phase={session.currentPhase} />
-      )}
 
       {inPhase1 && (
         <Phase1View
@@ -321,9 +349,6 @@ export function ExerciseClient({
 
       {inPhase3 && (
         <Phase3View
-          iterations={session.phase1.iterations}
-          finalSpec={session.phase1.finalSpecText ?? ""}
-          plan={session.phase2?.planText ?? null}
           code={code}
           setCode={setCode}
           exchanges={exchanges}
@@ -371,23 +396,39 @@ function ExerciseTitle({
   title,
   promptText,
   unit,
+  aside,
 }: {
   title: string;
   promptText: string;
   unit: Unit;
+  /** Optional right-side content (e.g. accepted spec after Phase 1). */
+  aside?: React.ReactNode;
 }) {
+  const heading = (
+    <div>
+      <div className="text-[11px] font-mono text-[#4ec9b0] tracking-wider uppercase mb-2">
+        Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
+      </div>
+      <h1 className="text-2xl font-semibold tracking-tight leading-tight">
+        {title}
+      </h1>
+      <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
+        {promptText}
+      </p>
+    </div>
+  );
+
   return (
-    <div className="px-8 py-10 border-b border-[#3e3e42] bg-[#1e1e1e]">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-xs font-mono text-[#4ec9b0] tracking-wider uppercase mb-3">
-          Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
-        </div>
-        <h1 className="text-4xl font-semibold tracking-tight leading-tight">
-          {title}
-        </h1>
-        <p className="mt-4 text-lg text-[#d4d4d4]/90 leading-relaxed">
-          {promptText}
-        </p>
+    <div className="px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
+      <div className={aside ? "max-w-6xl mx-auto" : "max-w-3xl mx-auto"}>
+        {aside ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            {heading}
+            <div className="space-y-3">{aside}</div>
+          </div>
+        ) : (
+          heading
+        )}
       </div>
     </div>
   );
@@ -431,9 +472,9 @@ function HelpImStuckButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 px-5 py-3 rounded-full bg-[#a94444] hover:bg-[#bf5555] text-white font-medium shadow-md shadow-black/30 transition-colors"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#a94444] hover:bg-[#bf5555] text-white text-sm font-medium transition-colors"
       >
-        <span aria-hidden className="text-base">🙋</span>
+        <span aria-hidden>🙋</span>
         <span>Help, I&apos;m stuck</span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -620,9 +661,6 @@ function Phase2View({
 // ─── Phase 3 — editor + chat ─────────────────────────────────────────
 
 function Phase3View({
-  iterations,
-  finalSpec,
-  plan,
   code,
   setCode,
   exchanges,
@@ -635,9 +673,6 @@ function Phase3View({
   sessionId,
   error,
 }: {
-  iterations: Phase1Iteration[];
-  finalSpec: string;
-  plan: string | null;
   code: string;
   setCode: (v: string) => void;
   exchanges: Phase3Exchange[];
@@ -652,35 +687,26 @@ function Phase3View({
 }) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="px-8 py-3 border-b border-[#3e3e42]">
-        <div className="max-w-5xl mx-auto">
-          <SpecAndHistoryTop
-            finalSpec={finalSpec}
-            plan={plan}
-            iterations={iterations}
-            compact
-          />
-        </div>
-      </div>
-
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_24rem] min-h-0">
         <section className="flex flex-col min-h-[50vh] border-r border-[#3e3e42]">
           <div className="flex-1 min-h-0">
             <PythonEditor value={code} onChange={setCode} readOnly={false} />
           </div>
           <div className="px-6 py-3 border-t border-[#3e3e42] bg-[#252526] flex items-center justify-between gap-3">
-            <RevisePlanDialog sessionId={sessionId} />
-            <div className="flex items-center gap-3">
+            <div className="min-w-0">
               {finalSubmitting && (
                 <span className="text-xs text-[#858585]">
                   Comparing your code against your spec — 15–25 s…
                 </span>
               )}
-              {error && (
+              {error && !finalSubmitting && (
                 <span className="text-xs text-[#f48771] font-mono">
                   {error}
                 </span>
               )}
+            </div>
+            <div className="flex items-center gap-2">
+              <RevisePlanDialog sessionId={sessionId} />
               <Button
                 onClick={submitFinalCode}
                 disabled={finalSubmitting || !code.trim()}
@@ -1015,6 +1041,37 @@ function IterationHistory({ iterations }: { iterations: Phase1Iteration[] }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Inline frozen spec / plan ───────────────────────────────────────
+
+function AcceptedSpecInline({ text }: { text: string }) {
+  return (
+    <div className="border border-[#4ec9b0]/45 bg-[#162521] rounded-md overflow-hidden">
+      <div className="px-3 py-1.5 border-b border-[#4ec9b0]/25 bg-[#4ec9b0]/10 flex items-center gap-2">
+        <span className="text-[#89d185] text-xs">✓</span>
+        <span className="text-[11px] font-semibold tracking-wider uppercase text-[#4ec9b0]">
+          Your accepted spec
+        </span>
+      </div>
+      <div className="px-3 py-2 text-[13px] whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto text-[#d4d4d4]">
+        {text}
+      </div>
+    </div>
+  );
+}
+
+function FrozenSpecInline({ label, text }: { label: string; text: string }) {
+  return (
+    <div>
+      <div className="text-[11px] font-semibold tracking-wider uppercase text-[#858585] mb-1.5">
+        {label}
+      </div>
+      <div className="text-[13px] whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3 leading-relaxed max-h-48 overflow-y-auto">
+        {text}
+      </div>
     </div>
   );
 }

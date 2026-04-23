@@ -2,12 +2,16 @@
 // blinking blue cursor) on the left, optional back link beside it.
 
 import Link from "next/link";
+import * as React from "react";
 
 export function TopNav({
   back,
+  right,
 }: {
   /** Optional "← {label}" link shown after the logo. */
   back?: { href: string; label: string };
+  /** Optional right-aligned content (e.g. a Help I'm stuck button). */
+  right?: React.ReactNode;
 }) {
   return (
     <header className="border-b border-[#3e3e42] px-6 py-3.5 bg-[#1e1e1e] sticky top-0 z-30">
@@ -45,6 +49,7 @@ export function TopNav({
             </Link>
           </>
         )}
+        {right && <div className="ml-auto">{right}</div>}
       </div>
     </header>
   );
