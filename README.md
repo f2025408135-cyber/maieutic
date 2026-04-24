@@ -25,12 +25,12 @@ hand in a lab with eighty students.
 
 ### 1 · Students build three durable skills
 
-- **Writing accurate specifications.** The code editor is locked until the
-  student writes what the program should do in terms concrete enough to
-  implement. In Phase 1 — the *spec gate* — Opus asks Socratic questions
-  ("what if the input is empty?", "does this include uppercase?") until the
-  spec commits to answers. The habit being trained is *pinning behavior down
-  before writing code*.
+- **Writing accurate specifications.** Before writing any code, the student
+  has to describe what the program should do — clearly enough that someone
+  else could implement it. Opus reads the description and asks the obvious
+  questions the student left unanswered: *what if the input is empty? should
+  uppercase letters count?* The editor stays locked until the spec answers
+  them. The habit: describe the behavior first, write the code second.
 
 - **Critical thinking for debugging their own code.** Students write in Monaco
   with autocomplete **off**. A chat panel lets them ask Opus questions while
