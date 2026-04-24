@@ -36,8 +36,8 @@ hand in a lab with eighty students.
   with autocomplete **off**. A chat panel lets them ask Opus questions while
   coding; Opus answers reference questions directly ("what's the syntax for a
   for loop over a string?") but returns counter-questions for reasoning
-  questions ("why doesn't my count look right?"). The student does the
-  debugging thinking; the model refuses to do it for them.
+  questions ("why doesn't my count look right?"). The debugging thinking
+  stays with the student.
 
 - **Noticing the gap between what was planned and what was implemented.** On
   submit, Opus compares the student's spec (and optional plan) to the code
