@@ -29,7 +29,6 @@ export function CohortsOverview({
     (n, s) => n + s.sessionsCompleted,
     0,
   );
-  const totalHelp = summaries.reduce((n, s) => n + s.helpRequestsReceived, 0);
 
   const grouped = useMemo(() => {
     if (sort !== "unit") return null;
@@ -85,11 +84,13 @@ export function CohortsOverview({
               Instructor · Exercises
             </div>
             <h1 className="text-2xl font-semibold tracking-tight leading-tight">
-              What&apos;s happening across the class?
+              Exercise performance across the class
             </h1>
             <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
-              One card per exercise, aggregated across every session. Click a
-              card to drill into the full exercise view.
+              Each card summarizes one exercise across every student session —
+              completion rate, spec iteration counts, divergence types, and the
+              dimensions most often missed on the first round. Open a card to
+              see per-student runs and full summary.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <StatPill
@@ -103,18 +104,11 @@ export function CohortsOverview({
                 color="#569cd6"
               />
               <StatPill
-                label="completed"
+                label="sessions completed"
                 count={totalCompleted}
                 color="#89d185"
                 muted={totalCompleted === 0}
               />
-              {totalHelp > 0 && (
-                <StatPill
-                  label="help requests"
-                  count={totalHelp}
-                  color="#f48771"
-                />
-              )}
             </div>
           </div>
           <Link
