@@ -58,7 +58,7 @@ export default async function Exercises() {
       className="text-[22px] font-semibold"
       style={{ color: SYNTAX.function }}
     >
-      Available exercises
+      Exercise list
     </span>,
   );
   lines.push(<Comment>Click any row to open the exercise.</Comment>);

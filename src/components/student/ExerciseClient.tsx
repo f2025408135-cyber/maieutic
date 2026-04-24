@@ -964,7 +964,7 @@ function Phase4View({
               href="/exercises"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
             >
-              Head back to Available exercises →
+              Head back to Exercise list →
             </Link>
           </div>
         )}
@@ -1179,12 +1179,12 @@ function Phase5View({
             <span className="text-[#89d185]">✓</span>{" "}
             <span className="font-semibold">Session complete.</span>{" "}
             <span className="text-[#858585]">
-              Nothing more to do — head back to{" "}
+              Nothing more to do — head back to the{" "}
               <Link
                 href="/exercises"
                 className="text-[#569cd6] hover:text-white underline"
               >
-                available exercises
+                exercise list
               </Link>{" "}
               for another.
             </span>

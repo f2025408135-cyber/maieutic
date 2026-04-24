@@ -79,42 +79,50 @@ export function CohortsOverview({
       <FileTabBar fileName="cohorts.md" />
 
       <div className="shrink-0 px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-[11px] font-mono text-[#4ec9b0] tracking-wider uppercase mb-2">
-            Instructor · Cohorts
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight leading-tight">
-            What&apos;s happening across the class?
-          </h1>
-          <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
-            One card per exercise, aggregated across every session. Click a
-            card to drill into the full cohort view.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <StatPill
-              label="exercises"
-              count={summaries.length}
-              color="#4ec9b0"
-            />
-            <StatPill
-              label="sessions started"
-              count={totalStarted}
-              color="#569cd6"
-            />
-            <StatPill
-              label="completed"
-              count={totalCompleted}
-              color="#89d185"
-              muted={totalCompleted === 0}
-            />
-            {totalHelp > 0 && (
+        <div className="max-w-6xl mx-auto flex items-start justify-between gap-6">
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-mono text-[#4ec9b0] tracking-wider uppercase mb-2">
+              Instructor · Exercises
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight leading-tight">
+              What&apos;s happening across the class?
+            </h1>
+            <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
+              One card per exercise, aggregated across every session. Click a
+              card to drill into the full cohort view.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <StatPill
-                label="help requests"
-                count={totalHelp}
-                color="#f48771"
+                label="exercises"
+                count={summaries.length}
+                color="#4ec9b0"
               />
-            )}
+              <StatPill
+                label="sessions started"
+                count={totalStarted}
+                color="#569cd6"
+              />
+              <StatPill
+                label="completed"
+                count={totalCompleted}
+                color="#89d185"
+                muted={totalCompleted === 0}
+              />
+              {totalHelp > 0 && (
+                <StatPill
+                  label="help requests"
+                  count={totalHelp}
+                  color="#f48771"
+                />
+              )}
+            </div>
           </div>
+          <Link
+            href="/authoring"
+            className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
+          >
+            + New exercise
+          </Link>
         </div>
       </div>
 

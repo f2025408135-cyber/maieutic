@@ -1,12 +1,11 @@
 import Link from "next/link";
 
-export type InstructorTab = "live" | "cohorts" | "authoring";
+export type InstructorTab = "live" | "cohorts";
 
 export function InstructorNav({ current }: { current: InstructorTab }) {
   const items: { id: InstructorTab; href: string; label: string }[] = [
     { id: "live", href: "/live", label: "Live" },
-    { id: "cohorts", href: "/cohorts", label: "Cohorts" },
-    { id: "authoring", href: "/authoring", label: "Author" },
+    { id: "cohorts", href: "/cohorts", label: "Exercises" },
   ];
   return (
     <nav className="flex items-center gap-1">
