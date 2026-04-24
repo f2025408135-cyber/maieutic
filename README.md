@@ -134,68 +134,45 @@ The full PRD, tech spec, and 7-phase execution plan are maintained separately.
 
 ---
 
-## The seven Opus calls behind the pedagogy
+## What Opus does
 
-Each prompt lives in `src/lib/opus/prompts/`. The first five are load-bearing
-for the student-facing pedagogy; the last two drive the instructor surfaces.
+Opus is called at seven moments in a student's and a teacher's experience.
+Each one is a carefully-prompted conversation — not a code-generation — and
+the prompts themselves live in `src/lib/opus/prompts/` for anyone who wants
+to read them.
 
-| Prompt | What it does | Which pillar |
-|---|---|---|
-| `scaffolding.ts` | Instructor prompt → spec-gate dimensions + expected divergences + level + phase-2 flag | Classroom scale (fast authoring) |
-| `spec-examiner.ts` | Student spec → Socratic questions, executability decision | Student skill · spec accuracy |
-| `phase3-chat.ts` | Student chat message → mode (interrogative / direct) + response | Student skill · autonomous debugging |
-| `intent-diff.ts` | Spec + plan + code → classified divergences + predicted justifications + neutrally-phrased questions | Student skill · plan-vs-implementation |
-| `post-hoc.ts` | Student's answer → alignment score + possibly revised classification | Teacher insight · metacognitive signal |
-| `live-summary.ts` | Session state → one sentence an instructor can act on in 5 s | Classroom scale · triage |
-| `cohort-narrative.ts` | Aggregated session stats → 2–3 sentences with a concrete curricular fix | Teacher insight · curriculum patterns |
+**Three serve the student's skill development.**
 
----
+- When the student submits a specification, Opus reads it and asks the
+  questions an experienced implementer would obviously ask, until the spec
+  actually answers them.
+- When the student chats with Opus while coding, Opus decides turn by turn
+  whether the question is a reference one (syntax — answered directly) or a
+  reasoning one (their own logic — answered with a counter-question).
+- When the student submits their code, Opus compares it to the specification
+  and the plan and writes a neutral question about any place the two don't
+  line up.
 
-## What's out of scope
+**Three serve the teacher's view of student learning.**
 
-This is a capability demonstration, not a production system. Deferred (per
-PRD §8):
+- A one-sentence live summary of where each active student actually is in
+  their thinking, regenerated whenever anything changes in the session.
+- After the student answers the final divergence question, Opus compares
+  their answer with what it had privately predicted they would say, and
+  refines its classification — this is the signal that tells the teacher
+  whether the student can explain their own code.
+- After a cohort has worked through an exercise, Opus reads all of the
+  session data and writes a short narrative with a concrete curricular
+  suggestion.
 
-- LMS / autograder / GitHub Classroom integration
-- Student account system (MVP uses a dev-mode cookie)
-- Per-student longitudinal trajectories across a full semester
-- Buddy-system evasion detection (paste bursts, typing rhythm, stylistic
-  inconsistency)
-- Informed-consent flow for the private-prediction mechanism
-- Data-governance framework (FERPA-equivalent retention, research use)
-- Two-pass self-critique classifier (Mechanism D)
-- Multi-tenant isolation
+**One serves classroom scale.**
 
----
-
-## Repository layout
-
-```
-maieutic/
-├── DEMO_SCRIPT.md                                   ← 5-scene walkthrough
-├── prisma/schema.prisma                             ← Exercise · Session · SessionEvent
-├── src/
-│   ├── app/                                         ← App Router pages + API routes
-│   │   ├── (instructor)/{authoring,live,cohorts,cohort,reasoning}
-│   │   ├── (student)/exercises · exercise/[id]
-│   │   └── api/{author,session,live,cohort}/…
-│   ├── components/{student,instructor,ui}
-│   └── lib/
-│       ├── opus/prompts/                            ← the seven prompts
-│       ├── opus/client.ts · schemas.ts · summaries.ts
-│       ├── sessions.ts · cohort.ts · events.ts · db.ts
-├── scripts/
-│   ├── capture-fixtures.ts                          ← one-shot, produces real-Opus fixtures
-│   ├── replay-fixtures.ts / reset-demo.ts           ← fast DB-only replay
-│   └── smoke.ts · smoke-session.ts · stop{3,4,5}-samples.ts
-└── tests/
-    ├── unit/{scaffolding,intent-diff}.opus.test.ts  ← Opus-hitting regression
-    └── e2e/demo.spec.ts                             ← Playwright happy path
-```
+- When the instructor types a plain-text problem prompt, Opus returns the
+  specification scaffolding they can review and publish — seconds, not hours.
 
 ---
 
 ## Author
 
-Paula Vásquez-Henríquez — Subdirectora, Ing. Civil Informática UDD
-Concepción · PhD student, AI.
+Paula Vásquez-Henríquez — PhD Student in AI · Deputy Director, Computer
+Science program at Universidad del Desarrollo, Concepción, Chile.
