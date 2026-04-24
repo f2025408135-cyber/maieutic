@@ -1,15 +1,23 @@
 # Maieutic
 
-A pedagogical IDE for CS1 programming exercises, built around three things that
-don't usually fit on a coding tool's surface: the specific skills we actually
-want students to develop, the signals an instructor needs to see those skills
-growing, and the scale of a modern introductory programming classroom.
+Maieutic flips the role an LLM usually plays in learning to program. Instead
+of handing the student working code, it guides them to think first about what
+the program should do and how they'll build it — the specification and the
+plan — before they write a single line. When the code is done, the student
+has to explain the differences between what they said they'd do and what they
+actually wrote.
 
-Claude Opus 4.7 plays the role of a structured interlocutor — **not** an
-autocomplete. Opus gates student work behind an executable specification,
-compares each student's code to their declared intent, and surfaces the
-cognitive state of every active student to the instructor as a one-line
-summary that can be acted on in five seconds.
+This is built on a bet about how programming is changing. Writing code from
+scratch matters less than it used to; specifying behavior precisely, reading
+code critically, and noticing the gap between intent and output matter more.
+Those are the skills Maieutic trains.
+
+Along the way it surfaces a kind of learning signal that's normally invisible
+to an instructor: not just whether the code passes the tests, but whether the
+student can explain *why* their code does what it does, where they drifted
+from their own plan, and whether they can say why. That's what a teacher needs
+to see individual students develop — and it's nearly impossible to capture by
+hand in a lab with eighty students.
 
 ---
 
