@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { findOrCreateSession, getExercise } from "@/lib/sessions";
-import { Phase1Data, Phase2Data, Phase3Data } from "@/lib/opus/schemas";
+import {
+  Phase1Data,
+  Phase2Data,
+  Phase3Data,
+  Phase4Data,
+} from "@/lib/opus/schemas";
 import { ExerciseClient } from "@/components/student/ExerciseClient";
 
 const COOKIE = "maieutic_student_id";
@@ -29,6 +34,9 @@ export default async function Page(
     ? Phase2Data.parse(session.phase2Data)
     : null;
   const phase3 = Phase3Data.parse(session.phase3Data);
+  const phase4 = session.phase4Data
+    ? Phase4Data.parse(session.phase4Data)
+    : null;
 
   return (
     <ExerciseClient
@@ -48,6 +56,7 @@ export default async function Page(
         phase1,
         phase2,
         phase3,
+        phase4,
       }}
     />
   );

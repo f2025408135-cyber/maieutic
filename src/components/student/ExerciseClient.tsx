@@ -22,6 +22,7 @@ import type {
   Phase2Data,
   Phase3Data,
   Phase3Exchange,
+  Phase4Data,
   SpecDimension,
   StudentLevel,
 } from "@/lib/opus/schemas";
@@ -46,6 +47,7 @@ export interface ExerciseClientProps {
     phase1: Phase1Data;
     phase2: Phase2Data | null;
     phase3: Phase3Data;
+    phase4: Phase4Data | null;
   };
 }
 
@@ -94,8 +96,42 @@ export function ExerciseClient({
   const [chatBusy, setChatBusy] = useState(false);
   const [finalSubmitting, setFinalSubmitting] = useState(false);
 
-  const [divergences, setDivergences] = useState<DivergenceQuestion[]>([]);
-  const [divergenceIndex, setDivergenceIndex] = useState(0);
+  // Seed from persisted phase4 data so reloading mid-review preserves any
+  // answers the student has already given.
+  const [divergences, setDivergences] = useState<DivergenceQuestion[]>(() => {
+    const stored = initialSession.phase4;
+    if (!stored) return [];
+    return stored.divergences.map((d) => ({
+      divergenceId: d.divergenceId,
+      studentFacingQuestion: d.studentFacingQuestion,
+      answer: d.studentResponse,
+      submitting: false,
+      result:
+        d.studentResponse && d.alignment && d.finalClassification
+          ? {
+              alignment: d.alignment,
+              finalClassification: d.finalClassification,
+            }
+          : null,
+    }));
+  });
+  const [divergenceIndex, setDivergenceIndex] = useState(() => {
+    const firstUnanswered = divergences.findIndex((d) => d.result === null);
+    return firstUnanswered === -1 ? 0 : firstUnanswered;
+  });
+
+  const hasPendingAnswers =
+    divergences.length > 0 && divergences.some((d) => d.result === null);
+
+  // Prevent reload / tab close while any divergence is still unanswered.
+  useEffect(() => {
+    if (!hasPendingAnswers) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasPendingAnswers]);
 
   const [helpActive, setHelpActive] = useState(() =>
     initialSession.phase1.helpRequests.some((h) => h.resolution === null),
@@ -292,7 +328,13 @@ export function ExerciseClient({
         })),
       );
       setDivergenceIndex(0);
-      setSession((prev) => ({ ...prev, currentPhase: 4 }));
+      // 0 divergences → server auto-closes the session (Phase 5). Either
+      // way, route the client into Phase 4 view (which now covers both the
+      // answer loop and the finished state).
+      setSession((prev) => ({
+        ...prev,
+        currentPhase: body.divergences.length === 0 ? 5 : 4,
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "submit failed");
     } finally {
@@ -339,8 +381,11 @@ export function ExerciseClient({
       );
       if (body.allAnswered) {
         setSession((prev) => ({ ...prev, currentPhase: 5 }));
-      } else if (i < divergences.length - 1) {
-        setDivergenceIndex(i + 1);
+      } else {
+        const next = divergences.findIndex(
+          (d, idx) => idx !== i && d.result === null,
+        );
+        if (next !== -1) setDivergenceIndex(next);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "answer failed");
@@ -355,7 +400,11 @@ export function ExerciseClient({
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
       <TopNav
-        back={{ href: "/exercises", label: "Back to exercises" }}
+        back={
+          hasPendingAnswers
+            ? undefined
+            : { href: "/exercises", label: "Back to exercises" }
+        }
         right={
           !closed && (
             <HelpImStuckButton
@@ -429,7 +478,7 @@ export function ExerciseClient({
         />
       )}
 
-      {inPhase4 && (
+      {(inPhase4 || closed) && (
         <Phase4View
           iterations={session.phase1.iterations}
           finalSpec={session.phase1.finalSpecText ?? ""}
@@ -440,16 +489,6 @@ export function ExerciseClient({
           setIndex={setDivergenceIndex}
           onAnswer={answerDivergence}
           error={error}
-        />
-      )}
-
-      {closed && (
-        <Phase5View
-          iterations={session.phase1.iterations}
-          finalSpec={session.phase1.finalSpecText ?? ""}
-          plan={session.phase2?.planText ?? null}
-          finalCode={session.phase3.finalCode ?? code}
-          divergences={divergences}
         />
       )}
 
@@ -897,147 +936,202 @@ function Phase4View({
   onAnswer: (i: number, answer: string) => void;
   error: string | null;
 }) {
-  const [draft, setDraft] = useState("");
-  useEffect(() => {
-    setDraft("");
-  }, [currentIndex]);
+  const allAnswered =
+    divergences.length > 0 && divergences.every((d) => d.result !== null);
+
+  // Size the read-only editor to exactly the code's line count so there's no
+  // internal scrollbar and no dead space. Monaco's line height at fontSize
+  // 14 is ~20px; the extra 24px covers top padding plus the horizontal
+  // scrollbar Monaco leaves at the bottom.
+  const codeHeight = finalCode
+    ? `${finalCode.split("\n").length * 20 + 24}px`
+    : "0px";
 
   return (
     <main className="flex-1 overflow-y-auto p-8">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <SpecAndHistoryTop
-          finalSpec={finalSpec}
-          plan={plan}
-          iterations={iterations}
-          finalCode={finalCode}
-        />
-
-        {divergences.length === 0 ? (
-          <>
-            <section className="border border-[#4ec9b0]/45 bg-[#162521] rounded">
-              <div className="px-4 py-2.5 border-b border-[#4ec9b0]/30">
-                <h2 className="text-[11px] font-semibold tracking-wider uppercase text-[#4ec9b0]">
-                  ✅ Review
-                </h2>
+      <div className="max-w-3xl mx-auto space-y-8">
+        {(divergences.length === 0 || allAnswered) && (
+          <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="text-base font-semibold text-[#d4d4d4]">
+                <span className="text-[#89d185]">✓</span> Session complete.
               </div>
-              <div className="p-4 text-sm text-[#d4d4d4]">
-                Opus found no meaningful divergences between your
-                specification/plan and your code. Nicely done.
+              <div className="text-sm text-[#858585] mt-1">
+                Nothing more to do — ready for another?
               </div>
-            </section>
-            <div className="flex justify-end">
-              <Link
-                href="/exercises"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-mono"
-              >
-                ← Back to exercises
-              </Link>
             </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center justify-between text-xs text-[#858585] font-mono">
-              <span>
-                Divergence {currentIndex + 1} of {divergences.length}
-              </span>
-              <span>
-                Answered {divergences.filter((x) => x.result).length} /{" "}
-                {divergences.length}
-              </span>
-            </div>
+            <Link
+              href="/exercises"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
+            >
+              Head back to Available exercises →
+            </Link>
+          </div>
+        )}
 
-            <Panel title="Opus asks">
-              <DivergenceAnswer
+        <Phase5Section title="Review">
+          {divergences.length === 0 ? (
+            <div className="rounded border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 text-sm text-[#d4d4d4]">
+              Opus found no meaningful divergences between your specification
+              and your code. Nicely done.
+            </div>
+          ) : allAnswered ? (
+            <div className="space-y-3">
+              {divergences.map((d, i) => (
+                <DivergenceCard
+                  key={d.divergenceId}
+                  d={d}
+                  index={i}
+                  onAnswer={() => {}}
+                  error={null}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono text-[#858585]">
+                <span>
+                  Question {currentIndex + 1} of {divergences.length}
+                </span>
+                <span>
+                  Answered {divergences.filter((x) => x.result).length} /{" "}
+                  {divergences.length}
+                </span>
+              </div>
+              <DivergenceCard
+                key={divergences[currentIndex].divergenceId}
                 d={divergences[currentIndex]}
-                isLast={currentIndex === divergences.length - 1}
-                draft={draft}
-                setDraft={setDraft}
+                index={currentIndex}
                 onAnswer={(answer) => onAnswer(currentIndex, answer)}
                 error={error}
               />
-            </Panel>
-
-            <div className="flex gap-2 text-xs font-mono">
-              {divergences.map((x, i) => (
-                <button
-                  key={x.divergenceId}
-                  onClick={() => setIndex(i)}
-                  className={`px-2 py-1 rounded border transition-colors ${
-                    i === currentIndex
-                      ? "bg-[#007acc] border-[#007acc] text-white"
-                      : x.result
-                        ? "bg-[#1e3a2a] border-[#1e3a2a] text-[#89d185]"
-                        : "bg-[#252526] border-[#3e3e42] text-[#858585] hover:border-[#007acc]"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+              {divergences.length > 1 && (
+                <div className="flex gap-2 text-xs font-mono">
+                  {divergences.map((x, i) => (
+                    <button
+                      key={x.divergenceId}
+                      onClick={() => setIndex(i)}
+                      className={`px-2 py-1 rounded border transition-colors ${
+                        i === currentIndex
+                          ? "bg-[#007acc] border-[#007acc] text-white"
+                          : x.result
+                            ? "bg-[#1e3a2a] border-[#1e3a2a] text-[#89d185]"
+                            : "bg-[#252526] border-[#3e3e42] text-[#858585] hover:border-[#007acc]"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </>
+          )}
+        </Phase5Section>
+
+        {iterations.length > 0 && (
+          <Phase5Section
+            title={`Specification iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
+          >
+            <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
+              <IterationHistory iterations={iterations} />
+            </div>
+          </Phase5Section>
+        )}
+
+        <Phase5Section title="Your final specification">
+          <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
+            {finalSpec || "(empty)"}
+          </div>
+        </Phase5Section>
+
+        {plan && (
+          <Phase5Section title="Your plan">
+            <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
+              {plan}
+            </div>
+          </Phase5Section>
+        )}
+
+        {finalCode && (
+          <Phase5Section title="Your submitted code">
+            <div className="border border-[#3e3e42] rounded overflow-hidden">
+              <PythonEditor
+                value={finalCode}
+                readOnly
+                height={codeHeight}
+              />
+            </div>
+          </Phase5Section>
         )}
       </div>
     </main>
   );
 }
 
-function DivergenceAnswer({
+function DivergenceCard({
   d,
-  isLast,
-  draft,
-  setDraft,
+  index,
   onAnswer,
   error,
 }: {
   d: DivergenceQuestion;
-  isLast: boolean;
-  draft: string;
-  setDraft: (v: string) => void;
+  index: number;
   onAnswer: (answer: string) => void;
   error: string | null;
 }) {
-  const answered = d.result !== null;
+  const [draft, setDraft] = useState("");
+  const answered = d.result !== null || d.answer !== null;
   return (
-    <div className="space-y-4">
-      <p className="whitespace-pre-wrap text-[#d4d4d4]">
-        {d.studentFacingQuestion}
-      </p>
-      {answered ? (
-        <div className="space-y-2">
-          <div className="text-sm">
-            <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
-              your answer
+    <div className="border border-[#3e3e42] bg-[#252526] rounded overflow-hidden">
+      <div className="px-4 py-2 border-b border-[#3e3e42] flex items-center justify-between gap-2">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
+          <span className="text-[#858585]">Q</span>
+          <span className="text-[#569cd6] ml-1">{index + 1}</span>
+        </span>
+        {answered && (
+          <span className="text-[10px] uppercase tracking-wider text-[#89d185] font-mono">
+            ✓ answered
+          </span>
+        )}
+      </div>
+      <div className="px-4 py-3 space-y-3">
+        <p className="text-sm text-[#d4d4d4] whitespace-pre-wrap">
+          {d.studentFacingQuestion}
+        </p>
+        {answered ? (
+          <div className="space-y-1.5">
+            <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+              Your answer
             </div>
-            <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 whitespace-pre-wrap">
-              {d.answer}
+            <p className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2.5">
+              {d.answer || "(no answer recorded)"}
+            </p>
+          </div>
+        ) : (
+          <>
+            <StudentTextarea
+              value={draft}
+              onChange={setDraft}
+              rows={4}
+              placeholder={`Answering "I don't know" is valid and often the most useful thing you can say.`}
+              disabled={d.submitting}
+            />
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => onAnswer(draft)}
+                disabled={d.submitting || !draft.trim()}
+              >
+                {d.submitting ? "Recording…" : "Submit answer"}
+              </Button>
+              {error && (
+                <span className="text-xs text-[#f48771] font-mono">
+                  {error}
+                </span>
+              )}
             </div>
-          </div>
-          <div className="text-xs text-[#858585]">
-            Recorded. Your instructor can see the full reasoning trail.
-          </div>
-        </div>
-      ) : (
-        <>
-          <StudentTextarea
-            value={draft}
-            onChange={setDraft}
-            rows={5}
-            placeholder={`Answering "I don't know" is valid and often the most useful thing you can say.`}
-            disabled={d.submitting}
-          />
-          <Button
-            onClick={() => onAnswer(draft)}
-            disabled={d.submitting || !draft.trim()}
-          >
-            {d.submitting
-              ? "Recording…"
-              : isLast
-                ? "Submit and finish"
-                : "Next"}
-          </Button>
-        </>
-      )}
-      {error && <div className="text-sm text-[#f48771] font-mono">{error}</div>}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -1049,51 +1143,140 @@ function Phase5View({
   finalSpec,
   plan,
   finalCode,
-  divergences,
+  liveDivergences,
+  storedPhase4,
 }: {
   iterations: Phase1Iteration[];
   finalSpec: string;
   plan: string | null;
   finalCode: string;
-  divergences: DivergenceQuestion[];
+  liveDivergences: DivergenceQuestion[];
+  storedPhase4: Phase4Data | null;
 }) {
+  // Prefer the in-memory state (just completed) and fall back to the
+  // persisted Phase 4 record on reload.
+  const qAndA: { question: string; answer: string }[] = useMemo(() => {
+    if (liveDivergences.length > 0) {
+      return liveDivergences.map((d) => ({
+        question: d.studentFacingQuestion,
+        answer: d.answer ?? "",
+      }));
+    }
+    if (storedPhase4) {
+      return storedPhase4.divergences.map((d) => ({
+        question: d.studentFacingQuestion,
+        answer: d.studentResponse ?? "",
+      }));
+    }
+    return [];
+  }, [liveDivergences, storedPhase4]);
+
   return (
     <main className="flex-1 overflow-y-auto p-8">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <Panel title="Session complete ✓">
-          <div className="space-y-3 text-sm">
-            <p>
-              {divergences.length === 0 ? (
-                <>
-                  Opus found no meaningful divergences between your
-                  specification/plan and your code. Your instructor can see
-                  everything from here — your specification iterations, your
-                  plan, your code, and the chat.
-                </>
-              ) : (
-                <>
-                  You answered {divergences.length} divergence{" "}
-                  {divergences.length === 1 ? "question" : "questions"}. Your
-                  instructor can see everything from here — your specification
-                  iterations, your plan, your code, the chat, and the reasoning
-                  behind each divergence.
-                </>
-              )}
-            </p>
-            <p className="text-[#858585]">
-              Nothing more to do. Head back to <Link href="/exercises" className="text-[#569cd6] hover:text-white underline">Available exercises</Link> for another.
-            </p>
+      <div className="max-w-3xl mx-auto space-y-8">
+        <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 flex items-center justify-between gap-4">
+          <div className="text-sm">
+            <span className="text-[#89d185]">✓</span>{" "}
+            <span className="font-semibold">Session complete.</span>{" "}
+            <span className="text-[#858585]">
+              Nothing more to do — head back to{" "}
+              <Link
+                href="/exercises"
+                className="text-[#569cd6] hover:text-white underline"
+              >
+                available exercises
+              </Link>{" "}
+              for another.
+            </span>
           </div>
-        </Panel>
-        <SpecAndHistoryTop
-          finalSpec={finalSpec}
-          plan={plan}
-          iterations={iterations}
-          finalCode={finalCode}
-          defaultOpen
-        />
+        </div>
+
+        <Phase5Section title="Review">
+          {qAndA.length === 0 ? (
+            <div className="rounded border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 text-sm text-[#d4d4d4]">
+              Opus found no meaningful divergences between your specification
+              and your code. Nicely done.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {qAndA.map((qa, i) => (
+                <div
+                  key={i}
+                  className="border border-[#3e3e42] bg-[#252526] rounded overflow-hidden"
+                >
+                  <div className="px-4 py-2 border-b border-[#3e3e42] flex items-center gap-2">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
+                      <span className="text-[#858585]">Q</span>
+                      <span className="text-[#569cd6] ml-1">{i + 1}</span>
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <p className="text-sm text-[#d4d4d4]">{qa.question}</p>
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                        Your answer
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2.5">
+                        {qa.answer || "(no answer recorded)"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Phase5Section>
+
+        {iterations.length > 0 && (
+          <Phase5Section
+            title={`Specification iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
+          >
+            <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
+              <IterationHistory iterations={iterations} />
+            </div>
+          </Phase5Section>
+        )}
+
+        <Phase5Section title="Your final specification">
+          <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
+            {finalSpec || "(empty)"}
+          </div>
+        </Phase5Section>
+
+        {plan && (
+          <Phase5Section title="Your plan">
+            <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
+              {plan}
+            </div>
+          </Phase5Section>
+        )}
+
+        {finalCode && (
+          <Phase5Section title="Your submitted code">
+            <div className="border border-[#3e3e42] rounded overflow-hidden h-96">
+              <PythonEditor value={finalCode} readOnly />
+            </div>
+          </Phase5Section>
+        )}
       </div>
     </main>
+  );
+}
+
+function Phase5Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold tracking-tight text-[#d4d4d4]">
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }
 

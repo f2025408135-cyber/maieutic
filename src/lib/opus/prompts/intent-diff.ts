@@ -99,6 +99,29 @@ The exception: if the code substitutes the WRONG value (e.g. spec says
 regardless of input, or uses a different variable than the one the user
 entered), that IS a bug — because the placeholder was not bound correctly.
 
+OUTPUT-LABEL LENIENCY AT WEEK_1_2
+
+At week_1_2, students often illustrate their intended output with a labeled
+example that contains a placeholder for the computed value — e.g.
+  - "prints 'Perimeter: FINAL_RESULT'"
+  - "outputs 'Your total is PRICE'"
+  - "returns 'The answer is ANSWER'"
+Treat these as the student showing SHAPE OF OUTPUT, not as a binding contract
+on the surrounding label text. If the code prints the correct computed value
+— even without the "Perimeter: ", "Your total is ", or "The answer is "
+prefix — this is NOT a divergence. Do not flag label-vs-bare-number as a
+divergence at this level.
+
+Apply this rule only when:
+- student level is week_1_2, AND
+- the exercise prompt does NOT explicitly require a labeled/formatted message,
+  AND
+- the computed value the code prints matches the computed value the spec
+  described (the disagreement is purely about the surrounding label).
+
+At week_3_6+ the student has the tools to be precise about output shape, so
+this leniency does not apply there.
+
 IN-SESSION REVISIONS RULE
 
 If the student recorded one or more in-session plan revisions (see the
