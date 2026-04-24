@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Workbench } from "@/components/editor/Workbench";
+import { TopNav } from "@/components/editor/TopNav";
+import { FileTabBar } from "@/components/editor/FileTab";
+import { StatusBar } from "@/components/editor/StatusBar";
+import { InstructorNav } from "@/components/instructor/InstructorNav";
 import type { LiveSummary, LiveSummaryFlag } from "@/lib/opus/schemas";
 import {
   UNIT_ROMAN,
@@ -36,28 +39,90 @@ function derivePresence(lastActiveAt: string): Presence {
   return "left";
 }
 
-interface ExerciseRow {
-  id: string;
-  title: string;
-  unit: string;
-  sessionCount: number;
-}
+type PresenceFilter = "active" | "all";
 
-export function LiveDashboard({
-  initial,
-  exercises,
-}: {
-  initial: SessionRow[];
-  exercises: ExerciseRow[];
-}) {
+export function LiveDashboard({ initial }: { initial: SessionRow[] }) {
   const [sessions, setSessions] = useState<SessionRow[]>(initial);
   const [streamStatus, setStreamStatus] = useState<
     "connecting" | "open" | "closed"
   >("connecting");
-  const [eventLog, setEventLog] = useState<
-    { at: Date; kind: string; sessionId?: string }[]
-  >([]);
+  const [presenceFilter, setPresenceFilter] =
+    useState<PresenceFilter>("active");
+  // sessionId → the lastActiveAt value at the moment the user dismissed it.
+  // When a later snapshot shows a newer lastActiveAt (i.e. the student came
+  // back), we auto-unundismiss; see the effect below.
+  const [dismissed, setDismissed] = useState<Record<string, string>>({});
   const sourceRef = useRef<EventSource | null>(null);
+
+  // Clean up the dismissed map whenever sessions change: drop entries whose
+  // heartbeat has ticked forward, and entries whose session is no longer on
+  // the snapshot (completed or fell off the 30-min cutoff).
+  useEffect(() => {
+    setDismissed((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const s of sessions) {
+        const at = next[s.sessionId];
+        if (at && s.lastActiveAt > at) {
+          delete next[s.sessionId];
+          changed = true;
+        }
+      }
+      for (const id of Object.keys(next)) {
+        if (!sessions.some((s) => s.sessionId === id)) {
+          delete next[id];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [sessions]);
+
+  const dismiss = useCallback((session: SessionRow) => {
+    setDismissed((prev) => ({
+      ...prev,
+      [session.sessionId]: session.lastActiveAt,
+    }));
+  }, []);
+
+  const restoreDismissed = useCallback(() => setDismissed({}), []);
+
+  const visibleSessions = useMemo(() => {
+    const afterDismissal = sessions.filter((s) => !dismissed[s.sessionId]);
+    if (presenceFilter === "all") return afterDismissal;
+    // "Active" = present right now OR with an unresolved help request (that
+    // we don't want to hide just because the heartbeat slipped).
+    return afterDismissal.filter(
+      (s) =>
+        derivePresence(s.lastActiveAt) === "live" || s.helpRequestActive,
+    );
+  }, [sessions, presenceFilter, dismissed]);
+  const hiddenCount = sessions.length - visibleSessions.length;
+  const dismissedCount = sessions.filter((s) => dismissed[s.sessionId]).length;
+
+  // Presence totals drawn from every row (not just visible) — the strip is
+  // meant to show the full classroom at a glance, regardless of filter.
+  const stats = useMemo(() => {
+    let live = 0;
+    let stepped = 0;
+    let left = 0;
+    let help = 0;
+    for (const s of sessions) {
+      switch (derivePresence(s.lastActiveAt)) {
+        case "live":
+          live++;
+          break;
+        case "stepped_away":
+          stepped++;
+          break;
+        case "left":
+          left++;
+          break;
+      }
+      if (s.helpRequestActive) help++;
+    }
+    return { live, stepped, left, help };
+  }, [sessions]);
 
   useEffect(() => {
     const source = new EventSource("/api/live/stream");
@@ -76,23 +141,6 @@ export function LiveDashboard({
       }
     });
 
-    source.addEventListener("session_event", (ev) => {
-      try {
-        const body = JSON.parse((ev as MessageEvent).data) as {
-          kind: string;
-          sessionId: string;
-        };
-        setEventLog((prev) =>
-          [
-            { at: new Date(), kind: body.kind, sessionId: body.sessionId },
-            ...prev,
-          ].slice(0, 20),
-        );
-      } catch {
-        /* ignore */
-      }
-    });
-
     return () => {
       source.close();
       sourceRef.current = null;
@@ -100,110 +148,205 @@ export function LiveDashboard({
   }, []);
 
   return (
-    <Workbench
-      tabs={[{ fileName: "live-dashboard", active: true }]}
-      statusLeft={
-        <>
-          <StreamBadge status={streamStatus} />
-          <span>
-            {sessions.length} active session
-            {sessions.length === 1 ? "" : "s"}
-          </span>
-        </>
-      }
-      statusRight={
-        <>
-          <span>Instructor · live</span>
-          <span>Snapshot 10s · summary 90s</span>
-        </>
-      }
-    >
-      <div className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_22rem] overflow-hidden">
-        <section className="overflow-y-auto p-6 space-y-4">
-          <HelpRequestBanner sessions={sessions} />
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
+      <TopNav left={<InstructorNav current="live" />} />
+      <FileTabBar fileName="live.md" />
 
-          <header className="space-y-1">
-            <h1 className="text-xl font-semibold">Who needs me right now?</h1>
-            <p className="text-sm text-[#858585]">
+      <div className="shrink-0 px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
+        <div className="max-w-6xl mx-auto flex items-start justify-between gap-6">
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-mono text-[#4ec9b0] tracking-wider uppercase mb-2">
+              Instructor · Live
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight leading-tight">
+              Who needs me right now?
+            </h1>
+            <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
               One row per active student. Click any row for the private
               reasoning trail.
             </p>
-          </header>
-
-          {sessions.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="space-y-2">
-              {sessions.map((s) => (
-                <SessionCard key={s.sessionId} session={s} />
-              ))}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <StatPill color="#4ec9b0" label="live" count={stats.live} />
+              <StatPill
+                color="#dcdcaa"
+                label="stepped away"
+                count={stats.stepped}
+                muted={stats.stepped === 0}
+              />
+              <StatPill
+                color="#858585"
+                label="left"
+                count={stats.left}
+                muted={stats.left === 0}
+              />
+              {stats.help > 0 && (
+                <StatPill
+                  color="#f14c4c"
+                  label={stats.help === 1 ? "needs help" : "need help"}
+                  count={stats.help}
+                />
+              )}
             </div>
-          )}
-        </section>
-
-        <aside className="border-l border-[#3e3e42] overflow-y-auto bg-[#252526]">
-          <Panel title="Exercises">
-            {exercises.length === 0 ? (
-              <div className="text-sm text-[#858585]">
-                No published exercises yet.{" "}
-                <Link
-                  href="/authoring"
-                  className="underline text-[#569cd6] hover:text-white"
-                >
-                  Author one.
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {exercises.map((e) => (
-                  <Link
-                    key={e.id}
-                    href={`/cohort/${e.id}`}
-                    className="block border border-[#3e3e42] rounded p-2 bg-[#1e1e1e] hover:border-[#007acc] transition-colors"
-                  >
-                    <div className="text-sm font-medium">{e.title}</div>
-                    <div className="text-xs text-[#858585] font-mono">
-                      {isUnit(e.unit)
-                        ? `Unit ${UNIT_ROMAN[e.unit]} · ${UNIT_TITLE[e.unit]}`
-                        : e.unit}
-                      {" · "}
-                      {e.sessionCount} session
-                      {e.sessionCount === 1 ? "" : "s"}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </Panel>
-
-          <Panel title="Recent events">
-            {eventLog.length === 0 ? (
-              <div className="text-xs text-[#858585]">
-                (no events in this session yet)
-              </div>
-            ) : (
-              <ul className="space-y-1 text-xs font-mono">
-                {eventLog.map((e, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="text-[#858585] shrink-0">
-                      {e.at.toLocaleTimeString()}
-                    </span>
-                    <span className="text-[#569cd6]">{e.kind}</span>
-                    {e.sessionId && (
-                      <span className="text-[#858585] truncate">
-                        {e.sessionId.slice(0, 8)}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-        </aside>
+          </div>
+          <div className="shrink-0 flex items-center gap-3 text-xs font-mono text-[#858585] pt-1">
+            <StreamBadge status={streamStatus} />
+          </div>
+        </div>
       </div>
-    </Workbench>
+
+      <section className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <HelpRequestBanner sessions={sessions} />
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h2 className="text-lg font-semibold tracking-tight text-[#d4d4d4]">
+                Active sessions
+              </h2>
+              <div className="flex items-center gap-3">
+                {hiddenCount > 0 && (
+                  <span className="text-xs text-[#858585] font-mono">
+                    {hiddenCount} hidden
+                  </span>
+                )}
+                {dismissedCount > 0 && (
+                  <button
+                    onClick={restoreDismissed}
+                    className="text-xs font-mono text-[#569cd6] hover:text-white underline decoration-dotted underline-offset-2 transition-colors"
+                  >
+                    Restore dismissed ({dismissedCount})
+                  </button>
+                )}
+                <PresenceFilterToggle
+                  value={presenceFilter}
+                  onChange={setPresenceFilter}
+                />
+              </div>
+            </div>
+            {sessions.length === 0 ? (
+              <EmptyState />
+            ) : visibleSessions.length === 0 ? (
+              <div className="border border-dashed border-[#3e3e42] rounded p-10 text-center">
+                <div className="text-sm text-[#858585]">
+                  {presenceFilter === "active"
+                    ? "No live sessions right now."
+                    : "Every session is dismissed."}{" "}
+                  {dismissedCount > 0 ? (
+                    <button
+                      onClick={restoreDismissed}
+                      className="underline hover:text-white"
+                    >
+                      Restore dismissed ({dismissedCount})
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setPresenceFilter("all")}
+                      className="underline hover:text-white"
+                    >
+                      Show stepped-away ({hiddenCount})
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {visibleSessions.map((s) => (
+                  <SessionCard
+                    key={s.sessionId}
+                    session={s}
+                    onDismiss={() => dismiss(s)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <StatusBar
+        left={
+          <>
+            <span>✓ claude-opus-4-7</span>
+            <span>
+              {presenceFilter === "active" && hiddenCount > 0
+                ? `${visibleSessions.length} of ${sessions.length} session${sessions.length === 1 ? "" : "s"}`
+                : `${sessions.length} session${sessions.length === 1 ? "" : "s"}`}
+            </span>
+          </>
+        }
+        right={<span>Snapshot 10s · summary 10s</span>}
+      />
+    </div>
   );
 }
+
+function StatPill({
+  color,
+  label,
+  count,
+  muted,
+}: {
+  color: string;
+  label: string;
+  count: number;
+  muted?: boolean;
+}) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-[#3e3e42] bg-[#252526] text-xs font-mono ${
+        muted ? "opacity-50" : ""
+      }`}
+    >
+      <span
+        className="inline-block w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: color }}
+        aria-hidden
+      />
+      <span className="text-[#d4d4d4]">{count}</span>
+      <span className="text-[#858585]">{label}</span>
+    </span>
+  );
+}
+
+function PresenceFilterToggle({
+  value,
+  onChange,
+}: {
+  value: PresenceFilter;
+  onChange: (next: PresenceFilter) => void;
+}) {
+  const options: { id: PresenceFilter; label: string }[] = [
+    { id: "active", label: "Live only" },
+    { id: "all", label: "All" },
+  ];
+  return (
+    <div
+      role="tablist"
+      className="inline-flex items-center p-0.5 rounded border border-[#3e3e42] bg-[#252526] text-xs font-mono"
+    >
+      {options.map((opt) => {
+        const active = opt.id === value;
+        return (
+          <button
+            key={opt.id}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(opt.id)}
+            className={`px-2.5 py-1 rounded transition-colors ${
+              active
+                ? "bg-[#007acc] text-white"
+                : "text-[#858585] hover:text-white"
+            }`}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+
 
 function HelpRequestBanner({ sessions }: { sessions: SessionRow[] }) {
   const pending = sessions.filter((s) => s.helpRequestActive);
@@ -259,23 +402,6 @@ function formatAgo(iso: string | null): string {
   return hours === 1 ? "1 hr ago" : `${hours} hr ago`;
 }
 
-function Panel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border-b border-[#3e3e42]">
-      <div className="px-4 pt-4 pb-2 text-[11px] font-semibold tracking-wider uppercase text-[#858585]">
-        {title}
-      </div>
-      <div className="px-4 pb-4">{children}</div>
-    </div>
-  );
-}
-
 function StreamBadge({
   status,
 }: {
@@ -318,7 +444,13 @@ function EmptyState() {
   );
 }
 
-function SessionCard({ session }: { session: SessionRow }) {
+function SessionCard({
+  session,
+  onDismiss,
+}: {
+  session: SessionRow;
+  onDismiss: () => void;
+}) {
   const flags = useMemo(
     () => (session.mostRecentSummary?.flags ?? []) as LiveSummaryFlag[],
     [session.mostRecentSummary],
@@ -337,6 +469,10 @@ function SessionCard({ session }: { session: SessionRow }) {
           ? "#4ec9b0"
           : "#3e3e42";
   const dimmed = presence !== "live" && !session.helpRequestActive;
+  // Only offer dismissal for rows that have gone quiet. We deliberately keep
+  // help-requested rows undismissable — those require action regardless of
+  // presence.
+  const canDismiss = presence !== "live" && !session.helpRequestActive;
 
   return (
     <Link href={`/reasoning/${session.sessionId}`} className="block">
@@ -379,8 +515,25 @@ function SessionCard({ session }: { session: SessionRow }) {
                 </div>
               )}
             </div>
-            <div className="text-xs text-[#858585] shrink-0 text-right font-mono">
-              {session.exerciseTitle}
+            <div className="shrink-0 flex items-start gap-2">
+              <div className="text-xs text-[#858585] text-right font-mono pt-0.5">
+                {session.exerciseTitle}
+              </div>
+              {canDismiss && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDismiss();
+                  }}
+                  aria-label="Dismiss this session"
+                  title="Hide until the student's next heartbeat"
+                  className="w-5 h-5 rounded text-[#858585] hover:text-white hover:bg-[#3e3e42] transition-colors text-sm leading-none flex items-center justify-center"
+                >
+                  ×
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -238,6 +238,7 @@ export type LiveSummary = z.infer<typeof LiveSummary>;
 // ─── Session events (discriminated union by kind) ─────────────────────────
 
 export const SessionEventKind = z.enum([
+  "session_started",
   "phase_transition",
   "alignment_failure",
   "help_request",
@@ -246,6 +247,12 @@ export const SessionEventKind = z.enum([
   "summary_refresh",
 ]);
 export type SessionEventKind = z.infer<typeof SessionEventKind>;
+
+export const SessionStartedPayload = z.object({
+  exerciseId: z.string(),
+  studentId: z.string(),
+});
+export type SessionStartedPayload = z.infer<typeof SessionStartedPayload>;
 
 export const PhaseTransitionPayload = z.object({
   from: z.number().int(),
@@ -287,6 +294,7 @@ export type SummaryRefreshPayload = z.infer<typeof SummaryRefreshPayload>;
 // Map from event kind → payload schema, for runtime dispatch when reading
 // the opaque `payload` Json column.
 export const SessionEventPayloadSchemaByKind = {
+  session_started: SessionStartedPayload,
   phase_transition: PhaseTransitionPayload,
   alignment_failure: AlignmentFailurePayload,
   help_request: HelpRequestPayload,
@@ -296,6 +304,7 @@ export const SessionEventPayloadSchemaByKind = {
 } as const;
 
 export type SessionEventPayloadByKind = {
+  session_started: SessionStartedPayload;
   phase_transition: PhaseTransitionPayload;
   alignment_failure: AlignmentFailurePayload;
   help_request: HelpRequestPayload;
@@ -379,11 +388,15 @@ export const LiveSummaryOutput = z.object({
 });
 export type LiveSummaryOutput = z.infer<typeof LiveSummaryOutput>;
 
-// 6. Cohort narrative (Tech Spec §7.1)
+// 6. Cohort summary — per-exercise insights for the instructor.
+// Reframes the old "diagnose + recommend" narrative into a descriptive
+// picture of how the cohort engaged with this exercise.
 export const CohortNarrativeOutput = z.object({
-  narrative: z.string(),
-  pattern_summary: z.string(),
-  recommendation: z.string(),
+  narrative: z.string(), // 2-3 sentence overview of what happened
+  solution_techniques: z.array(z.string()), // common approaches students used
+  common_drifts: z.array(z.string()), // drifts and errors that recurred
+  strengths: z.array(z.string()), // what the cohort did well
+  difficulties: z.array(z.string()), // where the cohort struggled
   provisional: z.boolean(),
 });
 export type CohortNarrativeOutput = z.infer<typeof CohortNarrativeOutput>;

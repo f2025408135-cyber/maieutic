@@ -39,6 +39,12 @@ export async function refreshSummaryForSession(
   });
   if (!session) return null;
   if (session.completedAt) return null;
+  // Skip sessions whose student has been silent for >5 min. Matches the
+  // dashboard's "left session" threshold — once the heartbeat has stopped,
+  // the summary is frozen by construction, so a fresh Opus call would just
+  // spend tokens to restate the last one.
+  const msSinceHeartbeat = Date.now() - session.lastActiveAt.getTime();
+  if (msSinceHeartbeat > 5 * 60 * 1000) return null;
 
   const exercise = await getExercise(session.exerciseId);
   const phase1 = Phase1Data.parse(session.phase1Data);
@@ -101,9 +107,16 @@ export async function refreshSummaryForSession(
 }
 
 export async function refreshAllActiveSessions(): Promise<{ refreshed: number }> {
-  const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+  // Only refresh sessions whose student is actually present. The dashboard
+  // treats >5 min of heartbeat silence as "left session"; Opus calls for
+  // rows in that state just waste tokens — the summary won't change
+  // meaningfully, and the dashboard has already dimmed the row.
+  const presenceCutoff = new Date(Date.now() - 5 * 60 * 1000);
   const sessions = await prisma.session.findMany({
-    where: { completedAt: null, startedAt: { gte: cutoff } },
+    where: {
+      completedAt: null,
+      lastActiveAt: { gte: presenceCutoff },
+    },
     select: { id: true },
   });
 

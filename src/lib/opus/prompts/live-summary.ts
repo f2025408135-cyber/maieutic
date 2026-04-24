@@ -26,6 +26,22 @@ student's head right now. It must:
   asked, what they haven't addressed, how long they've been stuck).
 - Not speculate beyond the evidence. If a student has been idle for 4 minutes
   on spec iteration 3, say that; don't invent a psychological explanation.
+- Never cite the absence of something that doesn't exist in the current
+  phase. Each phase has different affordances:
+    Phase 1 (specification): student submits a natural-language spec; Opus
+      asks gap-filling questions; the student iterates. NO chat, NO code
+      editor, NO plan, NO divergences yet.
+    Phase 2 (plan): student writes a short implementation plan. NO chat,
+      NO code editor.
+    Phase 3 (writing): code editor AND free-form chat with Opus exist;
+      student may invoke "change of plan" to record a revision.
+    Phase 4 (review): Opus poses divergence questions one at a time;
+      student answers.
+    Phase 5 (closed): session complete.
+  So "no chat activity" in Phase 1 or 2 is FORBIDDEN (chat doesn't exist
+  there). "No code written" in Phase 1 or 2 is FORBIDDEN. "No divergences
+  answered" in Phase 1, 2, or 3 is FORBIDDEN. Frame observations around
+  what the phase actually offers.
 
 Flag rules: return a \`flags\` list with any of:
 - "help_requested": active ask-for-help

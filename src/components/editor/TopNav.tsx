@@ -6,10 +6,13 @@ import * as React from "react";
 
 export function TopNav({
   back,
+  left,
   right,
 }: {
   /** Optional "← {label}" link shown after the logo. */
   back?: { href: string; label: string };
+  /** Optional content rendered beside the logo (e.g. nav links). */
+  left?: React.ReactNode;
   /** Optional right-aligned content (e.g. a Help I'm stuck button). */
   right?: React.ReactNode;
 }) {
@@ -47,6 +50,17 @@ export function TopNav({
             >
               ← {back.label}
             </Link>
+          </>
+        )}
+        {left && (
+          <>
+            <span
+              className="text-[#3e3e42] text-xl font-light"
+              aria-hidden
+            >
+              ·
+            </span>
+            {left}
           </>
         )}
         {right && <div className="ml-auto">{right}</div>}

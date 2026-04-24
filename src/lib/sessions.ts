@@ -86,7 +86,7 @@ export async function getExercise(exerciseId: string): Promise<ExerciseRecord> {
 // ─── Session lifecycle ─────────────────────────────────────────────────────
 
 export async function createSession(exerciseId: string, studentId: string) {
-  return prisma.session.create({
+  const session = await prisma.session.create({
     data: {
       exerciseId,
       studentId,
@@ -96,6 +96,13 @@ export async function createSession(exerciseId: string, studentId: string) {
       liveSummaries: asJson([]),
     },
   });
+  // Tell the live dashboard about the new row without waiting for the
+  // 10s snapshot tick.
+  await appendSessionEvent(session.id, "session_started", {
+    exerciseId,
+    studentId,
+  });
+  return session;
 }
 
 export async function getSession(sessionId: string) {

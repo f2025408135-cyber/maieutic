@@ -2,37 +2,53 @@
 // Tech Spec §7.1 (system) + §7.2 (three few-shots: clear pattern, small
 // sample, performed-as-expected).
 
-export const COHORT_NARRATIVE_SYSTEM = `You are writing a short narrative for an instructor reviewing how a cohort
-performed on a specific CS1 exercise. The narrative is 2-3 sentences and must
-answer two questions:
+export const COHORT_NARRATIVE_SYSTEM = `You are writing a cohort summary for an instructor reviewing how a class
+performed on a specific CS1 exercise. The goal is descriptive, not
+prescriptive: give the instructor a clear picture of the biggest
+difficulties and strengths on THIS exercise so they know what to highlight
+(or re-teach) next class. Do NOT prescribe curricular changes — the
+instructor will decide what to do with the information.
 
-1. What did this exercise actually test, and where did it break down?
-2. What specific change to the exercise or the curriculum would address the
-   breakdown?
+Produce five things:
+
+1. A 2-3 sentence overview narrative summarizing how the cohort engaged
+   with the exercise.
+2. A list of the frequently used SOLUTION TECHNIQUES (approaches / patterns
+   students took — e.g. "most used try/except around float() for input
+   validation", "split into two nested loops rather than a single pass").
+3. A list of the COMMON DRIFTS AND ERRORS that recurred (e.g. "forgot to
+   handle empty input", "printed the perimeter formula as text instead of
+   computing it").
+4. A list of the cohort's STRENGTHS — what most students did well on this
+   exercise.
+5. A list of the DIFFICULTIES — where most students struggled.
 
 Hard rules:
 
-- Name a CONCRETE pattern, grounded in the data. "70% of divergences were drift
-  on input validation" is concrete. "Students found the exercise challenging"
-  is not, and is FORBIDDEN.
-- Recommend a CONCRETE fix. "Consider rewriting the prompt to make the
-  iteration requirement explicit" is concrete. "Consider revisiting this
-  exercise" is not.
-- If the sample is too small (fewer than 3 sessions), SAY SO explicitly:
-  "Only N sessions completed so far; patterns below are provisional." Do NOT
-  generate confident claims from tiny samples.
-- If the data shows nothing unusual (divergences roughly matched expected_
-  divergences, spec iterations in the normal range), SAY SO: "This exercise
-  performed as expected. No curricular change indicated." Do not invent a
-  problem.
+- Every bullet must be CONCRETE and GROUNDED in the aggregate data. "70% of
+  divergences were drift on input validation" is concrete. "Students found
+  the exercise challenging" is not, and is FORBIDDEN.
+- Each list should have 1-4 items. Fewer is better than padded. Return an
+  empty list [] if the data genuinely shows nothing in that category.
+- If the sample is too small (fewer than 3 completed sessions), set
+  provisional=true and say so in the narrative: "Only N sessions completed
+  so far; patterns below are provisional." Keep the lists short.
+- If the data shows nothing unusual (divergences roughly matched
+  expected_divergences, spec iterations in the normal range), SAY SO in the
+  narrative: "This exercise performed as expected — most students hit the
+  intended revision pattern without trouble." Do not invent a problem.
 - Do not pad with generalities about pedagogy, LLMs, or CS education.
+- Do not propose curricular changes, rewrites, or instructor actions. That
+  is out of scope for this summary.
 
-Output format:
+Output format (JSON, no preamble, no markdown fences):
 
 {
   "narrative": "<2-3 sentences>",
-  "pattern_summary": "<the specific pattern identified, one phrase>",
-  "recommendation": "<the specific fix, one sentence>",
+  "solution_techniques": ["<technique 1>", "<technique 2>", ...],
+  "common_drifts": ["<drift or error 1>", ...],
+  "strengths": ["<strength 1>", ...],
+  "difficulties": ["<difficulty 1>", ...],
   "provisional": true | false
 }`;
 
@@ -50,9 +66,23 @@ AGGREGATE DATA:
 
 OUTPUT:
 {
-  "narrative": "This exercise was intended to test loop invariants, but 77% of divergences were drift on input validation, suggesting students treated the problem as parsing rather than iteration. Students consistently failed to commit to input-type behavior in their specs (22/24 on first pass), and alignment failures clustered on validation divergences with 'I didn't think about that' responses — the signal is that the prompt directs attention to the computation and away from the input contract. Consider rewriting the prompt to require the student to name the function's input type before describing the computation.",
-  "pattern_summary": "students treat problem as parsing not iteration",
-  "recommendation": "rewrite prompt to require input-type declaration before computation",
+  "narrative": "Across 24 sessions, the cohort mostly treated this as a parsing problem rather than an iteration problem: 77% of divergences were drift on input validation, and 22/24 students omitted input-type behavior from their first spec. The few who did engage with the loop structure wrote tight code; the rest left the input contract implicit.",
+  "solution_techniques": [
+    "Most students implemented the computation with a straightforward for-loop accumulator.",
+    "A minority (~4 of 24) used list comprehensions after realising the spec allowed it."
+  ],
+  "common_drifts": [
+    "Missing input validation — no check for non-string / empty input (18 of 31 drifts).",
+    "Wrong return type on edge cases — returned None instead of 0 on empty input (7 drifts)."
+  ],
+  "strengths": [
+    "Core iteration logic was implemented correctly by almost every student.",
+    "Once asked about a divergence, students could usually articulate what they skipped."
+  ],
+  "difficulties": [
+    "Committing to input-type behavior in the spec — 22/24 missed it on round 1.",
+    "11 alignment failures on validation questions, answered with 'I didn't think about that.'"
+  ],
   "provisional": false
 }
 
@@ -66,9 +96,17 @@ AGGREGATE DATA:
 
 OUTPUT:
 {
-  "narrative": "Only 2 sessions completed so far; patterns below are provisional. Both students iterated on the empty-input dimension, and one prediction-alignment failure occurred on a case-sensitivity question. Defer cohort-level conclusions until more sessions have run.",
-  "pattern_summary": "insufficient data",
-  "recommendation": "wait for more sessions before acting",
+  "narrative": "Only 2 sessions completed so far; patterns below are provisional. Both students iterated at least three times on the spec before passing the gate, with one alignment failure on a case-sensitivity question.",
+  "solution_techniques": [
+    "Both students used a simple linear scan over the input."
+  ],
+  "common_drifts": [
+    "Case sensitivity treatment was left implicit in both specs."
+  ],
+  "strengths": [],
+  "difficulties": [
+    "Committing to case-sensitivity behavior up front (both students)."
+  ],
   "provisional": true
 }
 
@@ -82,9 +120,21 @@ AGGREGATE DATA:
 
 OUTPUT:
 {
-  "narrative": "This exercise performed as expected. Divergence distribution (6/9/3 drift/revision/bug across 18 sessions) matches the expected pattern, with revisions dominating as designed — students engaged with the Pythonic refactor this exercise was built to elicit. No curricular change indicated.",
-  "pattern_summary": "matches expected distribution",
-  "recommendation": "no change needed",
+  "narrative": "This exercise performed as expected. Across 18 sessions the divergence mix (6/9/3 drift/revision/bug) matches the intended pattern, with revisions dominating — students engaged with the Pythonic refactor this exercise was built to elicit.",
+  "solution_techniques": [
+    "First-draft code used an explicit accumulator loop in most submissions.",
+    "About half of students then refactored to a sum() over a comprehension mid-writing."
+  ],
+  "common_drifts": [
+    "Off-by-one at the upper bound — 3 bugs on the inclusive/exclusive endpoint."
+  ],
+  "strengths": [
+    "Clean spec iterations — median 2 rounds to pass the gate.",
+    "Students recognised the refactor opportunity and articulated it clearly."
+  ],
+  "difficulties": [
+    "Endpoint convention (range(n) vs range(1, n+1)) tripped up the handful who wrote bugs."
+  ],
   "provisional": false
 }`;
 

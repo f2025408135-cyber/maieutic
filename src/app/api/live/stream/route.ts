@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import { sessionEventBus } from "@/lib/events";
 import {
   refreshAllActiveSessions,
+  refreshSummaryForSession,
 } from "@/lib/opus/summaries";
 import { LiveSummary, Phase1Data } from "@/lib/opus/schemas";
 
@@ -20,6 +21,7 @@ interface ActiveSessionRow {
   exerciseId: string;
   exerciseTitle: string;
   studentLevel: string;
+  unit: string;
   currentPhase: number;
   startedAt: string;
   lastActiveAt: string;
@@ -52,6 +54,7 @@ async function buildSnapshot(): Promise<ActiveSessionRow[]> {
       exerciseId: s.exerciseId,
       exerciseTitle: s.exercise.title,
       studentLevel: s.exercise.studentLevel,
+      unit: s.exercise.unit,
       currentPhase: s.currentPhase,
       startedAt: s.startedAt.toISOString(),
       lastActiveAt: s.lastActiveAt.toISOString(),
@@ -90,8 +93,10 @@ export async function GET(req: NextRequest) {
         send({ error: err instanceof Error ? err.message : "snapshot failed" }, "error");
       }
 
-      // 2a. 90s LLM-summary refresh timer (expensive: one Opus call per
-      //     active session).
+      // 2a. LLM-summary refresh timer — 10s for demo (one Opus call per
+      //     active session per tick). Production cadence was 90s; shortened
+      //     so a first summary lands within a few seconds of the session
+      //     starting and ongoing updates keep up during a live demo.
       const refreshTimer = setInterval(async () => {
         try {
           await refreshAllActiveSessions();
@@ -103,7 +108,7 @@ export async function GET(req: NextRequest) {
             "error",
           );
         }
-      }, 90_000);
+      }, 10_000);
 
       // 2b. 10s snapshot tick — rebuild row state (phase, iteration count,
       //     help-request status, time-since) from the DB without calling
@@ -128,8 +133,25 @@ export async function GET(req: NextRequest) {
         createdAt: Date;
       }) => {
         send(msg, "session_event");
+        // Kick off a one-shot Opus summary for a brand-new session so the
+        // dashboard doesn't sit on "Awaiting first summary…" for a whole
+        // refresh cycle. Fire-and-forget; the summary_refresh event that
+        // follows will push the updated row to the dashboard.
+        if (msg.kind === "session_started") {
+          refreshSummaryForSession(msg.sessionId).catch((err) => {
+            console.error(
+              JSON.stringify({
+                src: "live-stream",
+                kind: "session_started_summary_failed",
+                sessionId: msg.sessionId,
+                error: err instanceof Error ? err.message : String(err),
+              }),
+            );
+          });
+        }
         // For events that change what the row shows, refresh just that session.
         if (
+          msg.kind === "session_started" ||
           msg.kind === "phase_transition" ||
           msg.kind === "alignment_failure" ||
           msg.kind === "help_request" ||

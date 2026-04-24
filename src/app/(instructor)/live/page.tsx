@@ -37,24 +37,7 @@ async function getInitialSnapshot() {
   });
 }
 
-async function listExercises() {
-  const rows = await prisma.exercise.findMany({
-    where: { publishedAt: { not: null } },
-    orderBy: { publishedAt: "desc" },
-    include: { _count: { select: { sessions: true } } },
-  });
-  return rows.map((r) => ({
-    id: r.id,
-    title: r.title,
-    unit: r.unit,
-    sessionCount: r._count.sessions,
-  }));
-}
-
 export default async function LivePage() {
-  const [snapshot, exercises] = await Promise.all([
-    getInitialSnapshot(),
-    listExercises(),
-  ]);
-  return <LiveDashboard initial={snapshot} exercises={exercises} />;
+  const snapshot = await getInitialSnapshot();
+  return <LiveDashboard initial={snapshot} />;
 }
