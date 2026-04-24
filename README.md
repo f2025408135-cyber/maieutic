@@ -120,34 +120,6 @@ unit; teachers land on the live dashboard.
 
 ---
 
-## Demo
-
-Run `npm run reset-demo && npm run dev`, then walk through
-[`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md). Five scenes, ~7 minutes total, each
-scene mapped to one of the three pillars above.
-
-If anything breaks: the script's failure-mode table covers the common cases.
-
----
-
-## Tests
-
-```bash
-# Fast, no Opus calls
-npm test
-
-# Against real Opus (slow, costs tokens)
-npm run test:opus
-
-# End-to-end demo happy path (Playwright, ~20 s)
-npm run test:e2e
-```
-
-`test:opus` covers scaffolding, intent-diff classification and prediction
-register, phase-3 mode selection, and post-hoc re-classification.
-
----
-
 ## Stack
 
 - Next.js 16 (app router) + React 19 + TypeScript strict
