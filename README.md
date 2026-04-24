@@ -92,16 +92,18 @@ hand in a lab with eighty students.
 
 ## Quick start
 
-Prerequisites: Node 20+, `ANTHROPIC_API_KEY` in your environment.
+Prerequisites: Node 20+ and an Anthropic API key.
 
 ```bash
 # Install
 npm install
-npx prisma migrate dev --name init
-npx prisma generate
 
-# Paste your key into .env.local
-#   ANTHROPIC_API_KEY=sk-ant-...
+# Copy the env template and paste in your key
+cp .env.example .env
+# edit .env and set ANTHROPIC_API_KEY=sk-ant-...
+
+# Apply migrations and generate the Prisma client
+npx prisma migrate dev
 
 # Seed the demo fixtures (Ana/Beto/Carmen + cohort sessions)
 npm run reset-demo
