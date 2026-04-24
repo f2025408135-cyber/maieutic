@@ -113,7 +113,6 @@ export interface ExerciseSummary {
   maxIterations: number | null;
   divergenceCounts: { drift: number; revision: number; bug: number };
   topMissedDimension: { id: string; count: number } | null;
-  topDivergenceCluster: { key: string; count: number } | null;
   helpRequestsReceived: number;
 }
 
@@ -147,7 +146,6 @@ export async function summarizeAllExercises(): Promise<ExerciseSummary[]> {
     const iterations: number[] = [];
     const divergenceCounts = { drift: 0, revision: 0, bug: 0 };
     const missed = new Map<string, number>();
-    const clusters = new Map<string, number>();
 
     for (const s of completed) {
       const phase1 = Phase1Data.parse(s.phase1Data);
@@ -163,9 +161,6 @@ export async function summarizeAllExercises(): Promise<ExerciseSummary[]> {
         for (const d of phase4.divergences) {
           const cat = d.finalClassification ?? d.initialClassification;
           if (cat) divergenceCounts[cat]++;
-          const key =
-            d.predictedJustification.split(/[.!?]/)[0]?.slice(0, 80) ?? "—";
-          clusters.set(key, (clusters.get(key) ?? 0) + 1);
         }
       }
     }
@@ -175,7 +170,6 @@ export async function summarizeAllExercises(): Promise<ExerciseSummary[]> {
     });
 
     const topMissed = [...missed.entries()].sort((a, b) => b[1] - a[1])[0];
-    const topCluster = [...clusters.entries()].sort((a, b) => b[1] - a[1])[0];
 
     out.push({
       id: ex.id,
@@ -189,9 +183,6 @@ export async function summarizeAllExercises(): Promise<ExerciseSummary[]> {
       divergenceCounts,
       topMissedDimension: topMissed
         ? { id: topMissed[0], count: topMissed[1] }
-        : null,
-      topDivergenceCluster: topCluster
-        ? { key: topCluster[0], count: topCluster[1] }
         : null,
       helpRequestsReceived,
     });

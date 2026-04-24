@@ -210,6 +210,17 @@ export function CohortView({
             </div>
           </Section>
 
+          {hasAny && (
+            <Section title="Divergences">
+              <DivergenceCard
+                counts={aggregate.divergenceCategoryCounts}
+                expected={aggregate.expectedDivergences}
+                alignmentFailures={aggregate.alignmentFailures}
+                proactiveRevisions={aggregate.proactiveRevisions}
+              />
+            </Section>
+          )}
+
         </div>
       </main>
 
@@ -284,6 +295,142 @@ function InsightList({
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+const DIVERGENCE_PALETTE = {
+  drift: { color: "#dcdcaa", label: "drift" },
+  revision: { color: "#75beff", label: "revision" },
+  bug: { color: "#f48771", label: "bug" },
+} as const;
+
+function DivergenceCard({
+  counts,
+  expected,
+  alignmentFailures,
+  proactiveRevisions,
+}: {
+  counts: Record<"drift" | "revision" | "bug", number>;
+  expected: Array<{ category: string; pattern: string }>;
+  alignmentFailures: number;
+  proactiveRevisions: number;
+}) {
+  const total = counts.drift + counts.revision + counts.bug;
+  const parts = (["drift", "revision", "bug"] as const).map((k) => ({
+    key: k,
+    ...DIVERGENCE_PALETTE[k],
+    value: counts[k],
+  }));
+
+  return (
+    <div className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="text-[10px] uppercase tracking-wider text-[#858585] font-mono">
+            Mix
+          </div>
+          <span className="text-[11px] text-[#858585] font-mono">
+            {total === 0 ? "none flagged" : `${total} flagged`}
+          </span>
+        </div>
+        {total === 0 ? (
+          <div className="text-sm text-[#858585]">
+            No divergences across completed sessions.
+          </div>
+        ) : (
+          <>
+            <div className="h-2 rounded-full bg-[#1e1e1e] overflow-hidden flex">
+              {parts.map((p) =>
+                p.value > 0 ? (
+                  <div
+                    key={p.key}
+                    style={{
+                      width: `${(p.value / total) * 100}%`,
+                      backgroundColor: p.color,
+                    }}
+                    title={`${p.value} ${p.label}`}
+                  />
+                ) : null,
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-xs font-mono flex-wrap pt-1">
+              {parts.map((p) => (
+                <span key={p.key} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: p.color }}
+                    aria-hidden
+                  />
+                  <span className="text-[#d4d4d4]">{p.value}</span>
+                  <span className="text-[#858585]">{p.label}</span>
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {expected.length > 0 && (
+        <div className="border-t border-[#3e3e42] pt-4 space-y-2">
+          <div className="text-[10px] uppercase tracking-wider text-[#858585] font-mono">
+            Instructor-intended patterns
+          </div>
+          <ul className="space-y-1.5">
+            {expected.map((e, i) => {
+              const palette =
+                DIVERGENCE_PALETTE[e.category as keyof typeof DIVERGENCE_PALETTE];
+              return (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-[#d4d4d4]"
+                >
+                  <span
+                    className="mt-0.5 shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]"
+                    style={{ color: palette?.color ?? "#d4d4d4" }}
+                  >
+                    {e.category}
+                  </span>
+                  <span className="leading-snug">{e.pattern}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[#3e3e42] pt-4">
+        <Signal
+          label="Alignment failures"
+          value={alignmentFailures}
+          hint="students answered &ldquo;didn't think about that&rdquo;"
+        />
+        <Signal
+          label="Proactive revisions"
+          value={proactiveRevisions}
+          hint="student-initiated spec changes mid-Phase 3"
+        />
+      </div>
+    </div>
+  );
+}
+
+function Signal({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: number;
+  hint: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[10px] uppercase tracking-wider text-[#858585] font-mono">
+        {label}
+      </div>
+      <div className="mt-1 text-lg font-semibold text-[#d4d4d4]">{value}</div>
+      <div className="mt-0.5 text-[11px] text-[#858585]">{hint}</div>
     </div>
   );
 }

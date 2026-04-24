@@ -218,7 +218,7 @@ function ExerciseCard({ ex }: { ex: ExerciseSummary }) {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Metric
             label="Sessions"
             value={
@@ -254,56 +254,27 @@ function ExerciseCard({ ex }: { ex: ExerciseSummary }) {
                 : "no completions"
             }
           />
-          <Metric
-            label="Divergences"
-            value={
-              totalDivergences === 0 ? (
-                <span className="text-[#858585]">none</span>
-              ) : (
-                <DivergenceMix counts={ex.divergenceCounts} />
-              )
-            }
-            hint={
-              totalDivergences === 0
-                ? "no completions yet"
-                : `${totalDivergences} flagged`
-            }
-          />
-          <Metric
-            label="Top miss"
-            value={
-              ex.topMissedDimension ? (
-                <span
-                  className="text-[#d4d4d4] font-mono text-xs truncate block"
-                  title={ex.topMissedDimension.id}
-                >
-                  {ex.topMissedDimension.id}
-                </span>
-              ) : (
-                <span className="text-[#858585]">—</span>
-              )
-            }
-            hint={
-              ex.topMissedDimension
-                ? `${ex.topMissedDimension.count} round 1 miss${ex.topMissedDimension.count === 1 ? "" : "es"}`
-                : ""
-            }
-          />
         </div>
 
-        {ex.topDivergenceCluster && (
-          <div className="border-t border-[#3e3e42] pt-3 text-xs">
-            <span className="text-[#858585] uppercase tracking-wider text-[10px] font-mono">
-              Top divergence cluster ·{" "}
-            </span>
-            <span className="text-[#d4d4d4]">
-              &ldquo;{ex.topDivergenceCluster.key}
-              {ex.topDivergenceCluster.key.length === 80 ? "…" : ""}&rdquo;
-            </span>
-            <span className="text-[#858585]">
-              {" "}
-              × {ex.topDivergenceCluster.count}
-            </span>
+        {ex.sessionsCompleted > 0 && (
+          <div className="border-t border-[#3e3e42] pt-3 space-y-2">
+            <div className="flex items-baseline justify-between gap-2">
+              <div className="text-[10px] uppercase tracking-wider text-[#858585] font-mono">
+                Divergences
+              </div>
+              <span className="text-[11px] text-[#858585] font-mono">
+                {totalDivergences === 0
+                  ? "none flagged"
+                  : `${totalDivergences} flagged`}
+              </span>
+            </div>
+            {totalDivergences === 0 ? (
+              <div className="text-xs text-[#858585]">
+                No divergences across completed sessions.
+              </div>
+            ) : (
+              <DivergenceMix counts={ex.divergenceCounts} />
+            )}
           </div>
         )}
       </div>
