@@ -3,6 +3,17 @@
 **Total runtime:** ~7 minutes.
 **Stack needed:** macOS + browser + terminal. No internet beyond the Anthropic API.
 
+This demo tells one story in five scenes, mapped to the three pillars the
+tool is built around:
+
+| Scene | Pillar |
+|---|---|
+| 1 · Authoring | Classroom scale — compose an exercise in ninety seconds. |
+| 2 · Student completes with a drift | Student skill — spec accuracy, autonomous debugging, plan-vs-implementation self-check, all in one session. |
+| 3 · Live view | Classroom scale — triage 80 students in five seconds per row. |
+| 4 · Private reasoning | Teacher insight — per-session evidence of a student's metacognition. |
+| 5 · Cohort narrative | Teacher insight — curricular patterns grounded in data, not intuition. |
+
 ---
 
 ## Pre-demo checklist (do this 2 minutes before starting)
@@ -33,32 +44,36 @@
 
 ---
 
-## Scene 1 — Authoring (≈90 s)
+## Scene 1 — Authoring (≈90 s) — *classroom scale*
 
-> **Goal:** show that an instructor writes a plain-text prompt and Opus produces concrete scaffolding the instructor can review.
+> **Goal:** show that an instructor composes a pedagogically sound exercise
+> from a plain-text prompt in about ninety seconds, with editorial control
+> over what the spec gate will enforce.
 
 On **Tab A**:
 
 1. **Title**: `Count vowels — live demo`
-2. **Prompt**: `Write a function that counts vowels in a string.`
+2. **Instructions**: `Write a function that counts vowels in a string.`
 3. Click **Generate scaffolding**. Wait ~7 s.
 4. Read the three dimensions aloud (`case_sensitivity`, `y_as_vowel`, `empty_string`). Call out: *"These are specific questions, not 'handle edge cases' boilerplate."*
-5. Note the `phase_2_required: false` and `student_level: week_1_2`.
-6. Optional flex: edit one dimension's rationale to show the source badge flips to `Edited`.
+5. Note `phase_2_required: false` and `student_level: week_1_2`.
+6. Optional flex: edit one dimension's rationale — the source badge flips from `Opus` to `Edited`. (Point: the instructor keeps editorial control.)
 7. Tick **I've reviewed the scaffolding**.
 8. Click **Publish**. Copy the returned slug (should be `count-vowels-live-demo`).
 
-**Narration beat:** *"This is the instructor half — a minute. Now the student half, where the actual pedagogy happens."*
+**Narration beat:** *"Authoring a full unit's worth of exercises is an afternoon, not a week. Now the student half — which is where the actual pedagogy happens."*
 
 ---
 
-## Scene 2 — Student completes with the classic drift (≈3 min)
+## Scene 2 — Student completes with the classic drift (≈3 min) — *student skill*
 
-> **Goal:** commit the drift live so the private-reasoning view in Scene 4 has something real to show.
+> **Goal:** in a single session, exercise all three student-facing skills —
+> writing an accurate specification, thinking autonomously while debugging,
+> and noticing the gap between what was planned and what was implemented.
 
 Switch to **Tab B** and load `http://localhost:3000/exercise/count-vowels-live-demo`.
 
-### Phase 1 — spec gate (~60 s)
+### Phase 1 — spec gate (~60 s) — *spec accuracy*
 
 1. Type a deliberately vague spec: `The function counts vowels in a string.`
 2. Click **Submit spec for review**. Wait ~4 s.
@@ -70,9 +85,9 @@ Switch to **Tab B** and load `http://localhost:3000/exercise/count-vowels-live-d
    `The function counts vowels (both lowercase a,e,i,o,u and uppercase A,E,I,O,U). 'y' is not a vowel. An empty string returns 0.`
 7. Submit. Gate closes. Editor unlocks.
 
-**Narration beat:** *"The editor was locked until the student wrote something concrete enough to implement. That's the specification muscle we're training."*
+**Narration beat:** *"The editor was locked until the student wrote something concrete enough to implement. Three rounds with Opus to get there. That's the specification muscle — pinning behavior down before writing code."*
 
-### Phase 3 — write the code with the drift (~90 s)
+### Phase 3 — writing the code, autonomously (~90 s) — *critical debugging thinking*
 
 1. In the Monaco panel, type this deliberately lowercase-only function:
    ```python
@@ -83,63 +98,67 @@ Switch to **Tab B** and load `http://localhost:3000/exercise/count-vowels-live-d
                count = count + 1
        return count
    ```
-2. (Optional, to show chat) In the chat panel, type `what's the syntax for a for loop over a string?` — Opus answers **directly** (reference question).
-3. (Optional) Type `why does my count look wrong?` — Opus answers **interrogatively** (counter-question, no code).
-4. Click **Submit for review**. You'll see *"Reviewing your work…"* for ~15–20 s.
+2. Point out that **autocomplete is off** — no line-completion, no ghost text. The student is writing every character.
+3. In the chat panel, type `what's the syntax for a for loop over a string?` — Opus answers **directly** (reference question, not load-bearing reasoning).
+4. Type `why does my count look wrong?` — Opus answers **interrogatively**, with a counter-question, and refuses to debug the code for the student.
+5. Click **Submit for review**. You'll see *"Reviewing your work…"* for ~15–20 s.
 
-### Phase 4 — the reveal (~30 s)
+**Narration beat:** *"Opus answers the syntax question directly — that's fine, it's reference. But for 'why is my code wrong' it refuses, because that's the thinking we actually want the student to do."*
 
-1. Opus asks one question about the drift. Answer: `I forgot about the capital letters.`
-2. Click **Submit and finish**. Session closes.
+### Phase 4 — the reveal (~30 s) — *plan vs. implementation*
 
-**Narration beat:** *"That question Opus just asked wasn't accusatory. And I didn't just answer the question — the system was predicting what I'd say, before I said it. Let me show you."*
+1. Opus asks one neutral question about the drift — something like *"In your spec you committed to counting both lowercase and uppercase vowels. In the code I see only the lowercase five. What happened?"*
+2. Answer: `I forgot about the capital letters.`
+3. Click **Submit and finish**. Session closes.
+
+**Narration beat:** *"That question wasn't accusatory — it's a side-by-side: spec said this, code did that, what happened? The student has to see the gap themselves. And the system was predicting what they'd say, before they said it. Let me show you."*
 
 ---
 
-## Scene 3 — Live view, attention allocation (≈30 s)
+## Scene 3 — Live view (≈30 s) — *classroom scale*
 
 Switch to **Tab C** (`/live`). Hard refresh (Cmd+Shift+R) if needed.
 
 1. Point at **Carmen's row** (red border). Read her summary aloud: *"student wrote 'n >= 0' and 'negative inputs are handled' in the same spec — they're confused about what committing to behavior looks like, not about Fibonacci."*
-2. Point at the help-requested badge.
-3. Note Carmen's session is the one to intervene on — **not** the others.
+2. Point at the help-requested badge and the timestamp.
+3. Note the other rows — phase, last active, presence (`live` / `stepped_away` / `left`). Carmen is the one to intervene on; the others are productive.
 
-**Narration beat:** *"In an 80-student lab, this is the thing I can't do manually. I cannot walk past every shoulder and guess who's productively stuck versus quietly given up. This tells me."*
+**Narration beat:** *"In an 80-student lab, I cannot walk past every shoulder and guess who's productively stuck versus who's quietly given up. One row per student, one sentence each, five seconds to triage the whole room. That's what makes this scale."*
 
 ---
 
-## Scene 4 — Private reasoning (≈60 s)
+## Scene 4 — Private reasoning (≈60 s) — *teacher insight*
 
-Still on **Tab C**, click your just-finished session (the one at the top, yours). You'll land on `/reasoning/<sid>`.
+Still on **Tab C**, click your just-finished session (yours, at the top). You'll land on `/reasoning/<sid>`.
 
-1. **Left column** (what the student saw): your spec iterations, your code, your divergence question, your answer "I forgot about the capital letters."
-2. **Right column** (what Opus was thinking):
+1. **Left column** (what the student saw): your three spec iterations, your final code, the divergence question, your answer *"I forgot about the capital letters."*
+2. **Right column** (what Opus was thinking, marked private — never shown to the student):
    - Initial classification: `drift`, high confidence
    - **Predicted justification**: *"I forgot about the capital letters."*
    - Alignment: `aligned`
    - Final classification: `drift`
 
-**Narration beat (this is the money shot):** *"Opus predicted what I would say before it asked me. When my actual answer matches the prediction, the system has evidence the student understands their own reasoning. When it diverges — and you saw that in the test suite — we surface a specific gap. That's the metacognitive signal no unit test produces."*
+**Narration beat (this is the money shot):** *"Opus predicted what the student would say before it asked. When the answer matches the prediction, that's evidence the student understands their own reasoning — we have a metacognitive signal no unit test produces. When the answer diverges, we've surfaced a specific, named gap."*
 
-Back in **Tab C**, click **Carmen's row**. On her reasoning view, show that the right column has zero divergences (she hasn't gotten there) but the spec-iteration analysis shows her three rounds of trying to commit concretely. Opus called that out in the live summary.
+Back in **Tab C**, click **Carmen's row**. On her reasoning view, the right column has zero divergences (she hasn't gotten to Phase 4) but the spec-iteration panel shows three rounds of trying to commit concretely — which is exactly what Opus called out in her live summary.
 
 ---
 
-## Scene 5 — Cohort narrative (≈30 s)
+## Scene 5 — Cohort narrative (≈30 s) — *teacher insight at cohort scale*
 
 Switch to **Tab D** (`/cohort/vowels-demo`). The narrative loads in ~9 s.
 
 1. Read the narrative aloud. Point to the specific recommendation.
 2. Point at **most-missed dimensions** — the concrete data driving it.
-3. Point at the divergence distribution bar — drift-heavy, as expected for a week_1_2 exercise that targets case-handling.
+3. Point at the divergence distribution bar — drift-heavy, as expected for a `week_1_2` exercise that targets case-handling.
 
-**Narration beat:** *"This is curriculum feedback grounded in cognitive telemetry. Not 'students struggled' — 'this specific exercise produces this specific drift 6 out of 8 times, here's a concrete fix.' That data does not currently exist at scale anywhere in CS education."*
+**Narration beat:** *"This is curriculum feedback grounded in cognitive telemetry. Not 'students struggled' — 'this specific exercise produces this specific drift six times out of eight, here's a concrete fix.' That data does not currently exist at scale anywhere in CS education."*
 
 ---
 
 ## Closing line
 
-*"Maieutic uses a frontier model in the opposite role it usually plays — not to generate code, but to generate structured reasoning about code the student is writing. Opus 4.7 is what makes the per-student cognitive read scale to 80 rows without collapsing into template language."*
+*"Three things: students build specification accuracy, autonomous debugging, and plan-vs-implementation awareness. Instructors get per-session and per-cohort visibility into those skills developing. And the whole thing runs at the scale of a real classroom because Opus is doing the per-student cognitive read in one sentence, not collapsing into template language. Frontier reasoning in the opposite role it usually plays — not generating code, but generating structured reasoning about code the student is writing."*
 
 ---
 
