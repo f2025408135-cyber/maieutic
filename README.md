@@ -39,12 +39,12 @@ hand in a lab with eighty students.
   questions ("why doesn't my count look right?"). The debugging thinking
   stays with the student.
 
-- **Noticing the gap between what was planned and what was implemented.** On
-  submit, Opus compares the student's spec (and optional plan) to the code
-  they wrote and surfaces any *divergences* — classified as drift, revision,
-  or bug — each with a neutral question: *"In your spec you said X. In the
-  code I see Y. What happened?"* Answering forces the student to see and
-  articulate the difference themselves.
+- **Noticing the gap between plan and implementation.** When the student
+  submits, Opus compares what they said they'd do with what they actually
+  wrote. Wherever the two don't line up, it points the difference out as a
+  neutral question — *"In your spec you said X. In the code I see Y. What
+  happened?"* The skill: reading your own code critically against your own
+  intent, and being able to explain where it diverged, and why.
 
 ### 2 · Instructors can see those skills develop
 
