@@ -76,20 +76,17 @@ hand in a lab with eighty students.
 
 ### 3 · It works at the scale of a real classroom
 
-- **Triage at a glance.** Presence decay (`live` → `stepped_away` → `left`),
-  help-request badges with timestamps, and one-line summaries let an
-  instructor in an 80-student lab answer *who to help next* in seconds,
-  rather than walking the room blind.
+- **A library of the teacher's exercises with aggregate results.** Every
+  published exercise appears as a card showing how many students tried it,
+  how many finished, which parts of the specification were missed most
+  often, and how the divergences distributed. Useful for deciding what to
+  reuse, what to retire, and where the curriculum needs more scaffolding.
 
-- **Exercise library with aggregates (`/cohorts`).** Every published exercise
-  as a card: completion rate, divergence distribution, most-missed
-  spec-gate dimension. Sortable by attempts, alphabetical, or unit.
-
-- **Fast authoring (`/authoring`).** A plain-text problem prompt becomes
-  reviewable spec-gate scaffolding in about seven seconds, with per-field
-  source badges (`Opus` / `Edited` / `Added`) so the instructor keeps
-  editorial control over what the gate enforces. A unit's worth of exercises
-  is an afternoon, not a week.
+- **Fast authoring.** The instructor types a plain-text problem prompt and
+  gets back the scaffolding a student's specification will have to answer —
+  reviewable, editable field by field, with each suggestion labeled so the
+  teacher keeps editorial control. A unit's worth of exercises is an
+  afternoon, not a week.
 
 ---
 
