@@ -48,22 +48,30 @@ hand in a lab with eighty students.
 
 ### 2 · Instructors can see those skills develop
 
-- **`/live`** — a real-time dashboard, one row per active student, each with
-  an Opus-generated one-sentence summary of their current cognitive state.
-  Not "phase 3, 6 min idle" — *"student wrote 'n >= 0' and 'negative inputs
-  are handled' in the same spec, they're confused about what committing to
-  behavior looks like, not about Fibonacci."*
+- **A live class dashboard.** One row per active student, each with a plain
+  one-sentence summary of where the student actually is in their thinking —
+  not *"phase 3, 6 minutes idle"* but *"the student wrote 'n >= 0' and
+  'negative inputs are handled' in the same spec; they're confused about what
+  committing to behavior looks like, not about Fibonacci."* The dashboard is
+  there so the instructor can tell, at a glance, who's productively stuck and
+  who needs help now.
 
-- **`/reasoning/[sid]`** — a per-session audit trail. Left column: what the
-  student saw and wrote. Right column (instructor-only): what Opus privately
-  classified, predicted the student would say, and how the student's actual
-  answer aligned with that prediction. When the answer matches the
-  prediction, that's evidence the student understands their own reasoning.
-  When it diverges, that's a specific, named metacognitive gap.
+- **A per-session view of one student's reasoning.** For any session, the
+  teacher can open a two-column view: on the left, everything the student
+  wrote — the specs, the plan, the code, the answer to the divergence
+  question. On the right (and only visible to the instructor) what the system
+  understood about that student: what it predicted they would say, how their
+  actual answer compared, and where it points to a genuine understanding
+  versus a gap the student hasn't closed yet. This is how a teacher gets
+  evidence of whether a student can explain their own code, not just
+  whether it runs.
 
-- **`/cohort/[id]`** — per-exercise cohort narrative with a concrete
-  curricular recommendation. Not "students struggled" — *"6 of 8 students
-  missed `case_sensitivity` on the first spec round; consider adding it as an
+- **A cohort-level read of a whole exercise.** After a class has worked
+  through a problem, the teacher can see a short narrative of how the cohort
+  did — which dimensions most students missed on the first spec, which kinds
+  of divergences showed up repeatedly, and a concrete suggestion for what to
+  change. Not *"students struggled"* but *"six of eight students missed
+  case-sensitivity on their first spec; consider introducing it as an
   explicit dimension earlier in the unit."*
 
 ### 3 · It works at the scale of a real classroom
