@@ -1,4 +1,4 @@
-# Maieutic
+# 🪞 Maieutic
 
 Maieutic flips the role an LLM usually plays in learning to program. Instead
 of handing the student working code, it guides them to think first about what
