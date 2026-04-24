@@ -83,7 +83,7 @@ export function CohortView({
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
       <TopNav left={<InstructorNav current="cohorts" />} />
-      <FileTabBar fileName={`cohort/${exerciseId}.md`} />
+      <FileTabBar fileName={`exercise/${exerciseId}.md`} />
 
       <div className="shrink-0 px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
         <div className="max-w-6xl mx-auto">
@@ -92,11 +92,11 @@ export function CohortView({
               href="/cohorts"
               className="text-[#858585] hover:text-white transition-colors"
             >
-              ← cohorts
+              ← exercises
             </Link>
             <span className="text-[#3e3e42]">·</span>
             <span className="text-[#4ec9b0]">
-              {unitLabel ?? "Cohort"}
+              {unitLabel ?? "Exercise"}
             </span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight leading-tight">
@@ -166,7 +166,7 @@ export function CohortView({
             <div className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-4">
               {loading && (
                 <div className="text-sm text-[#858585] italic">
-                  Reading cohort data…
+                  Reading exercise data…
                 </div>
               )}
               {error && (

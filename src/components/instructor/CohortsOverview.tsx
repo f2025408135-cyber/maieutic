@@ -76,7 +76,7 @@ export function CohortsOverview({
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
       <TopNav left={<InstructorNav current="cohorts" />} />
-      <FileTabBar fileName="cohorts.md" />
+      <FileTabBar fileName="exercises.md" />
 
       <div className="shrink-0 px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
         <div className="max-w-6xl mx-auto flex items-start justify-between gap-6">
@@ -89,7 +89,7 @@ export function CohortsOverview({
             </h1>
             <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
               One card per exercise, aggregated across every session. Click a
-              card to drill into the full cohort view.
+              card to drill into the full exercise view.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <StatPill

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Workbench } from "@/components/editor/Workbench";
+import Link from "next/link";
+import { TopNav } from "@/components/editor/TopNav";
+import { FileTabBar } from "@/components/editor/FileTab";
+import { StatusBar } from "@/components/editor/StatusBar";
+import { InstructorNav } from "@/components/instructor/InstructorNav";
 import { Button } from "@/components/ui/button";
 import type {
   ScaffoldingOutput,
@@ -226,38 +230,42 @@ export default function AuthoringPage() {
     }
   }
 
-  return (
-    <Workbench
-      tabs={[
-        { fileName: "live-dashboard", href: "/live" },
-        {
-          fileName: title ? `new-exercise (${slugify(title)})` : "new-exercise",
-          active: true,
-          dirty: originalScaffolding !== null && !publishedId,
-        },
-      ]}
-      statusLeft={
-        <>
-          <span>Author</span>
-          {latencyMs !== null && (
-            <span>scaffold {(latencyMs / 1000).toFixed(1)}s</span>
-          )}
-        </>
-      }
-      statusRight={<span>Instructor · author</span>}
-    >
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-4xl p-8 space-y-5">
-          <header>
-            <h1 className="text-2xl font-semibold">Author an exercise</h1>
-            <p className="text-sm text-[#858585] mt-1">
-              Write a prompt. Opus generates the spec-gate scaffolding. You
-              review, edit if needed, then publish.
-            </p>
-          </header>
+  const fileName = title
+    ? `new-exercise (${slugify(title)}).md`
+    : "new-exercise.md";
 
-          <Panel title="Prompt">
-            <div className="space-y-4">
+  return (
+    <div className="min-h-screen bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
+      <TopNav left={<InstructorNav current="cohorts" />} />
+      <FileTabBar fileName={fileName} />
+
+      <div className="shrink-0 px-8 py-6 border-b border-[#3e3e42] bg-[#1e1e1e]">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-2 mb-2 text-[11px] font-mono tracking-wider uppercase">
+            <Link
+              href="/cohorts"
+              className="text-[#858585] hover:text-white transition-colors"
+            >
+              ← exercises
+            </Link>
+            <span className="text-[#3e3e42]">·</span>
+            <span className="text-[#4ec9b0]">Instructor · New exercise</span>
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight leading-tight">
+            Author an exercise
+          </h1>
+          <p className="mt-2 text-sm text-[#d4d4d4]/85 leading-relaxed">
+            Write the instructions. Opus generates the spec-gate scaffolding —
+            the questions a student&apos;s specification must commit to before
+            the editor unlocks. You review, edit if needed, then publish.
+          </p>
+        </div>
+      </div>
+
+      <main className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <Section title="Exercise instructions">
+            <div className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-4">
               <Field label="Title">
                 <TextInput
                   value={title}
@@ -266,7 +274,7 @@ export default function AuthoringPage() {
                   disabled={generating}
                 />
               </Field>
-              <Field label="Exercise prompt">
+              <Field label="Instructions">
                 <TextArea
                   value={prompt}
                   onChange={setPrompt}
@@ -283,14 +291,14 @@ export default function AuthoringPage() {
                   {generating ? "Generating…" : "Generate scaffolding"}
                 </Button>
                 {latencyMs !== null && (
-                  <span className="text-xs text-[#858585]">
+                  <span className="text-xs text-[#858585] font-mono">
                     last call: {(latencyMs / 1000).toFixed(1)}s
                   </span>
                 )}
               </div>
               {errorMsg && <ErrorBox>{errorMsg}</ErrorBox>}
             </div>
-          </Panel>
+          </Section>
 
           {originalScaffolding && (
             <>
@@ -300,12 +308,12 @@ export default function AuthoringPage() {
                 </div>
               )}
 
-              <Panel
-                title={`Specification-gate dimensions (${dimensions.length})`}
-                action={
+              <Section
+                title={`Specification-gate dimensions · ${dimensions.length}`}
+                aside={
                   <button
                     onClick={addDimension}
-                    className="text-xs text-[#569cd6] hover:text-white transition-colors"
+                    className="text-xs font-mono text-[#569cd6] hover:text-white transition-colors"
                   >
                     + add
                   </button>
@@ -315,7 +323,7 @@ export default function AuthoringPage() {
                   {dimensions.map((d, i) => (
                     <div
                       key={i}
-                      className="border border-[#3e3e42] rounded p-3 space-y-2 bg-[#1e1e1e]"
+                      className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-2"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <TextInput
@@ -350,14 +358,14 @@ export default function AuthoringPage() {
                     </div>
                   ))}
                 </div>
-              </Panel>
+              </Section>
 
-              <Panel
-                title={`Expected divergences (${divergences.length})`}
-                action={
+              <Section
+                title={`Expected divergences · ${divergences.length}`}
+                aside={
                   <button
                     onClick={addDivergence}
-                    className="text-xs text-[#569cd6] hover:text-white transition-colors"
+                    className="text-xs font-mono text-[#569cd6] hover:text-white transition-colors"
                   >
                     + add
                   </button>
@@ -367,7 +375,7 @@ export default function AuthoringPage() {
                   {divergences.map((d, i) => (
                     <div
                       key={i}
-                      className="border border-[#3e3e42] rounded p-3 space-y-2 bg-[#1e1e1e]"
+                      className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-2"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <select
@@ -377,7 +385,7 @@ export default function AuthoringPage() {
                               category: e.target.value as DivergenceCategory,
                             })
                           }
-                          className="border border-[#3e3e42] bg-[#3c3c3c] text-[#d4d4d4] rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#007acc]"
+                          className="border border-[#3e3e42] bg-[#1e1e1e] text-[#d4d4d4] rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#007acc]"
                         >
                           {CATEGORIES.map((c) => (
                             <option key={c} value={c}>
@@ -404,12 +412,12 @@ export default function AuthoringPage() {
                     </div>
                   ))}
                 </div>
-              </Panel>
+              </Section>
 
-              <Panel title="Unit & planning step">
-                <div className="space-y-4">
+              <Section title="Unit & planning step">
+                <div className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-4">
                   <div>
-                    <div className="text-xs text-[#858585] mb-2">
+                    <div className="text-[10px] uppercase tracking-wider text-[#858585] font-mono mb-2">
                       Unit
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -469,10 +477,10 @@ export default function AuthoringPage() {
                     </p>
                   </div>
                 </div>
-              </Panel>
+              </Section>
 
-              <Panel title="Publish">
-                <div className="space-y-3">
+              <Section title="Publish">
+                <div className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-3">
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input
                       type="checkbox"
@@ -486,7 +494,7 @@ export default function AuthoringPage() {
                     The Publish button is enabled once you&apos;ve either
                     edited at least one field or explicitly confirmed review.
                   </p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 pt-1">
                     <Button onClick={publish} disabled={!canPublish}>
                       {publishing ? "Publishing…" : "Publish exercise"}
                     </Button>
@@ -507,35 +515,52 @@ export default function AuthoringPage() {
                     )}
                   </div>
                 </div>
-              </Panel>
+              </Section>
             </>
           )}
         </div>
       </main>
-    </Workbench>
+
+      <StatusBar
+        left={
+          <>
+            <span>✓ claude-opus-4-7</span>
+            <span>{originalScaffolding ? "draft" : "new exercise"}</span>
+            {latencyMs !== null && (
+              <span>scaffold {(latencyMs / 1000).toFixed(1)}s</span>
+            )}
+          </>
+        }
+        right={
+          <span>
+            {publishedId ? "published" : originalScaffolding ? "unsaved" : "—"}
+          </span>
+        }
+      />
+    </div>
   );
 }
 
-// ─── Form primitives ─────────────────────────────────────────────────────
+// ─── Section + form primitives ───────────────────────────────────────────
 
-function Panel({
+function Section({
   title,
-  action,
+  aside,
   children,
 }: {
   title: string;
-  action?: React.ReactNode;
+  aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-[#3e3e42] bg-[#252526] rounded">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#3e3e42]">
-        <h2 className="text-[11px] font-semibold tracking-wider uppercase text-[#858585]">
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold tracking-tight text-[#d4d4d4]">
           {title}
         </h2>
-        {action}
+        {aside}
       </div>
-      <div className="p-4">{children}</div>
+      {children}
     </section>
   );
 }
@@ -549,7 +574,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold tracking-wider uppercase text-[#858585] mb-1.5">
+      <label className="block text-[10px] font-mono uppercase tracking-wider text-[#858585] mb-1.5">
         {label}
       </label>
       {children}
@@ -577,7 +602,7 @@ function TextInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full bg-[#3c3c3c] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-1.5 text-sm placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 ${className}`}
+      className={`w-full bg-[#1e1e1e] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-1.5 text-sm placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 ${className}`}
     />
   );
 }
@@ -604,7 +629,7 @@ function TextArea({
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
-      className={`w-full bg-[#3c3c3c] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-2 ${small ? "text-xs" : "text-sm"} placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 resize-y`}
+      className={`w-full bg-[#1e1e1e] text-[#d4d4d4] border border-[#3e3e42] rounded px-3 py-2 ${small ? "text-xs" : "text-sm"} placeholder:text-[#6a6a6a] focus:outline-none focus:border-[#007acc] disabled:opacity-50 resize-y`}
     />
   );
 }
