@@ -8,6 +8,8 @@ import {
   Phase4Data,
 } from "@/lib/opus/schemas";
 import { ExerciseClient } from "@/components/student/ExerciseClient";
+import { getLang } from "@/lib/i18n/server";
+import { translatedExerciseFields } from "@/lib/exercise-i18n";
 
 const COOKIE = "maieutic_student_id";
 
@@ -26,7 +28,16 @@ export default async function Page(
   const cookieStore = await cookies();
   const studentId = cookieStore.get(COOKIE)?.value ?? "anon-fallback";
 
-  const session = await findOrCreateSession(id, studentId);
+  const [session, lang] = await Promise.all([
+    findOrCreateSession(id, studentId),
+    getLang(),
+  ]);
+  const translated = await translatedExerciseFields(
+    exercise.id,
+    exercise.title,
+    exercise.instructorPromptText,
+    lang,
+  );
 
   // Parse the Json blobs so the client receives strongly-typed shapes.
   const phase1 = Phase1Data.parse(session.phase1Data);
@@ -42,8 +53,8 @@ export default async function Page(
     <ExerciseClient
       exercise={{
         id: exercise.id,
-        title: exercise.title,
-        instructorPromptText: exercise.instructorPromptText,
+        title: translated.title,
+        instructorPromptText: translated.instructorPromptText,
         studentLevel: exercise.studentLevel,
         unit: exercise.unit,
         phase2Required: exercise.phase2Required,

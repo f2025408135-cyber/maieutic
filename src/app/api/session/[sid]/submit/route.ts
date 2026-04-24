@@ -19,6 +19,8 @@ import {
   getSession,
   setPhase4Divergences,
 } from "@/lib/sessions";
+import { getLang } from "@/lib/i18n/server";
+import { langDirective } from "@/lib/i18n/prompt";
 
 const Body = z.object({
   finalCode: z.string().max(100_000),
@@ -56,12 +58,15 @@ export async function POST(
   await finalizePhase3Code(sid, body.finalCode);
   const session2 = await getSession(sid);
   const phase3 = Phase3Data.parse(session2.phase3Data);
+  const lang = await getLang();
 
   let diff;
   try {
     diff = await callOpusAndParse({
       promptName: "intent-diff",
-      system: INTENT_DIFF_SYSTEM,
+      system:
+        INTENT_DIFF_SYSTEM +
+        langDirective(lang, ["divergences[].student_facing_question"]),
       messages: [
         {
           role: "user",

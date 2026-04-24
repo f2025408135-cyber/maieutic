@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { CodeFrame, Comment, SYNTAX } from "@/components/editor/CodeFrame";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { prisma } from "@/lib/db";
-import { UNIT_IDS, UNIT_ROMAN, UNIT_TITLE, type Unit } from "@/lib/units";
+import { UNIT_IDS, UNIT_ROMAN, type Unit } from "@/lib/units";
+import { getDict, getLang } from "@/lib/i18n/server";
+import type { Dict } from "@/lib/i18n/en";
+import { translatedExerciseTitles } from "@/lib/exercise-i18n";
 
 const STUDENT_COOKIE = "maieutic_student_id";
 
 async function getExercises() {
   return prisma.exercise.findMany({
     where: { publishedAt: { not: null } },
-    select: { id: true, title: true, unit: true },
+    select: { id: true, title: true, instructorPromptText: true, unit: true },
     orderBy: { publishedAt: "asc" },
   });
 }
@@ -30,10 +34,13 @@ type ExerciseRow = { id: string; title: string; done: boolean };
 export default async function Exercises() {
   const cookieStore = await cookies();
   const studentId = cookieStore.get(STUDENT_COOKIE)?.value ?? "";
-  const [exercises, doneIds] = await Promise.all([
+  const [exercises, doneIds, t, lang] = await Promise.all([
     getExercises(),
     getDoneExerciseIds(studentId),
+    getDict(),
+    getLang(),
   ]);
+  const translatedTitles = await translatedExerciseTitles(exercises, lang);
 
   // Group by unit, preserving publishedAt order within each group.
   const byUnit = new Map<Unit, ExerciseRow[]>();
@@ -42,7 +49,7 @@ export default async function Exercises() {
     if (!byUnit.has(unit)) byUnit.set(unit, []);
     byUnit.get(unit)!.push({
       id: ex.id,
-      title: ex.title,
+      title: translatedTitles.get(ex.id) ?? ex.title,
       done: doneIds.has(ex.id),
     });
   }
@@ -58,18 +65,18 @@ export default async function Exercises() {
       className="text-[22px] font-semibold"
       style={{ color: SYNTAX.function }}
     >
-      Exercise list
+      {t.exercises.title}
     </span>,
   );
-  lines.push(<Comment>Click any row to open the exercise.</Comment>);
+  lines.push(<Comment>{t.exercises.clickAny}</Comment>);
   lines.push(<span />);
 
   if (exercises.length === 0) {
-    lines.push(<ExerciseRowEmpty />);
+    lines.push(<ExerciseRowEmpty t={t} />);
   } else {
     orderedGroups.forEach((group, gi) => {
       if (gi > 0) lines.push(<span />);
-      lines.push(<UnitHeader unit={group.unit} />);
+      lines.push(<UnitHeader unit={group.unit} t={t} />);
       for (const ex of group.items) {
         lines.push(<ExerciseLine id={ex.id} title={ex.title} done={ex.done} />);
       }
@@ -85,7 +92,7 @@ export default async function Exercises() {
         className="underline decoration-dotted underline-offset-2 hover:text-[#b5cea8] transition-colors"
         style={{ color: "inherit" }}
       >
-        ← back to welcome
+        {t.common.backToWelcome}
       </Link>
     </Comment>,
   );
@@ -97,22 +104,20 @@ export default async function Exercises() {
     <CodeFrame
       fileName="exercises.md"
       language="Markdown"
-      back={{ href: "/", label: "Welcome" }}
+      back={{ href: "/", label: t.common.welcome }}
+      banner={
+        <div className="flex justify-end">
+          <LanguageSwitcher />
+        </div>
+      }
       statusLeft={
         <>
           <span>✓ claude-opus-4-7</span>
-          <span>
-            {exercises.length} exercise{exercises.length === 1 ? "" : "s"}{" "}
-            available
-          </span>
-          {doneCount > 0 && (
-            <span>
-              ✅ {doneCount} completed
-            </span>
-          )}
+          <span>{t.exercises.available(exercises.length)}</span>
+          {doneCount > 0 && <span>{t.exercises.completed(doneCount)}</span>}
         </>
       }
-      statusRight={<span>Markdown · UTF-8</span>}
+      statusRight={<span>{t.common.markdownUtf8}</span>}
     >
       {lines.map((line, i) => (
         <span key={i}>{line}</span>
@@ -121,10 +126,10 @@ export default async function Exercises() {
   );
 }
 
-function UnitHeader({ unit }: { unit: Unit }) {
+function UnitHeader({ unit, t }: { unit: Unit; t: Dict }) {
   return (
     <span className="text-[16px] font-semibold" style={{ color: SYNTAX.type }}>
-      # Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
+      {t.exercises.unitHeader(UNIT_ROMAN[unit], t.units[unit])}
     </span>
   );
 }
@@ -161,18 +166,18 @@ function ExerciseLine({
   );
 }
 
-function ExerciseRowEmpty() {
+function ExerciseRowEmpty({ t }: { t: Dict }) {
   return (
     <span>
-      <Comment>No exercises published yet — </Comment>
+      <Comment>{t.exercises.emptyPrefix}</Comment>
       <Link
         href="/authoring"
         className="underline decoration-dotted underline-offset-2"
         style={{ color: "#6a9955" }}
       >
-        author one
+        {t.exercises.authorOne}
       </Link>
-      <Comment>.</Comment>
+      <Comment>{t.exercises.period}</Comment>
     </span>
   );
 }

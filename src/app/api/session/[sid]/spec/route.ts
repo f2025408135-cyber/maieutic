@@ -16,6 +16,8 @@ import {
   getExercise,
   getSession,
 } from "@/lib/sessions";
+import { getLang } from "@/lib/i18n/server";
+import { langDirective } from "@/lib/i18n/prompt";
 
 const Body = z.object({
   specText: z.string().min(1).max(10_000),
@@ -45,12 +47,15 @@ export async function POST(
   }
   const exercise = await getExercise(session.exerciseId);
   const priorIterations = Phase1Data.parse(session.phase1Data).iterations;
+  const lang = await getLang();
 
   let examiner;
   try {
     examiner = await callOpusAndParse({
       promptName: "spec-examiner",
-      system: SPEC_EXAMINER_SYSTEM,
+      system:
+        SPEC_EXAMINER_SYSTEM +
+        langDirective(lang, ["questions", "emergent_gaps[].question"]),
       messages: [
         {
           role: "user",

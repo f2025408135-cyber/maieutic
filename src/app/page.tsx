@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CodeFrame, Comment, SYNTAX } from "@/components/editor/CodeFrame";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { prisma } from "@/lib/db";
+import { getDict } from "@/lib/i18n/server";
 
 async function getExerciseCount() {
   try {
@@ -11,7 +13,10 @@ async function getExerciseCount() {
 }
 
 export default async function Home() {
-  const exerciseCount = await getExerciseCount();
+  const [exerciseCount, t] = await Promise.all([
+    getExerciseCount(),
+    getDict(),
+  ]);
 
   return (
     <CodeFrame
@@ -20,60 +25,53 @@ export default async function Home() {
       statusLeft={
         <>
           <span>✓ claude-opus-4-7</span>
-          <span>
-            {exerciseCount} exercise{exerciseCount === 1 ? "" : "s"} published
-          </span>
+          <span>{t.home.published(exerciseCount)}</span>
         </>
       }
-      statusRight={<span>Markdown · UTF-8</span>}
-      banner={<Brand />}
+      statusRight={<span>{t.common.markdownUtf8}</span>}
+      banner={
+        <div className="flex items-end justify-between gap-4">
+          <Brand />
+          <div className="pb-3">
+            <LanguageSwitcher />
+          </div>
+        </div>
+      }
       hideTopNav
     >
       {/* 1 */}
-      <Comment>
-        A pedagogical coding tool for programming-education classes.
-      </Comment>
+      <Comment>{t.home.tagline}</Comment>
       {/* 2 */}
       <Comment>
-        Built on Claude Opus 4.7, directed here to{" "}
+        {t.home.directedHere}{" "}
         <span style={{ color: SYNTAX.keyword, fontStyle: "normal" }}>
-          ask questions
+          {t.home.askQuestions}
         </span>{" "}
-        rather than produce code on the student&apos;s behalf.
+        {t.home.ratherThan}
       </Comment>
       {/* 3 */} <span />
       {/* 4 */}
-      <Comment>
-        Students work through each exercise as a sequence of specification,
-        plan, implementation, and review.
-      </Comment>
+      <Comment>{t.home.phasesOverview}</Comment>
       {/* 5 */}
-      <Comment>
-        At every stage Opus draws out the commitments a student has left
-        implicit, rather than producing code on their behalf.
-      </Comment>
+      <Comment>{t.home.opusRole}</Comment>
       {/* 6 */} <span />
       {/* 7 */}
       <RoleRow
         href="/exercises"
         icon="🎓"
-        label="I'm a student"
-        hint="pick an exercise and start working"
+        label={t.home.imAStudent}
+        hint={t.home.imAStudentHint}
       />
       {/* 8 */} <span />
       {/* 9 */}
-      <Comment>
-        Teachers see every session as it unfolds, and, once complete,
-        per-exercise analyses of how the class reasoned through the problem
-        and where it struggled.
-      </Comment>
+      <Comment>{t.home.teacherOverview}</Comment>
       {/* 10 */} <span />
       {/* 11 */}
       <RoleRow
         href="/live"
         icon="🧑‍🏫"
-        label="I'm a teacher"
-        hint="see the live class dashboard or manage exercises"
+        label={t.home.imATeacher}
+        hint={t.home.imATeacherHint}
       />
       {/* 12 */} <span />
     </CodeFrame>

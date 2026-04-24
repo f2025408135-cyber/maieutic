@@ -11,6 +11,8 @@ import {
   getExercise,
   getSession,
 } from "@/lib/sessions";
+import { getLang } from "@/lib/i18n/server";
+import { langDirective } from "@/lib/i18n/prompt";
 
 const Body = z.object({
   message: z.string().min(1).max(5_000),
@@ -43,12 +45,13 @@ export async function POST(
   const phase1 = Phase1Data.parse(session.phase1Data);
   const phase2 = session.phase2Data ? Phase2Data.parse(session.phase2Data) : null;
   const phase3 = Phase3Data.parse(session.phase3Data);
+  const lang = await getLang();
 
   let chat;
   try {
     chat = await callOpusAndParse({
       promptName: "phase3-chat",
-      system: PHASE3_CHAT_SYSTEM,
+      system: PHASE3_CHAT_SYSTEM + langDirective(lang, ["response"]),
       messages: [
         {
           role: "user",

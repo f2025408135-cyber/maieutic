@@ -31,6 +31,25 @@ model Exercise {
   opusGeneratedStudentLevel    String
 
   sessions             Session[]
+  translations         ExerciseTranslation[]
+}
+
+// Per-language cache of an Exercise's student-visible text. Populated on
+// demand the first time a student in that language loads the exercise,
+// then read from cache for every subsequent request. Invalidate by
+// deleting rows (no sourceHash: exercise content changes should be
+// accompanied by a manual re-translation since instructors author in
+// English).
+model ExerciseTranslation {
+  exerciseId           String
+  lang                 String   // "en" | "es"
+  title                String
+  instructorPromptText String
+  createdAt            DateTime @default(now())
+
+  exercise             Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@id([exerciseId, lang])
 }
 
 model Session {

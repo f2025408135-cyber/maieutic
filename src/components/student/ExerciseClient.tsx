@@ -26,7 +26,9 @@ import type {
   SpecDimension,
   StudentLevel,
 } from "@/lib/opus/schemas";
-import { UNIT_ROMAN, UNIT_TITLE, type Unit } from "@/lib/units";
+import { UNIT_ROMAN, type Unit } from "@/lib/units";
+import { useT } from "@/lib/i18n/client";
+import type { Dict } from "@/lib/i18n/en";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -51,13 +53,10 @@ export interface ExerciseClientProps {
   };
 }
 
-const PHASE_LABEL: Record<number, string> = {
-  1: "specification",
-  2: "plan",
-  3: "writing",
-  4: "review",
-  5: "closed",
-};
+function phaseLabel(t: Dict, n: number): string {
+  const key = String(n) as keyof Dict["phaseLabel"];
+  return t.phaseLabel[key] ?? "";
+}
 
 interface DivergenceQuestion {
   divergenceId: string;
@@ -73,6 +72,7 @@ export function ExerciseClient({
   exercise,
   initialSession,
 }: ExerciseClientProps) {
+  const t = useT();
   const [session, setSession] = useState(initialSession);
   // Seed the spec textarea from the most recent iteration so that on reload
   // (or after a failed submission) the student can edit their last attempt
@@ -228,7 +228,7 @@ export function ExerciseClient({
       // Intentionally leave specDraft alone on a failed submission — the
       // student should edit their last attempt, not start from a blank slate.
     } catch (err) {
-      setError(err instanceof Error ? err.message : "unknown error");
+      setError(err instanceof Error ? err.message : t.common.unknownError);
     } finally {
       setSubmitting(false);
     }
@@ -251,7 +251,7 @@ export function ExerciseClient({
         phase2: { planText: planDraft, submittedAt: new Date().toISOString() },
       }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "unknown error");
+      setError(err instanceof Error ? err.message : t.common.unknownError);
     } finally {
       setSubmitting(false);
     }
@@ -296,7 +296,7 @@ export function ExerciseClient({
       const body = (await res.json()) as { exchange: Phase3Exchange };
       setExchanges((prev) => [...prev.slice(0, -1), body.exchange]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "chat failed");
+      setError(err instanceof Error ? err.message : t.common.unknownError);
       setExchanges((prev) => prev.slice(0, -1));
       setChatInput(message);
     } finally {
@@ -336,7 +336,7 @@ export function ExerciseClient({
         currentPhase: body.divergences.length === 0 ? 5 : 4,
       }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "submit failed");
+      setError(err instanceof Error ? err.message : t.common.unknownError);
     } finally {
       setFinalSubmitting(false);
     }
@@ -388,7 +388,7 @@ export function ExerciseClient({
         if (next !== -1) setDivergenceIndex(next);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "answer failed");
+      setError(err instanceof Error ? err.message : t.common.unknownError);
       setDivergences((prev) =>
         prev.map((x, idx) => (idx === i ? { ...x, submitting: false } : x)),
       );
@@ -403,7 +403,7 @@ export function ExerciseClient({
         back={
           hasPendingAnswers
             ? undefined
-            : { href: "/exercises", label: "Back to exercises" }
+            : { href: "/exercises", label: t.common.backToExercises }
         }
         right={
           !closed && (
@@ -430,7 +430,7 @@ export function ExerciseClient({
               />
               {session.phase2?.planText && (
                 <FrozenSpecInline
-                  label="Your plan"
+                  label={t.phase3.yourPlan}
                   text={session.phase2.planText}
                 />
               )}
@@ -497,13 +497,16 @@ export function ExerciseClient({
           <>
             <span>✓ claude-opus-4-7</span>
             <span>
-              phase {session.currentPhase} · {PHASE_LABEL[session.currentPhase] ?? ""}
+              {t.statusBar.phase(
+                session.currentPhase,
+                phaseLabel(t, session.currentPhase),
+              )}
             </span>
           </>
         }
         right={
           <span>
-            Unit {UNIT_ROMAN[exercise.unit]} · {UNIT_TITLE[exercise.unit]}
+            {t.statusBar.unit(UNIT_ROMAN[exercise.unit], t.units[exercise.unit])}
           </span>
         }
       />
@@ -532,10 +535,11 @@ function ExerciseTitle({
   /** Optional right-side content (e.g. accepted spec after Phase 1). */
   aside?: React.ReactNode;
 }) {
+  const t = useT();
   const heading = (
     <div>
       <div className="text-[11px] font-mono text-[#4ec9b0] tracking-wider uppercase mb-2">
-        Unit {UNIT_ROMAN[unit]} · {UNIT_TITLE[unit]}
+        {t.statusBar.unit(UNIT_ROMAN[unit], t.units[unit])}
       </div>
       <h1 className="text-2xl font-semibold tracking-tight leading-tight">
         {title}
@@ -573,6 +577,7 @@ function HelpImStuckButton({
   disabled?: boolean;
   onRequested: () => void;
 }) {
+  const t = useT();
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
 
   async function handleClick() {
@@ -606,7 +611,7 @@ function HelpImStuckButton({
         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#a94444] hover:bg-[#bf5555] disabled:opacity-60 text-white text-sm font-medium transition-colors"
       >
         <span aria-hidden>🙋</span>
-        <span>Help, I&apos;m stuck</span>
+        <span>{t.help.button}</span>
       </button>
       <Dialog
         open={status === "error"}
@@ -616,14 +621,11 @@ function HelpImStuckButton({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Couldn’t send notification</DialogTitle>
-            <DialogDescription>
-              Something went wrong reaching the server. Please try again in a
-              moment.
-            </DialogDescription>
+            <DialogTitle>{t.help.sendError}</DialogTitle>
+            <DialogDescription>{t.help.sendErrorBody}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setStatus("idle")}>OK</Button>
+            <Button onClick={() => setStatus("idle")}>{t.common.ok}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -638,6 +640,7 @@ function HelpPendingOverlay({
   onDismiss: (resolution: "help_arrived" | "student_cancelled") => void;
   dismissing: boolean;
 }) {
+  const t = useT();
   return (
     <div
       role="dialog"
@@ -650,25 +653,24 @@ function HelpPendingOverlay({
           🙋
         </div>
         <h2 id="help-pending-title" className="text-xl font-semibold">
-          Help is on the way
+          {t.help.pendingTitle}
         </h2>
         <p className="text-sm text-[#d4d4d4] leading-relaxed">
-          Your teacher has been notified. Hang tight — when they reach you,
-          press the button below to resume.
+          {t.help.pendingBody}
         </p>
         <button
           onClick={() => onDismiss("help_arrived")}
           disabled={dismissing}
           className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded bg-[#4ec9b0] hover:bg-[#5fd9c0] disabled:opacity-60 text-[#1e1e1e] text-sm font-semibold transition-colors"
         >
-          {dismissing ? "Resuming…" : "Help is here"}
+          {dismissing ? t.help.resuming : t.help.helpIsHere}
         </button>
         <button
           onClick={() => onDismiss("student_cancelled")}
           disabled={dismissing}
           className="text-xs text-[#858585] hover:text-[#d4d4d4] underline underline-offset-2 disabled:opacity-60 transition-colors"
         >
-          Never mind, I figured it out
+          {t.help.neverMind}
         </button>
       </div>
     </div>
@@ -692,40 +694,33 @@ function Phase1View({
   submitting: boolean;
   error: string | null;
 }) {
+  const t = useT();
   const lastIteration = iterations[iterations.length - 1];
   const hints = lastIteration?.opusQuestions ?? [];
   return (
     <main className="flex-1 overflow-y-auto p-8">
       <div className="max-w-3xl mx-auto space-y-4">
-        <Panel title={`Your specification · round ${iterations.length + 1}`}>
+        <Panel title={t.phase1.roundTitle(iterations.length + 1)}>
           <div className="space-y-3">
             <div className="text-sm text-[#d4d4d4] leading-relaxed space-y-2">
-              <p>
-                Write, in natural language, what the program must do. Be clear
-                in specifying:
-              </p>
+              <p>{t.phase1.intro}</p>
               <ol className="list-decimal pl-6 space-y-1">
-                <li>What the inputs and outputs are</li>
-                <li>What functions and structures you will use</li>
-                <li>What assumptions you are making</li>
+                <li>{t.phase1.bullet1}</li>
+                <li>{t.phase1.bullet2}</li>
+                <li>{t.phase1.bullet3}</li>
               </ol>
-              <p>
-                The editor will unlock once the specification is precise
-                enough.
-              </p>
+              <p>{t.phase1.unlockNote}</p>
             </div>
             <StudentTextarea
               value={draft}
               onChange={setDraft}
               rows={8}
-              placeholder="The program asks the user for..."
+              placeholder={t.phase1.placeholder}
               disabled={submitting}
             />
             <div className="flex items-center gap-3">
               <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
-                {submitting
-                  ? "Reviewing…"
-                  : "Submit specification for review"}
+                {submitting ? t.phase1.submitting : t.phase1.submit}
               </Button>
               {error && (
                 <span className="text-sm text-[#f48771] font-mono">
@@ -742,7 +737,7 @@ function Phase1View({
 
         {iterations.length > 1 && (
           <Panel
-            title={`Earlier rounds · ${iterations.length - 1}`}
+            title={t.phase1.earlierRounds(iterations.length - 1)}
             collapsible
           >
             <IterationHistory iterations={iterations.slice(0, -1)} />
@@ -754,6 +749,7 @@ function Phase1View({
 }
 
 function HintsPanel({ hints, round }: { hints: string[]; round: number }) {
+  const t = useT();
   return (
     <section className="border border-[#4a4a2e] bg-[#2a2a1a] rounded p-4">
       <div className="flex items-center gap-2 mb-3">
@@ -761,10 +757,10 @@ function HintsPanel({ hints, round }: { hints: string[]; round: number }) {
           💡
         </span>
         <h2 className="text-[13px] font-semibold text-[#dcdcaa]">
-          Some things to think about
+          {t.phase1.hintsTitle}
         </h2>
         <span className="text-[10px] text-[#858585] font-mono ml-auto">
-          round {round}
+          {t.phase1.hintsRound(round)}
         </span>
       </div>
       <ul className="space-y-2 text-sm text-[#d4d4d4]">
@@ -775,10 +771,7 @@ function HintsPanel({ hints, round }: { hints: string[]; round: number }) {
           </li>
         ))}
       </ul>
-      <p className="text-xs text-[#858585] mt-3">
-        These are suggestions — decide for yourself which ones to pin down in
-        your next specification.
-      </p>
+      <p className="text-xs text-[#858585] mt-3">{t.phase1.hintsFooter}</p>
     </section>
   );
 }
@@ -802,6 +795,7 @@ function Phase2View({
   submitting: boolean;
   error: string | null;
 }) {
+  const t = useT();
   return (
     <main className="flex-1 overflow-y-auto p-8">
       <div className="max-w-3xl mx-auto space-y-4">
@@ -809,24 +803,19 @@ function Phase2View({
           finalSpec={finalSpec}
           iterations={iterations}
         />
-        <Panel title="Implementation plan">
+        <Panel title={t.phase2.title}>
           <div className="space-y-3">
-            <p className="text-sm text-[#858585]">
-              Before the editor unlocks, write down the data structures
-              you&apos;ll use, the order of operations, and the functions
-              you&apos;ll define. This is your prediction — your code will be
-              diffed against it later.
-            </p>
+            <p className="text-sm text-[#858585]">{t.phase2.intro}</p>
             <StudentTextarea
               value={draft}
               onChange={setDraft}
               rows={8}
-              placeholder="I'll use a single loop over the characters..."
+              placeholder={t.phase2.placeholder}
               disabled={submitting}
             />
             <div className="flex items-center gap-3">
               <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
-                {submitting ? "Submitting…" : "Submit plan"}
+                {submitting ? t.phase2.submitting : t.phase2.submit}
               </Button>
               {error && (
                 <span className="text-sm text-[#f48771] font-mono">
@@ -868,6 +857,7 @@ function Phase3View({
   sessionId: string;
   error: string | null;
 }) {
+  const t = useT();
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_24rem] min-h-0">
@@ -880,7 +870,7 @@ function Phase3View({
               {finalSubmitting && (
                 <span className="text-sm font-medium text-[#569cd6] inline-flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#569cd6] animate-pulse" />
-                  Comparing your code against your specification…
+                  {t.phase3.comparing}
                 </span>
               )}
               {error && !finalSubmitting && (
@@ -895,7 +885,7 @@ function Phase3View({
                 onClick={submitFinalCode}
                 disabled={finalSubmitting || !code.trim()}
               >
-                {finalSubmitting ? "Reviewing your work…" : "Submit for review"}
+                {finalSubmitting ? t.phase3.submitting : t.phase3.submit}
               </Button>
             </div>
           </div>
@@ -936,6 +926,7 @@ function Phase4View({
   onAnswer: (i: number, answer: string) => void;
   error: string | null;
 }) {
+  const t = useT();
   const allAnswered =
     divergences.length > 0 && divergences.every((d) => d.result !== null);
 
@@ -954,26 +945,25 @@ function Phase4View({
           <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="text-base font-semibold text-[#d4d4d4]">
-                <span className="text-[#89d185]">✓</span> Session complete.
+                {t.phase4.sessionComplete}
               </div>
               <div className="text-sm text-[#858585] mt-1">
-                Nothing more to do — ready for another?
+                {t.phase4.nothingMore}
               </div>
             </div>
             <Link
               href="/exercises"
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
             >
-              Head back to Exercise list →
+              {t.phase4.headBack}
             </Link>
           </div>
         )}
 
-        <Phase5Section title="Review">
+        <Phase5Section title={t.phase4.reviewSection}>
           {divergences.length === 0 ? (
             <div className="rounded border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 text-sm text-[#d4d4d4]">
-              Opus found no meaningful divergences between your specification
-              and your code. Nicely done.
+              {t.phase4.noDivergences}
             </div>
           ) : allAnswered ? (
             <div className="space-y-3">
@@ -991,11 +981,13 @@ function Phase4View({
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs font-mono text-[#858585]">
                 <span>
-                  Question {currentIndex + 1} of {divergences.length}
+                  {t.phase4.questionOf(currentIndex + 1, divergences.length)}
                 </span>
                 <span>
-                  Answered {divergences.filter((x) => x.result).length} /{" "}
-                  {divergences.length}
+                  {t.phase4.answeredOf(
+                    divergences.filter((x) => x.result).length,
+                    divergences.length,
+                  )}
                 </span>
               </div>
               <DivergenceCard
@@ -1029,23 +1021,21 @@ function Phase4View({
         </Phase5Section>
 
         {iterations.length > 0 && (
-          <Phase5Section
-            title={`Specification iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
-          >
+          <Phase5Section title={t.phase4.iterationHistory(iterations.length)}>
             <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
               <IterationHistory iterations={iterations} />
             </div>
           </Phase5Section>
         )}
 
-        <Phase5Section title="Your final specification">
+        <Phase5Section title={t.phase4.finalSpec}>
           <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
-            {finalSpec || "(empty)"}
+            {finalSpec || t.phase4.empty}
           </div>
         </Phase5Section>
 
         {plan && (
-          <Phase5Section title="Your plan">
+          <Phase5Section title={t.phase3.yourPlan}>
             <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
               {plan}
             </div>
@@ -1053,7 +1043,7 @@ function Phase4View({
         )}
 
         {finalCode && (
-          <Phase5Section title="Your submitted code">
+          <Phase5Section title={t.phase4.submittedCode}>
             <div className="border border-[#3e3e42] rounded overflow-hidden">
               <PythonEditor
                 value={finalCode}
@@ -1079,6 +1069,7 @@ function DivergenceCard({
   onAnswer: (answer: string) => void;
   error: string | null;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState("");
   const answered = d.result !== null || d.answer !== null;
   return (
@@ -1090,7 +1081,7 @@ function DivergenceCard({
         </span>
         {answered && (
           <span className="text-[10px] uppercase tracking-wider text-[#89d185] font-mono">
-            ✓ answered
+            {t.phase4.answered}
           </span>
         )}
       </div>
@@ -1101,10 +1092,10 @@ function DivergenceCard({
         {answered ? (
           <div className="space-y-1.5">
             <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-              Your answer
+              {t.phase4.yourAnswer}
             </div>
             <p className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2.5">
-              {d.answer || "(no answer recorded)"}
+              {d.answer || t.phase4.noAnswer}
             </p>
           </div>
         ) : (
@@ -1113,7 +1104,7 @@ function DivergenceCard({
               value={draft}
               onChange={setDraft}
               rows={4}
-              placeholder={`Answering "I don't know" is valid and often the most useful thing you can say.`}
+              placeholder={t.phase4.answerPlaceholder}
               disabled={d.submitting}
             />
             <div className="flex items-center gap-3">
@@ -1121,7 +1112,7 @@ function DivergenceCard({
                 onClick={() => onAnswer(draft)}
                 disabled={d.submitting || !draft.trim()}
               >
-                {d.submitting ? "Recording…" : "Submit answer"}
+                {d.submitting ? t.phase4.recording : t.phase4.submitAnswer}
               </Button>
               {error && (
                 <span className="text-xs text-[#f48771] font-mono">
@@ -1297,18 +1288,19 @@ function SpecAndHistoryTop({
   compact?: boolean;
   defaultOpen?: boolean;
 }) {
+  const t = useT();
   return (
     <div className={compact ? "space-y-1.5" : "space-y-2"}>
       <CollapseRow
-        label={`Your specification${finalSpec ? "" : " (empty)"}`}
+        label={`${t.phase4.finalSpec}${finalSpec ? "" : t.phase4.specEmptySuffix}`}
         defaultOpen={defaultOpen}
       >
         <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-          {finalSpec || "(not submitted yet)"}
+          {finalSpec || t.phase4.notSubmittedYet}
         </div>
       </CollapseRow>
       {plan && (
-        <CollapseRow label="Your plan" defaultOpen={defaultOpen}>
+        <CollapseRow label={t.phase3.yourPlan} defaultOpen={defaultOpen}>
           <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
             {plan}
           </div>
@@ -1316,14 +1308,14 @@ function SpecAndHistoryTop({
       )}
       {iterations.length > 0 && (
         <CollapseRow
-          label={`Specification iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
+          label={t.phase4.iterationHistory(iterations.length)}
           defaultOpen={defaultOpen}
         >
           <IterationHistory iterations={iterations} />
         </CollapseRow>
       )}
       {finalCode && (
-        <CollapseRow label="Your submitted code" defaultOpen={defaultOpen}>
+        <CollapseRow label={t.phase4.submittedCode} defaultOpen={defaultOpen}>
           <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 overflow-x-auto font-mono">
             {finalCode}
           </pre>
@@ -1359,6 +1351,7 @@ function CollapseRow({
 }
 
 function IterationHistory({ iterations }: { iterations: Phase1Iteration[] }) {
+  const t = useT();
   return (
     <div className="space-y-4 max-h-[55vh] overflow-y-auto">
       {iterations.map((it, i) => (
@@ -1372,7 +1365,9 @@ function IterationHistory({ iterations }: { iterations: Phase1Iteration[] }) {
               {new Date(it.timestamp).toLocaleTimeString()}
             </span>
             {it.passed && (
-              <span className="text-xs text-[#89d185] font-mono">✓ passed</span>
+              <span className="text-xs text-[#89d185] font-mono">
+                {t.phase1.passed}
+              </span>
             )}
           </div>
           <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
@@ -1381,7 +1376,7 @@ function IterationHistory({ iterations }: { iterations: Phase1Iteration[] }) {
           {it.opusQuestions.length > 0 && (
             <div className="space-y-1">
               <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-                Opus asked
+                {t.phase1.opusAsked}
               </div>
               <ul className="text-sm space-y-1">
                 {it.opusQuestions.map((q, qi) => (
@@ -1402,12 +1397,13 @@ function IterationHistory({ iterations }: { iterations: Phase1Iteration[] }) {
 // ─── Inline frozen spec / plan ───────────────────────────────────────
 
 function AcceptedSpecInline({ text }: { text: string }) {
+  const t = useT();
   return (
     <div className="border border-[#4ec9b0]/45 bg-[#162521] rounded-md overflow-hidden">
       <div className="px-3 py-1.5 border-b border-[#4ec9b0]/25 bg-[#4ec9b0]/10 flex items-center gap-2">
         <span className="text-[#89d185] text-xs">✓</span>
         <span className="text-[11px] font-semibold tracking-wider uppercase text-[#4ec9b0]">
-          Your accepted specification
+          {t.phase3.acceptedSpec}
         </span>
       </div>
       <div className="px-3 py-2 text-[13px] whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto text-[#d4d4d4]">
@@ -1445,6 +1441,7 @@ function ChatPanel({
   sendChat: () => void;
   chatBusy: boolean;
 }) {
+  const t = useT();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -1460,9 +1457,9 @@ function ChatPanel({
           OP
         </div>
         <div>
-          <div className="text-sm font-semibold">Chat with Opus</div>
+          <div className="text-sm font-semibold">{t.phase3.chatWithOpus}</div>
           <div className="text-[10px] text-[#858585] font-mono">
-            asks about your logic · explains syntax
+            {t.phase3.chatSubtitle}
           </div>
         </div>
       </div>
@@ -1472,28 +1469,26 @@ function ChatPanel({
         className="flex-1 px-4 py-3 overflow-y-auto space-y-4 min-h-0"
       >
         {exchanges.length === 0 ? (
-          <p className="text-sm text-[#858585]">
-            Ask about your code or about Python syntax. Opus will answer
-            directly for syntax questions, and with counter-questions when
-            you ask about your own approach.
-          </p>
+          <p className="text-sm text-[#858585]">{t.phase3.chatEmpty}</p>
         ) : (
           exchanges.map((ex, i) => (
             <div key={i} className="space-y-2">
-              <Bubble side="right" label="you">
+              <Bubble side="right" label={t.phase3.you}>
                 {ex.studentMessage}
               </Bubble>
               <Bubble
                 side="left"
                 label={
                   ex.opusResponse === "__pending__"
-                    ? "opus"
-                    : `opus · ${ex.opusMode}`
+                    ? t.phase3.opus
+                    : `${t.phase3.opus} · ${ex.opusMode}`
                 }
                 highlight
               >
                 {ex.opusResponse === "__pending__" ? (
-                  <span className="italic text-[#75beff]">thinking…</span>
+                  <span className="italic text-[#75beff]">
+                    {t.phase3.thinking}
+                  </span>
                 ) : (
                   ex.opusResponse
                 )}
@@ -1508,7 +1503,7 @@ function ChatPanel({
           value={chatInput}
           onChange={setChatInput}
           rows={3}
-          placeholder="Ask a question…"
+          placeholder={t.phase3.chatPlaceholder}
           disabled={chatBusy}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -1519,14 +1514,14 @@ function ChatPanel({
         />
         <div className="flex items-center justify-between">
           <span className="text-xs text-[#858585] font-mono">
-            ⌘/Ctrl + Enter to send
+            {t.phase3.sendHint}
           </span>
           <Button
             size="sm"
             onClick={sendChat}
             disabled={chatBusy || !chatInput.trim()}
           >
-            {chatBusy ? "…" : "Send"}
+            {chatBusy ? t.phase3.sendShort : t.phase3.send}
           </Button>
         </div>
       </div>
@@ -1638,9 +1633,10 @@ function StudentTextarea({
 }
 
 function RoundBadge({ n }: { n: number }) {
+  const t = useT();
   return (
     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
-      <span className="text-[#858585]">round</span>{" "}
+      <span className="text-[#858585]">{t.phase1.roundBadge}</span>{" "}
       <span className="text-[#569cd6] ml-1">{n}</span>
     </span>
   );
@@ -1651,6 +1647,7 @@ function RoundBadge({ n }: { n: number }) {
 type RevisionReason = "faster" | "simpler" | "more correct" | "other";
 
 function RevisePlanDialog({ sessionId }: { sessionId: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [amendment, setAmendment] = useState("");
   const [reason, setReason] = useState<RevisionReason>("faster");
@@ -1694,15 +1691,14 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
         onClick={() => setOpen(true)}
         className="text-sm px-3 py-1.5 rounded border border-[#3e3e42] bg-[#2d2d30] text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors"
       >
-        Change of plan
+        {t.phase3.changeOfPlan}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change of plan</DialogTitle>
+            <DialogTitle>{t.phase3.changeOfPlan}</DialogTitle>
             <DialogDescription>
-              What&apos;s changing, and why? Your original plan stays on
-              record, and the revision is factored into the final review.
+              {t.phase3.changeOfPlanDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -1710,12 +1706,12 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
               value={amendment}
               onChange={setAmendment}
               rows={3}
-              placeholder="What are you changing?"
+              placeholder={t.phase3.amendmentPlaceholder}
               disabled={sending}
             />
             <div className="space-y-2">
               <label className="text-xs text-[#858585] font-mono block">
-                Why?
+                {t.phase3.why}
               </label>
               <select
                 value={reason}
@@ -1723,17 +1719,19 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
                 disabled={sending}
                 className="w-full bg-[#1e1e1e] border border-[#3e3e42] text-[#d4d4d4] text-sm rounded px-3 py-2 font-mono focus:outline-none focus:border-[#007acc]"
               >
-                <option value="faster">Faster</option>
-                <option value="simpler">Simpler</option>
-                <option value="more correct">More correct</option>
-                <option value="other">Other</option>
+                <option value="faster">{t.phase3.reasonFaster}</option>
+                <option value="simpler">{t.phase3.reasonSimpler}</option>
+                <option value="more correct">
+                  {t.phase3.reasonMoreCorrect}
+                </option>
+                <option value="other">{t.phase3.reasonOther}</option>
               </select>
               {reason === "other" && (
                 <StudentTextarea
                   value={reasonDetail}
                   onChange={setReasonDetail}
                   rows={2}
-                  placeholder="What's the reason?"
+                  placeholder={t.phase3.otherPlaceholder}
                   disabled={sending}
                 />
               )}
@@ -1741,7 +1739,7 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
           </div>
           <DialogFooter>
             <Button onClick={submit} disabled={sending || !canSubmit}>
-              {sending ? "Saving…" : "Save revision"}
+              {sending ? t.common.saving : t.phase3.saveRevision}
             </Button>
           </DialogFooter>
         </DialogContent>
