@@ -27,40 +27,55 @@ export default async function Home() {
       }
       statusRight={<span>Markdown · UTF-8</span>}
       banner={<Brand />}
+      hideTopNav
     >
-      {/* 1  */} <span />
-      {/* 2  */}
+      {/* 1 */}
       <Comment>
         A pedagogical coding tool for programming-education classes.
       </Comment>
-      {/* 3  */}
+      {/* 2 */}
       <Comment>
-        Built on Claude Opus 4.7 — an AI that{" "}
+        Built on Claude Opus 4.7, directed here to{" "}
         <span style={{ color: SYNTAX.keyword, fontStyle: "normal" }}>
-          asks you questions
+          ask questions
         </span>{" "}
-        instead of writing code for you.
+        rather than produce code on the student&apos;s behalf.
       </Comment>
-      {/* 4  */} <span />
-      {/* 5  */}
-      <span style={{ color: SYNTAX.muted }}>Who are you?</span>
-      {/* 6  */} <span />
-      {/* 7  */}
+      {/* 3 */} <span />
+      {/* 4 */}
+      <Comment>
+        Students work through each exercise as a sequence of specification,
+        plan, implementation, and review.
+      </Comment>
+      {/* 5 */}
+      <Comment>
+        At every stage Opus draws out the commitments a student has left
+        implicit, rather than producing code on their behalf.
+      </Comment>
+      {/* 6 */} <span />
+      {/* 7 */}
       <RoleRow
         href="/exercises"
         icon="🎓"
         label="I'm a student"
         hint="pick an exercise and start working"
       />
-      {/* 8  */} <span />
-      {/* 9  */}
+      {/* 8 */} <span />
+      {/* 9 */}
+      <Comment>
+        Teachers see every session as it unfolds, and, once complete,
+        per-exercise analyses of how the class reasoned through the problem
+        and where it struggled.
+      </Comment>
+      {/* 10 */} <span />
+      {/* 11 */}
       <RoleRow
         href="/live"
         icon="🧑‍🏫"
         label="I'm a teacher"
         hint="see the live class dashboard or manage exercises"
       />
-      {/* 10 */} <span />
+      {/* 12 */} <span />
     </CodeFrame>
   );
 }
