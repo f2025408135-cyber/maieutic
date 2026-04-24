@@ -90,17 +90,6 @@ hand in a lab with eighty students.
 
 ---
 
-## The four surfaces, mapped to the three pillars
-
-| Surface | Pillar it serves |
-|---|---|
-| `/exercise/[id]` — spec gate → optional plan → code editor + chat → divergence review | **Student skill.** Spec accuracy, autonomous debugging, plan-vs-implementation self-check. |
-| `/live` — SSE dashboard with one row per active student | **Classroom scale.** Triage in five seconds per row. |
-| `/reasoning/[sid]` — student view vs. Opus's private reasoning | **Teacher insight.** Evidence of the student's metacognition, per session. |
-| `/cohort/[id]` · `/cohorts` · `/authoring` | **Teacher insight + classroom scale.** Curricular patterns across the cohort, library of exercises, fast scaffolding. |
-
----
-
 ## Quick start
 
 Prerequisites: Node 20+, `ANTHROPIC_API_KEY` in your environment.
