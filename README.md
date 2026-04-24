@@ -130,8 +130,6 @@ unit; teachers land on the live dashboard.
   `EventEmitter`, no Redis)
 - Zod at every LLM response boundary
 
-The full PRD, tech spec, and 7-phase execution plan are maintained separately.
-
 ---
 
 ## What Opus does
