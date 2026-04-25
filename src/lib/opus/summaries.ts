@@ -16,7 +16,6 @@ import {
   LiveSummaryOutput,
   Phase1Data,
   Phase2Data,
-  Phase3Data,
   type LiveSummaryFlag,
   type SessionEventKind,
 } from "@/lib/opus/schemas";
@@ -48,10 +47,9 @@ export async function refreshSummaryForSession(
 
   const exercise = await getExercise(session.exerciseId);
   const phase1 = Phase1Data.parse(session.phase1Data);
-  const phase2 = session.phase2Data ? Phase2Data.parse(session.phase2Data) : null;
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  const phase4 = session.phase4Data
-    ? (session.phase4Data as { divergences: Divergence[] }).divergences
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  const phase3 = session.phase3Data
+    ? (session.phase3Data as { divergences: Divergence[] }).divergences
     : null;
 
   // Resolve "time in phase" via the most recent phase_transition event,
@@ -83,8 +81,7 @@ export async function refreshSummaryForSession(
           minutesInSession,
           phase1,
           phase2,
-          phase3,
-          divergences: phase4,
+          divergences: phase3,
           recentEvents: session.events.map((e) => ({
             kind: e.kind as SessionEventKind,
             createdAt: e.createdAt,

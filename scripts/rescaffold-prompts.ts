@@ -167,18 +167,14 @@ async function rescaffoldOne(r: Rewrite) {
       instructorPromptText: r.prompt,
       specGateDimensions: fields.specGateDimensions,
       expectedDivergences: fields.expectedDivergences,
-      phase2Required: fields.phase2Required,
       // Keep existing studentLevel and unit — those reflect the curriculum
       // placement, which hasn't changed.
       opusGeneratedDimensions: fields.opusGeneratedDimensions,
       opusGeneratedDivergences: fields.opusGeneratedDivergences,
-      opusGeneratedPhase2Required: fields.opusGeneratedPhase2Required,
       // Keep opusGeneratedStudentLevel stable.
     },
   });
-  console.log(
-    `    ${fields.specGateDimensions.length} dimensions, phase2=${fields.phase2Required}`,
-  );
+  console.log(`    ${fields.specGateDimensions.length} dimensions`);
   return true;
 }
 

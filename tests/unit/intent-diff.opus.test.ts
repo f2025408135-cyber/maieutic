@@ -14,18 +14,17 @@ import {
 } from "../../src/lib/opus/prompts/intent-diff";
 import {
   IntentDiffOutput,
-  Phase3ChatOutput,
+  Phase2ChatOutput,
   PostHocOutput,
   type ExerciseRecord,
   type Phase1Data,
   type Phase2Data,
-  type Phase3Data,
   type StudentLevel,
 } from "../../src/lib/opus/schemas";
 import {
-  PHASE3_CHAT_SYSTEM,
-  buildPhase3ChatUserMessage,
-} from "../../src/lib/opus/prompts/phase3-chat";
+  PHASE2_CHAT_SYSTEM,
+  buildPhase2ChatUserMessage,
+} from "../../src/lib/opus/prompts/phase2-chat";
 import {
   POST_HOC_SYSTEM,
   buildPostHocUserMessage,
@@ -38,9 +37,8 @@ const WEEK_7_PLUS_STRATEGIC =
 
 function buildPhases(args: {
   spec: string;
-  plan: string | null;
   code: string;
-}): { phase1: Phase1Data; phase2: Phase2Data | null; phase3: Phase3Data } {
+}): { phase1: Phase1Data; phase2: Phase2Data } {
   return {
     phase1: {
       iterations: [],
@@ -48,10 +46,7 @@ function buildPhases(args: {
       instructorConfiguredDimensionsAddressed: [],
       helpRequests: [],
     },
-    phase2: args.plan
-      ? { planText: args.plan, submittedAt: new Date().toISOString() }
-      : null,
-    phase3: {
+    phase2: {
       opusExchanges: [],
       revisions: [],
       currentCode: args.code,
@@ -66,7 +61,6 @@ async function runIntentDiff(args: {
   instructorPromptText: string;
   expectedDivergences?: ExerciseRecord["expectedDivergences"];
   spec: string;
-  plan: string | null;
   code: string;
 }) {
   return callOpusAndParse({
@@ -81,7 +75,7 @@ async function runIntentDiff(args: {
             studentLevel: args.studentLevel,
             expectedDivergences: args.expectedDivergences ?? [],
           },
-          ...buildPhases({ spec: args.spec, plan: args.plan, code: args.code }),
+          ...buildPhases({ spec: args.spec, code: args.code }),
         }),
       },
     ],
@@ -96,7 +90,6 @@ describe("intent-diff — classification and prediction register", () => {
       studentLevel: "week_1_2",
       instructorPromptText: "Write a function that counts vowels in a string.",
       spec: "The function counts vowels. Both lowercase and uppercase A,E,I,O,U. Empty returns 0.",
-      plan: null,
       code:
         "def count_vowels(s):\n    c = 0\n    for x in s:\n        if x in 'aeiou':\n            c = c + 1\n    return c\n",
     });
@@ -112,7 +105,6 @@ describe("intent-diff — classification and prediction register", () => {
       studentLevel: "week_1_2",
       instructorPromptText: "Write a function that counts vowels in a string.",
       spec: "Counts both lowercase aeiou and uppercase AEIOU. 'y' not counted. Empty returns 0.",
-      plan: null,
       code:
         "def count_vowels(s):\n    c = 0\n    for x in s:\n        if x in 'aeiouAEIOU':\n            c += 1\n    return c\n",
     });
@@ -124,8 +116,7 @@ describe("intent-diff — classification and prediction register", () => {
       studentLevel: "week_3_6",
       instructorPromptText:
         "Return the most common word in a string of space-separated words.",
-      spec: "Returns the word with the highest count. Empty string returns empty string.",
-      plan: "Split on whitespace. Dict mapping word to count. Increment for each word. Return max.",
+      spec: "Returns the word with the highest count. Splits the input on whitespace, builds a dictionary mapping each word to its count, increments per word, and returns the max. Empty string returns empty string.",
       code:
         'def most_common(s):\n    if s == "":\n        return ""\n    counts = {}\n    for w in s.split():\n        counts[w] = 1\n    return max(counts, key=counts.get)\n',
     });
@@ -141,8 +132,7 @@ describe("intent-diff — classification and prediction register", () => {
       studentLevel: "week_7_plus",
       instructorPromptText:
         "Validate a password: >=8 chars, a digit, an uppercase letter, one of !@#$%.",
-      spec: "Returns True iff length >= 8 AND at least one digit AND at least one uppercase AND at least one of !@#$%. Non-string input returns False. Empty returns False.",
-      plan: "Four boolean variables, one per rule. Single loop updating flags. Return True iff all four pass plus length check.",
+      spec: "Returns True iff length >= 8 AND at least one digit AND at least one uppercase AND at least one of !@#$%. Non-string input returns False. Empty returns False. I'll use four boolean variables, one per rule, updated in a single loop, and return True iff all four flags pass plus the length check.",
       code:
         "def validate(pw):\n    if not isinstance(pw, str) or len(pw) < 8:\n        return False\n    return (any(c.isdigit() for c in pw)\n            and any(c.isupper() for c in pw)\n            and any(c in '!@#$%' for c in pw))\n",
     });
@@ -159,8 +149,7 @@ describe("intent-diff — classification and prediction register", () => {
       studentLevel: "week_7_plus",
       instructorPromptText:
         "Validate a password: >=8 chars, a digit, an uppercase letter, one of !@#$%.",
-      spec: "Returns True iff length >= 8 AND at least one digit AND at least one uppercase AND at least one of !@#$%. Non-string returns False.",
-      plan: "Four boolean checks using explicit loops. Return True iff all pass.",
+      spec: "Returns True iff length >= 8 AND at least one digit AND at least one uppercase AND at least one of !@#$%. Non-string returns False. Four boolean checks using explicit loops; return True iff all pass.",
       code:
         "def validate(pw):\n    if not isinstance(pw, str) or len(pw) < 8:\n        return False\n    return (any(c.isdigit() for c in pw)\n            and any(c.isupper() for c in pw))\n",
     });
@@ -169,14 +158,13 @@ describe("intent-diff — classification and prediction register", () => {
   });
 });
 
-describe("phase-3 chat — mode selection", () => {
+describe("phase-2 chat — mode selection", () => {
   const ctx = {
     exercise: {
       instructorPromptText: "Write a function that counts vowels in a string.",
       studentLevel: "week_1_2" as StudentLevel,
     },
     specText: "Counts both lowercase aeiou and uppercase AEIOU. Empty returns 0.",
-    planText: null,
     currentCode:
       "def count_vowels(s):\n    c = 0\n    for x in s:\n        if x in 'aeiouAEIOU':\n            c = c + 1\n    return c\n",
     recentExchanges: [],
@@ -184,16 +172,16 @@ describe("phase-3 chat — mode selection", () => {
 
   async function runChat(message: string) {
     return callOpusAndParse({
-      promptName: "phase3-chat",
-      system: PHASE3_CHAT_SYSTEM,
+      promptName: "phase2-chat",
+      system: PHASE2_CHAT_SYSTEM,
       messages: [
         {
           role: "user",
-          content: buildPhase3ChatUserMessage({ ...ctx, studentMessage: message }),
+          content: buildPhase2ChatUserMessage({ ...ctx, studentMessage: message }),
         },
       ],
       maxTokens: 1024,
-      schema: Phase3ChatOutput,
+      schema: Phase2ChatOutput,
     });
   }
 

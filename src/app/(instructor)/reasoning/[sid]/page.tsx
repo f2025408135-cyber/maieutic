@@ -7,7 +7,6 @@ import {
   Phase1Data,
   Phase2Data,
   Phase3Data,
-  Phase4Data,
 } from "@/lib/opus/schemas";
 import { UNIT_ROMAN, UNIT_TITLE, isUnit, type Unit } from "@/lib/units";
 
@@ -27,12 +26,9 @@ export default async function Page({
   if (!session) notFound();
 
   const phase1 = Phase1Data.parse(session.phase1Data);
-  const phase2 = session.phase2Data
-    ? Phase2Data.parse(session.phase2Data)
-    : null;
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  const phase4 = session.phase4Data
-    ? Phase4Data.parse(session.phase4Data)
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  const phase3 = session.phase3Data
+    ? Phase3Data.parse(session.phase3Data)
     : null;
   const summaries = (session.liveSummaries as unknown as LiveSummary[]) ?? [];
 
@@ -156,18 +152,10 @@ export default async function Page({
               )}
             </Panel>
 
-            {phase2 && (
-              <Panel title="Plan">
-                <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-                  {phase2.planText}
-                </div>
-              </Panel>
-            )}
-
-            {phase3.opusExchanges.length > 0 && (
-              <Panel title="Chat (Phase 3)">
+            {phase2.opusExchanges.length > 0 && (
+              <Panel title="Chat (Phase 2)">
                 <div className="space-y-3">
-                  {phase3.opusExchanges.map((ex, i) => (
+                  {phase2.opusExchanges.map((ex, i) => (
                     <div key={i} className="space-y-2 text-sm">
                       <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
                         <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-1">
@@ -191,33 +179,33 @@ export default async function Page({
               </Panel>
             )}
 
-            {phase3.finalCode && (
+            {phase2.finalCode && (
               <Panel title="Final code">
                 <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-3 overflow-x-auto font-mono text-[#d4d4d4]">
-                  {phase3.finalCode}
+                  {phase2.finalCode}
                 </pre>
               </Panel>
             )}
 
-            {phase4?.revisedCode && (
+            {phase3?.revisedCode && (
               <Panel title="Revised after divergence review">
                 <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-2 font-mono">
                   student revised{" "}
-                  {phase4.revisedAt
-                    ? new Date(phase4.revisedAt).toLocaleString()
+                  {phase3.revisedAt
+                    ? new Date(phase3.revisedAt).toLocaleString()
                     : ""}
                   {" · classifications above still refer to the original code"}
                 </div>
                 <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-3 overflow-x-auto font-mono text-[#d4d4d4]">
-                  {phase4.revisedCode}
+                  {phase3.revisedCode}
                 </pre>
               </Panel>
             )}
 
-            {phase4 && (
+            {phase3 && (
               <Panel title="Divergence questions (as shown)">
                 <div className="space-y-3">
-                  {phase4.divergences.map((d) => (
+                  {phase3.divergences.map((d) => (
                     <div
                       key={d.divergenceId}
                       className="border border-[#3e3e42] rounded p-3 bg-[#1e1e1e]"
@@ -295,10 +283,10 @@ export default async function Page({
               </Panel>
             )}
 
-            {phase4 && (
+            {phase3 && (
               <Panel title="Divergence classifications">
                 <div className="space-y-3">
-                  {phase4.divergences.map((d) => (
+                  {phase3.divergences.map((d) => (
                     <div
                       key={d.divergenceId}
                       className="border border-[#3e3e42] rounded p-3 bg-[#2a2411] text-xs space-y-2"
@@ -347,12 +335,6 @@ export default async function Page({
                             </span>{" "}
                             {d.evidenceFromSpec}
                           </li>
-                          {d.evidenceFromPlan && (
-                            <li>
-                              <span className="text-[#858585]">plan:</span>{" "}
-                              {d.evidenceFromPlan}
-                            </li>
-                          )}
                           <li>
                             <span className="text-[#858585]">code:</span>{" "}
                             <code className="font-mono text-[#ce9178]">

@@ -68,11 +68,9 @@ async function publishVowels() {
         source: "opus",
       },
     ],
-    phase2Required: false,
     studentLevel: "week_1_2",
     opusGeneratedDimensions: [],
     opusGeneratedDivergences: [],
-    opusGeneratedPhase2Required: false,
     opusGeneratedStudentLevel: "week_1_2",
   });
 }
@@ -129,11 +127,9 @@ async function publishPassword() {
         source: "opus",
       },
     ],
-    phase2Required: true,
     studentLevel: "week_7_plus",
     opusGeneratedDimensions: [],
     opusGeneratedDivergences: [],
-    opusGeneratedPhase2Required: true,
     opusGeneratedStudentLevel: "week_7_plus",
   });
 }
@@ -148,9 +144,8 @@ async function rawInsertSession(args: {
   currentPhase: number;
   completed?: boolean;
   phase1Data: object;
-  phase2Data?: object | null;
-  phase3Data: object;
-  phase4Data?: object | null;
+  phase2Data: object;
+  phase3Data?: object | null;
   liveSummaries?: object[];
   events?: { kind: string; payload: object; minutesAgo: number }[];
 }) {
@@ -164,9 +159,8 @@ async function rawInsertSession(args: {
       completedAt: args.completed ? new Date() : null,
       currentPhase: args.currentPhase,
       phase1Data: args.phase1Data as never,
-      phase2Data: (args.phase2Data ?? null) as never,
-      phase3Data: args.phase3Data as never,
-      phase4Data: (args.phase4Data ?? null) as never,
+      phase2Data: args.phase2Data as never,
+      phase3Data: (args.phase3Data ?? null) as never,
       liveSummaries: (args.liveSummaries ?? []) as never,
     },
   });
@@ -249,7 +243,7 @@ async function seedActiveSessions() {
       instructorConfiguredDimensionsAddressed: ["y_as_vowel"],
       helpRequests: [],
     },
-    phase3Data: {
+    phase2Data: {
       opusExchanges: [],
       revisions: [],
       currentCode: "",
@@ -294,7 +288,7 @@ async function seedActiveSessions() {
       ],
       helpRequests: [],
     },
-    phase3Data: {
+    phase2Data: {
       opusExchanges: [
         {
           timestamp: new Date(Date.now() - 4 * 60_000).toISOString(),
@@ -329,7 +323,6 @@ async function seedActiveSessions() {
       studentFacingQuestion:
         "Your spec said the function counts vowels like A, E, I, O, U as well as lowercase. I noticed your code only checks for lowercase. Can you tell me what happened there?",
       evidenceFromSpec: "counts both lowercase and uppercase",
-      evidenceFromPlan: null,
       evidenceFromCode: "if c in 'aeiou':",
       studentResponse: "I don't know.",
       alignment: "diverged",
@@ -371,7 +364,7 @@ async function seedActiveSessions() {
       ],
       helpRequests: [],
     },
-    phase3Data: {
+    phase2Data: {
       opusExchanges: [],
       revisions: [],
       currentCode:
@@ -380,7 +373,7 @@ async function seedActiveSessions() {
         "def count_vowels(s):\n    c = 0\n    for x in s:\n        if x in 'aeiou':\n            c = c + 1\n    return c\n",
       submittedAt: new Date(Date.now() - 3 * 60_000).toISOString(),
     },
-    phase4Data: {
+    phase3Data: {
       divergences: cDivergences,
       startedAt: new Date(Date.now() - 3 * 60_000).toISOString(),
       completedAt: null,
@@ -431,7 +424,7 @@ async function seedActiveSessions() {
       ],
       helpRequests: [],
     },
-    phase3Data: {
+    phase2Data: {
       opusExchanges: [
         {
           timestamp: new Date(Date.now() - 10 * 60_000).toISOString(),
@@ -510,7 +503,7 @@ async function seedActiveSessions() {
         },
       ],
     },
-    phase3Data: {
+    phase2Data: {
       opusExchanges: [],
       revisions: [],
       currentCode: "",
@@ -550,7 +543,6 @@ async function seedCohorts() {
             studentFacingQuestion:
               "Your spec said the function counts vowels like A, E, I, O, U as well as lowercase. I noticed your code only checks for lowercase. Can you tell me what happened there?",
             evidenceFromSpec: "counts both lowercase and uppercase",
-            evidenceFromPlan: null,
             evidenceFromCode: "if c in 'aeiou':",
             studentResponse:
               i % 2 === 0 ? "I forgot" : "I didn't think about that",
@@ -611,7 +603,7 @@ async function seedCohorts() {
           ],
           helpRequests: [],
         },
-        phase3Data: {
+        phase2Data: {
           opusExchanges: [],
           revisions: [],
           currentCode: "",
@@ -620,7 +612,7 @@ async function seedCohorts() {
             : "def count_vowels(s):\n    c = 0\n    for x in s:\n        if x in 'aeiouAEIOU':\n            c += 1\n    return c\n",
           submittedAt: new Date().toISOString(),
         },
-        phase4Data: {
+        phase3Data: {
           divergences,
           startedAt: new Date().toISOString(),
           completedAt: new Date().toISOString(),
@@ -661,17 +653,13 @@ async function seedCohorts() {
           helpRequests: [],
         },
         phase2Data: {
-          planText: "plan",
-          submittedAt: new Date().toISOString(),
-        },
-        phase3Data: {
           opusExchanges: [],
           revisions: [],
           currentCode: "",
           finalCode: "def validate(pw): return True",
           submittedAt: new Date().toISOString(),
         },
-        phase4Data: {
+        phase3Data: {
           divergences: [
             {
               divergenceId: `pw_${i}_d1`,
@@ -680,7 +668,6 @@ async function seedCohorts() {
               predictedJustification: "partial_justification",
               studentFacingQuestion: "question",
               evidenceFromSpec: "evidence",
-              evidenceFromPlan: "evidence",
               evidenceFromCode: "evidence",
               studentResponse: "partial response",
               alignment: i === 0 ? "diverged" : "aligned",

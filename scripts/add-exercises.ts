@@ -210,16 +210,8 @@ async function publishOne(seed: Seed) {
     studentLevel: seed.level,
     opusGeneratedStudentLevel: seed.level,
     unit: seed.unit,
-    ...(seed.phase2Override !== undefined
-      ? {
-          phase2Required: seed.phase2Override,
-          opusGeneratedPhase2Required: seed.phase2Override,
-        }
-      : {}),
   });
-  console.log(
-    `    ${fields.specGateDimensions.length} dimensions, phase2=${fields.phase2Required}`,
-  );
+  console.log(`    ${fields.specGateDimensions.length} dimensions`);
   return true;
 }
 

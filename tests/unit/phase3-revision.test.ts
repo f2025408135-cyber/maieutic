@@ -1,5 +1,5 @@
-// Covers the revision-pass additions to Phase 4:
-//   - Phase4Data back-compat when reading legacy session blobs that
+// Covers the revision-pass additions to Phase 3 (review):
+//   - Phase3Data back-compat when reading legacy session blobs that
 //     predate the new revisionChoice/revisedCode/revisedAt fields
 //   - recordFinalRevision state-machine guards (skipped vs. revised,
 //     rejecting double-finalize, rejecting unanswered divergences)
@@ -22,7 +22,7 @@ vi.mock("../../src/lib/events", () => ({
   sessionEventBus: { emit: vi.fn() },
 }));
 
-import { Phase4Data } from "../../src/lib/opus/schemas";
+import { Phase3Data } from "../../src/lib/opus/schemas";
 import { recordFinalRevision } from "../../src/lib/sessions";
 
 const SID = "session-123";
@@ -34,7 +34,6 @@ const baseDivergence = {
   predictedJustification: "predicted",
   studentFacingQuestion: "Q",
   evidenceFromSpec: "spec",
-  evidenceFromPlan: null,
   evidenceFromCode: "code",
   studentResponse: "I forgot",
   alignment: "partial" as const,
@@ -63,9 +62,9 @@ function freshBlob(overrides: Partial<ReturnType<typeof legacyBlob>> = {}) {
   };
 }
 
-describe("Phase4Data back-compat", () => {
+describe("Phase3Data back-compat", () => {
   it("supplies null defaults when reading a legacy blob", () => {
-    const parsed = Phase4Data.parse(legacyBlob());
+    const parsed = Phase3Data.parse(legacyBlob());
     expect(parsed.revisionChoice).toBeNull();
     expect(parsed.revisedCode).toBeNull();
     expect(parsed.revisedAt).toBeNull();
@@ -77,7 +76,7 @@ describe("Phase4Data back-compat", () => {
       revisedCode: "print('revised')",
       revisedAt: "2026-04-24T00:05:00.000Z",
     } as never);
-    const parsed = Phase4Data.parse(blob);
+    const parsed = Phase3Data.parse(blob);
     expect(parsed.revisionChoice).toBe("revised");
     expect(parsed.revisedCode).toBe("print('revised')");
     expect(parsed.revisedAt).toBe("2026-04-24T00:05:00.000Z");
@@ -93,14 +92,14 @@ describe("recordFinalRevision", () => {
   it("records a skipped pass when revisedCode is null", async () => {
     findUniqueOrThrow.mockResolvedValue({
       id: SID,
-      phase4Data: freshBlob(),
+      phase3Data: freshBlob(),
     });
     update.mockResolvedValue({});
 
     await recordFinalRevision(SID, null);
 
     expect(update).toHaveBeenCalledTimes(1);
-    const written = update.mock.calls[0]![0]!.data.phase4Data as {
+    const written = update.mock.calls[0]![0]!.data.phase3Data as {
       revisionChoice: string | null;
       revisedCode: string | null;
       revisedAt: string | null;
@@ -113,13 +112,13 @@ describe("recordFinalRevision", () => {
   it("records a revised pass and preserves the revised code", async () => {
     findUniqueOrThrow.mockResolvedValue({
       id: SID,
-      phase4Data: freshBlob(),
+      phase3Data: freshBlob(),
     });
     update.mockResolvedValue({});
 
     await recordFinalRevision(SID, "def f(): pass\n");
 
-    const written = update.mock.calls[0]![0]!.data.phase4Data as {
+    const written = update.mock.calls[0]![0]!.data.phase3Data as {
       revisionChoice: string;
       revisedCode: string;
     };
@@ -130,7 +129,7 @@ describe("recordFinalRevision", () => {
   it("rejects when divergences are still unanswered", async () => {
     findUniqueOrThrow.mockResolvedValue({
       id: SID,
-      phase4Data: freshBlob({ completedAt: null } as never),
+      phase3Data: freshBlob({ completedAt: null } as never),
     });
 
     await expect(recordFinalRevision(SID, null)).rejects.toThrow(
@@ -142,7 +141,7 @@ describe("recordFinalRevision", () => {
   it("rejects a second finalize", async () => {
     findUniqueOrThrow.mockResolvedValue({
       id: SID,
-      phase4Data: freshBlob({
+      phase3Data: freshBlob({
         revisionChoice: "skipped",
         revisedAt: "2026-04-24T00:05:00.000Z",
       } as never),

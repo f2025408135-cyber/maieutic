@@ -127,11 +127,9 @@ async function scenario1Vowels() {
         source: "opus",
       },
     ],
-    phase2Required: false,
     studentLevel: "week_1_2",
     opusGeneratedDimensions: [],
     opusGeneratedDivergences: [],
-    opusGeneratedPhase2Required: false,
     opusGeneratedStudentLevel: "week_1_2",
   });
 
@@ -153,10 +151,8 @@ async function scenario1Vowels() {
     printIter(i + 1, iter, elapsed);
     await appendPhase1Iteration(session.id, iter);
     if (iter.passed) {
-      await advancePhase(session.id, exercise.phase2Required ? 2 : 3);
-      console.log(
-        `\nGate closed → advanced to phase ${exercise.phase2Required ? 2 : 3}.`,
-      );
+      await advancePhase(session.id, 2);
+      console.log(`\nGate closed → advanced to phase 2.`);
       break;
     }
   }
@@ -220,11 +216,9 @@ async function scenario2Password() {
         source: "opus",
       },
     ],
-    phase2Required: true,
     studentLevel: "week_7_plus",
     opusGeneratedDimensions: [],
     opusGeneratedDivergences: [],
-    opusGeneratedPhase2Required: true,
     opusGeneratedStudentLevel: "week_7_plus",
   });
 
@@ -246,10 +240,8 @@ async function scenario2Password() {
     printIter(i + 1, iter, elapsed);
     await appendPhase1Iteration(session.id, iter);
     if (iter.passed) {
-      await advancePhase(session.id, exercise.phase2Required ? 2 : 3);
-      console.log(
-        `\nGate closed → advanced to phase ${exercise.phase2Required ? 2 : 3}.`,
-      );
+      await advancePhase(session.id, 2);
+      console.log(`\nGate closed → advanced to phase 2.`);
       break;
     }
   }

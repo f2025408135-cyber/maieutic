@@ -23,16 +23,15 @@ import {
   Phase1Data,
   Phase1Iteration,
   Phase2Data,
+  Phase2Exchange,
+  Phase2Revision,
   Phase3Data,
-  Phase3Exchange,
-  Phase3Revision,
-  Phase4Data,
   SessionEventKind,
   SessionEventPayloadSchemaByKind,
   SpecDimension,
   ExpectedDivergence,
   emptyPhase1Data,
-  emptyPhase3Data,
+  emptyPhase2Data,
   parseSessionEventPayload,
   type Alignment,
   type DivergenceCategory,
@@ -50,12 +49,10 @@ export async function createExercise(input: ExerciseAuthoringInput) {
       instructorPromptText: parsed.instructorPromptText,
       specGateDimensions: asJson(parsed.specGateDimensions),
       expectedDivergences: asJson(parsed.expectedDivergences),
-      phase2Required: parsed.phase2Required,
       studentLevel: parsed.studentLevel,
       unit: parsed.unit ?? defaultUnitForLevel(parsed.studentLevel),
       opusGeneratedDimensions: asJson(parsed.opusGeneratedDimensions),
       opusGeneratedDivergences: asJson(parsed.opusGeneratedDivergences),
-      opusGeneratedPhase2Required: parsed.opusGeneratedPhase2Required,
       opusGeneratedStudentLevel: parsed.opusGeneratedStudentLevel,
       publishedAt: new Date(),
     },
@@ -74,12 +71,10 @@ export async function getExercise(exerciseId: string): Promise<ExerciseRecord> {
     publishedAt: row.publishedAt,
     specGateDimensions: row.specGateDimensions,
     expectedDivergences: row.expectedDivergences,
-    phase2Required: row.phase2Required,
     studentLevel: row.studentLevel,
     unit: row.unit,
     opusGeneratedDimensions: row.opusGeneratedDimensions,
     opusGeneratedDivergences: row.opusGeneratedDivergences,
-    opusGeneratedPhase2Required: row.opusGeneratedPhase2Required,
     opusGeneratedStudentLevel: row.opusGeneratedStudentLevel,
   });
 }
@@ -93,7 +88,7 @@ export async function createSession(exerciseId: string, studentId: string) {
       studentId,
       currentPhase: 1,
       phase1Data: asJson(emptyPhase1Data()),
-      phase3Data: asJson(emptyPhase3Data()),
+      phase2Data: asJson(emptyPhase2Data()),
       liveSummaries: asJson([]),
     },
   });
@@ -221,7 +216,7 @@ export async function listCompletedSessionsForExercise(exerciseId: string) {
 
 export async function advancePhase(
   sessionId: string,
-  to: 1 | 2 | 3 | 4 | 5,
+  to: 1 | 2 | 3 | 4,
 ): Promise<void> {
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
@@ -232,11 +227,11 @@ export async function advancePhase(
     where: { id: sessionId },
     data: {
       currentPhase: to,
-      ...(to === 5 ? { completedAt: new Date() } : {}),
+      ...(to === 4 ? { completedAt: new Date() } : {}),
     },
   });
   await appendSessionEvent(sessionId, "phase_transition", { from, to });
-  if (to === 5) revalidatePath("/exercises");
+  if (to === 4) revalidatePath("/exercises");
 }
 
 // ─── Phase 1 ───────────────────────────────────────────────────────────────
@@ -311,51 +306,35 @@ export async function resolveHelpRequests(
 
 // ─── Phase 2 ───────────────────────────────────────────────────────────────
 
-export async function setPhase2Plan(
+export async function appendPhase2Exchange(
   sessionId: string,
-  planText: string,
+  ex: Phase2Exchange,
 ): Promise<void> {
-  const parsed = Phase2Data.parse({
-    planText,
-    submittedAt: new Date().toISOString(),
-  });
-  await prisma.session.update({
-    where: { id: sessionId },
-    data: { phase2Data: asJson(parsed) },
-  });
-}
-
-// ─── Phase 3 ───────────────────────────────────────────────────────────────
-
-export async function appendPhase3Exchange(
-  sessionId: string,
-  ex: Phase3Exchange,
-): Promise<void> {
-  const parsed = Phase3Exchange.parse(ex);
+  const parsed = Phase2Exchange.parse(ex);
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
   });
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  phase3.opusExchanges.push(parsed);
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  phase2.opusExchanges.push(parsed);
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase3Data: asJson(phase3) },
+    data: { phase2Data: asJson(phase2) },
   });
 }
 
-export async function appendPhase3Revision(
+export async function appendPhase2Revision(
   sessionId: string,
-  rev: Phase3Revision,
+  rev: Phase2Revision,
 ): Promise<void> {
-  const parsed = Phase3Revision.parse(rev);
+  const parsed = Phase2Revision.parse(rev);
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
   });
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  phase3.revisions.push(parsed);
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  phase2.revisions.push(parsed);
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase3Data: asJson(phase3) },
+    data: { phase2Data: asJson(phase2) },
   });
   await appendSessionEvent(sessionId, "revision", {
     amendmentText: parsed.amendmentText,
@@ -370,40 +349,40 @@ export async function updateCurrentCode(
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
   });
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  phase3.currentCode = code;
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  phase2.currentCode = code;
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase3Data: asJson(phase3) },
+    data: { phase2Data: asJson(phase2) },
   });
 }
 
-export async function finalizePhase3Code(
+export async function finalizePhase2Code(
   sessionId: string,
   finalCode: string,
 ): Promise<void> {
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
   });
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  phase3.finalCode = finalCode;
-  phase3.currentCode = finalCode;
-  phase3.submittedAt = new Date().toISOString();
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  phase2.finalCode = finalCode;
+  phase2.currentCode = finalCode;
+  phase2.submittedAt = new Date().toISOString();
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase3Data: asJson(phase3) },
+    data: { phase2Data: asJson(phase2) },
   });
 }
 
-// ─── Phase 4 ───────────────────────────────────────────────────────────────
+// ─── Phase 3 ───────────────────────────────────────────────────────────────
 
-export async function setPhase4Divergences(
+export async function setPhase3Divergences(
   sessionId: string,
   divergences: Divergence[],
 ): Promise<void> {
   const parsed = z.array(Divergence).parse(divergences);
   const now = new Date().toISOString();
-  const phase4: Phase4Data = {
+  const phase3: Phase3Data = {
     divergences: parsed,
     startedAt: now,
     completedAt: null,
@@ -413,7 +392,7 @@ export async function setPhase4Divergences(
   };
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase4Data: asJson(phase4) },
+    data: { phase3Data: asJson(phase3) },
   });
 }
 
@@ -428,10 +407,10 @@ export async function recordDivergenceResponse(
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
   });
-  if (!session.phase4Data)
-    throw new Error(`session ${sessionId} has no phase4Data`);
-  const phase4 = Phase4Data.parse(session.phase4Data);
-  const target = phase4.divergences.find((d) => d.divergenceId === divergenceId);
+  if (!session.phase3Data)
+    throw new Error(`session ${sessionId} has no phase3Data`);
+  const phase3 = Phase3Data.parse(session.phase3Data);
+  const target = phase3.divergences.find((d) => d.divergenceId === divergenceId);
   if (!target) throw new Error(`unknown divergenceId: ${divergenceId}`);
   const predictionUsed = target.predictedJustification;
   target.studentResponse = response;
@@ -440,14 +419,14 @@ export async function recordDivergenceResponse(
   target.finalClassificationReason = finalClassificationReason;
   target.respondedAt = new Date().toISOString();
 
-  const allAnswered = phase4.divergences.every(
+  const allAnswered = phase3.divergences.every(
     (d) => d.studentResponse !== null,
   );
-  if (allAnswered) phase4.completedAt = new Date().toISOString();
+  if (allAnswered) phase3.completedAt = new Date().toISOString();
 
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase4Data: asJson(phase4) },
+    data: { phase3Data: asJson(phase3) },
   });
 
   if (alignment === "diverged") {
@@ -463,7 +442,7 @@ export async function recordDivergenceResponse(
 
 // Revision pass: called once, after all divergences are answered. Either
 // records a skipped pass (no code change) or stores the revised code. Does
-// not touch phase3.finalCode, divergence answers, or classifications —
+// not touch phase2.finalCode, divergence answers, or classifications —
 // those are the frozen learning signal.
 export async function recordFinalRevision(
   sessionId: string,
@@ -472,19 +451,19 @@ export async function recordFinalRevision(
   const session = await prisma.session.findUniqueOrThrow({
     where: { id: sessionId },
   });
-  if (!session.phase4Data)
-    throw new Error(`session ${sessionId} has no phase4Data`);
-  const phase4 = Phase4Data.parse(session.phase4Data);
-  if (phase4.completedAt === null)
+  if (!session.phase3Data)
+    throw new Error(`session ${sessionId} has no phase3Data`);
+  const phase3 = Phase3Data.parse(session.phase3Data);
+  if (phase3.completedAt === null)
     throw new Error(`session ${sessionId} has unanswered divergences`);
-  if (phase4.revisionChoice !== null)
+  if (phase3.revisionChoice !== null)
     throw new Error(`session ${sessionId} already finalized`);
-  phase4.revisionChoice = revisedCode === null ? "skipped" : "revised";
-  phase4.revisedCode = revisedCode;
-  phase4.revisedAt = new Date().toISOString();
+  phase3.revisionChoice = revisedCode === null ? "skipped" : "revised";
+  phase3.revisedCode = revisedCode;
+  phase3.revisedAt = new Date().toISOString();
   await prisma.session.update({
     where: { id: sessionId },
-    data: { phase4Data: asJson(phase4) },
+    data: { phase3Data: asJson(phase3) },
   });
 }
 

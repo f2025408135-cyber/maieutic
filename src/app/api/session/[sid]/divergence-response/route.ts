@@ -6,7 +6,7 @@ import {
   buildPostHocUserMessage,
 } from "@/lib/opus/prompts/post-hoc";
 import {
-  Phase4Data,
+  Phase3Data,
   PostHocOutput,
 } from "@/lib/opus/schemas";
 import {
@@ -36,18 +36,18 @@ export async function POST(
   }
 
   const session = await getSession(sid);
-  if (session.currentPhase !== 4) {
+  if (session.currentPhase !== 3) {
     return NextResponse.json(
       { error: "wrong_phase", currentPhase: session.currentPhase },
       { status: 409 },
     );
   }
-  if (!session.phase4Data)
-    return NextResponse.json({ error: "no_phase4" }, { status: 500 });
+  if (!session.phase3Data)
+    return NextResponse.json({ error: "no_phase3" }, { status: 500 });
 
   const exercise = await getExercise(session.exerciseId);
-  const phase4 = Phase4Data.parse(session.phase4Data);
-  const divergence = phase4.divergences.find(
+  const phase3 = Phase3Data.parse(session.phase3Data);
+  const divergence = phase3.divergences.find(
     (d) => d.divergenceId === body.divergenceId,
   );
   if (!divergence)
@@ -99,9 +99,9 @@ export async function POST(
     postHoc.final_classification_reason,
   );
 
-  // Session stays in phase 4 after the last answer; the student then
+  // Session stays in phase 3 after the last answer; the student then
   // picks between revising their code and finishing via /finalize, which
-  // is what advances to phase 5.
+  // is what advances to phase 4 (closed).
 
   return NextResponse.json({
     ok: true,

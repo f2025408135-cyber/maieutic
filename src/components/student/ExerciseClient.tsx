@@ -21,9 +21,8 @@ import type {
   Phase1Data,
   Phase1Iteration,
   Phase2Data,
+  Phase2Exchange,
   Phase3Data,
-  Phase3Exchange,
-  Phase4Data,
   SpecDimension,
   StudentLevel,
 } from "@/lib/opus/schemas";
@@ -40,7 +39,6 @@ export interface ExerciseClientProps {
     instructorPromptText: string;
     studentLevel: StudentLevel;
     unit: Unit;
-    phase2Required: boolean;
     specGateDimensions: SpecDimension[];
   };
   initialSession: {
@@ -48,9 +46,8 @@ export interface ExerciseClientProps {
     currentPhase: number;
     startedAt: string;
     phase1: Phase1Data;
-    phase2: Phase2Data | null;
-    phase3: Phase3Data;
-    phase4: Phase4Data | null;
+    phase2: Phase2Data;
+    phase3: Phase3Data | null;
   };
 }
 
@@ -91,13 +88,12 @@ export function ExerciseClient({
       ];
     return last?.studentSpecText ?? "";
   });
-  const [planDraft, setPlanDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [code, setCode] = useState(initialSession.phase3.currentCode);
-  const [exchanges, setExchanges] = useState<Phase3Exchange[]>(
-    initialSession.phase3.opusExchanges,
+  const [code, setCode] = useState(initialSession.phase2.currentCode);
+  const [exchanges, setExchanges] = useState<Phase2Exchange[]>(
+    initialSession.phase2.opusExchanges,
   );
   const [chatInput, setChatInput] = useState("");
   const [chatBusy, setChatBusy] = useState(false);
@@ -177,10 +173,10 @@ export function ExerciseClient({
     setConsoleLines([]);
   }
 
-  // Seed from persisted phase4 data so reloading mid-review preserves any
+  // Seed from persisted phase3 data so reloading mid-review preserves any
   // answers the student has already given.
   const [divergences, setDivergences] = useState<DivergenceQuestion[]>(() => {
-    const stored = initialSession.phase4;
+    const stored = initialSession.phase3;
     if (!stored) return [];
     return stored.divergences.map((d) => ({
       divergenceId: d.divergenceId,
@@ -201,12 +197,12 @@ export function ExerciseClient({
     return firstUnanswered === -1 ? 0 : firstUnanswered;
   });
 
-  // Revision pass: mirror of phase4Data.revisionChoice. Stays null until the
+  // Revision pass: mirror of phase3Data.revisionChoice. Stays null until the
   // student either skips or submits a revised version after the divergence
-  // loop finishes. Triggers the handoff UI; finalizing advances to phase 5.
+  // loop finishes. Triggers the handoff UI; finalizing advances to phase 4.
   const [revisionChoice, setRevisionChoice] = useState<
     "skipped" | "revised" | null
-  >(initialSession.phase4?.revisionChoice ?? null);
+  >(initialSession.phase3?.revisionChoice ?? null);
   const [finalizing, setFinalizing] = useState(false);
 
   const hasPendingAnswers =
@@ -247,8 +243,7 @@ export function ExerciseClient({
   const inPhase1 = session.currentPhase === 1;
   const inPhase2 = session.currentPhase === 2;
   const inPhase3 = session.currentPhase === 3;
-  const inPhase4 = session.currentPhase === 4;
-  const closed = session.currentPhase >= 5;
+  const closed = session.currentPhase >= 4;
 
   // ── presence heartbeat ──────────────────────────────────────────────
   // Pings the server every 15s while the page is visible so the teacher
@@ -323,32 +318,9 @@ export function ExerciseClient({
     }
   }
 
-  async function submitPlan() {
-    if (!planDraft.trim()) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/session/${session.id}/plan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planText: planDraft }),
-      });
-      if (!res.ok) throw new Error(await readError(res));
-      setSession((prev) => ({
-        ...prev,
-        currentPhase: 3,
-        phase2: { planText: planDraft, submittedAt: new Date().toISOString() },
-      }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t.common.unknownError);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!inPhase3) return;
+    if (!inPhase2) return;
     if (autosaveRef.current) clearTimeout(autosaveRef.current);
     autosaveRef.current = setTimeout(() => {
       fetch(`/api/session/${session.id}/autosave`, {
@@ -360,14 +332,14 @@ export function ExerciseClient({
     return () => {
       if (autosaveRef.current) clearTimeout(autosaveRef.current);
     };
-  }, [code, session.id, inPhase3]);
+  }, [code, session.id, inPhase2]);
 
   async function sendChat() {
     if (!chatInput.trim() || chatBusy) return;
     const message = chatInput;
     setChatBusy(true);
     setError(null);
-    const pending: Phase3Exchange = {
+    const pending: Phase2Exchange = {
       timestamp: new Date().toISOString(),
       studentMessage: message,
       opusMode: "direct" as OpusMode,
@@ -382,7 +354,7 @@ export function ExerciseClient({
         body: JSON.stringify({ message }),
       });
       if (!res.ok) throw new Error(await readError(res));
-      const body = (await res.json()) as { exchange: Phase3Exchange };
+      const body = (await res.json()) as { exchange: Phase2Exchange };
       setExchanges((prev) => [...prev.slice(0, -1), body.exchange]);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.common.unknownError);
@@ -417,12 +389,12 @@ export function ExerciseClient({
         })),
       );
       setDivergenceIndex(0);
-      // 0 divergences → server auto-closes the session (Phase 5). Either
-      // way, route the client into Phase 4 view (which now covers both the
+      // 0 divergences → server auto-closes the session (Phase 4). Either
+      // way, route the client into Phase 3 view (which now covers both the
       // answer loop and the finished state).
       setSession((prev) => ({
         ...prev,
-        currentPhase: body.divergences.length === 0 ? 5 : 4,
+        currentPhase: body.divergences.length === 0 ? 4 : 3,
       }));
     } catch (err) {
       setError(err instanceof Error ? err.message : t.common.unknownError);
@@ -474,7 +446,7 @@ export function ExerciseClient({
         );
         if (next !== -1) setDivergenceIndex(next);
       }
-      // Once every divergence is answered we stay in phase 4. The student
+      // Once every divergence is answered we stay in phase 3. The student
       // picks between revising their code and finishing via /finalize,
       // which advances the phase.
     } catch (err) {
@@ -500,7 +472,7 @@ export function ExerciseClient({
         revisionChoice: "skipped" | "revised";
       };
       setRevisionChoice(body.revisionChoice);
-      setSession((prev) => ({ ...prev, currentPhase: 5 }));
+      setSession((prev) => ({ ...prev, currentPhase: 4 }));
     } catch (err) {
       setError(err instanceof Error ? err.message : t.common.unknownError);
     } finally {
@@ -511,7 +483,7 @@ export function ExerciseClient({
   const [restarting, setRestarting] = useState(false);
   async function startFreshSession() {
     if (restarting) return;
-    if (!window.confirm(t.phase4.startFreshConfirm)) return;
+    if (!window.confirm(t.phase3.startFreshConfirm)) return;
     setRestarting(true);
     setError(null);
     try {
@@ -557,18 +529,10 @@ export function ExerciseClient({
         promptText={exercise.instructorPromptText}
         unit={exercise.unit}
         aside={
-          inPhase3 ? (
-            <>
-              <AcceptedSpecInline
-                text={session.phase1.finalSpecText ?? ""}
-              />
-              {session.phase2?.planText && (
-                <FrozenSpecInline
-                  label={t.phase3.yourPlan}
-                  text={session.phase2.planText}
-                />
-              )}
-            </>
+          inPhase2 ? (
+            <AcceptedSpecInline
+              text={session.phase1.finalSpecText ?? ""}
+            />
           ) : undefined
         }
       />
@@ -586,18 +550,6 @@ export function ExerciseClient({
 
       {inPhase2 && (
         <Phase2View
-          iterations={session.phase1.iterations}
-          finalSpec={session.phase1.finalSpecText ?? ""}
-          draft={planDraft}
-          setDraft={setPlanDraft}
-          onSubmit={submitPlan}
-          submitting={submitting}
-          error={error}
-        />
-      )}
-
-      {inPhase3 && (
-        <Phase3View
           code={code}
           setCode={setCode}
           exchanges={exchanges}
@@ -617,17 +569,16 @@ export function ExerciseClient({
         />
       )}
 
-      {(inPhase4 || closed) && (
-        <Phase4View
+      {(inPhase3 || closed) && (
+        <Phase3View
           iterations={session.phase1.iterations}
           finalSpec={session.phase1.finalSpecText ?? ""}
-          plan={session.phase2?.planText ?? null}
           // Show the revised code when one exists — that's the version
           // the student actually ended with. The original stays as the
           // diff anchor in the teacher reasoning view.
           finalCode={
-            session.phase4?.revisedCode ??
-            session.phase3.finalCode ??
+            initialSession.phase3?.revisedCode ??
+            session.phase2.finalCode ??
             code
           }
           divergences={divergences}
@@ -928,63 +879,9 @@ function HintsPanel({ hints, round }: { hints: string[]; round: number }) {
   );
 }
 
-// ─── Phase 2 — plan (single column, spec collapsible) ────────────────
+// ─── Phase 2 — editor + chat ─────────────────────────────────────────
 
 function Phase2View({
-  iterations,
-  finalSpec,
-  draft,
-  setDraft,
-  onSubmit,
-  submitting,
-  error,
-}: {
-  iterations: Phase1Iteration[];
-  finalSpec: string;
-  draft: string;
-  setDraft: (v: string) => void;
-  onSubmit: () => void;
-  submitting: boolean;
-  error: string | null;
-}) {
-  const t = useT();
-  return (
-    <main className="flex-1 overflow-y-auto p-8">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <SpecAndHistoryTop
-          finalSpec={finalSpec}
-          iterations={iterations}
-        />
-        <Panel title={t.phase2.title}>
-          <div className="space-y-3">
-            <p className="text-sm text-[#858585]">{t.phase2.intro}</p>
-            <StudentTextarea
-              value={draft}
-              onChange={setDraft}
-              rows={8}
-              placeholder={t.phase2.placeholder}
-              disabled={submitting}
-            />
-            <div className="flex items-center gap-3">
-              <Button onClick={onSubmit} disabled={submitting || !draft.trim()}>
-                {submitting ? t.phase2.submitting : t.phase2.submit}
-              </Button>
-              {error && (
-                <span className="text-sm text-[#f48771] font-mono">
-                  {error}
-                </span>
-              )}
-            </div>
-          </div>
-        </Panel>
-      </div>
-    </main>
-  );
-}
-
-// ─── Phase 3 — editor + chat ─────────────────────────────────────────
-
-function Phase3View({
   code,
   setCode,
   exchanges,
@@ -1004,7 +901,7 @@ function Phase3View({
 }: {
   code: string;
   setCode: (v: string) => void;
-  exchanges: Phase3Exchange[];
+  exchanges: Phase2Exchange[];
   chatInput: string;
   setChatInput: (v: string) => void;
   sendChat: () => void;
@@ -1038,7 +935,7 @@ function Phase3View({
               {finalSubmitting && (
                 <span className="text-sm font-medium text-[#569cd6] inline-flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#569cd6] animate-pulse" />
-                  {t.phase3.comparing}
+                  {t.phase2.comparing}
                 </span>
               )}
               {error && !finalSubmitting && (
@@ -1062,10 +959,10 @@ function Phase3View({
                 <span>▶</span>
                 <span>
                   {runState === "loading"
-                    ? t.phase3.loadingPython
+                    ? t.phase2.loadingPython
                     : runState === "running"
-                      ? t.phase3.running
-                      : t.phase3.run}
+                      ? t.phase2.running
+                      : t.phase2.run}
                 </span>
               </button>
               <RevisePlanDialog sessionId={sessionId} />
@@ -1073,7 +970,7 @@ function Phase3View({
                 onClick={submitFinalCode}
                 disabled={finalSubmitting || !code.trim()}
               >
-                {finalSubmitting ? t.phase3.submitting : t.phase3.submit}
+                {finalSubmitting ? t.phase2.submitting : t.phase2.submit}
               </Button>
             </div>
           </div>
@@ -1125,13 +1022,13 @@ function RunConsole({
   return (
     <section className="shrink-0 border-t border-[#3e3e42] bg-[#1e1e1e] flex flex-col h-[200px]">
       <div className="px-3 py-1.5 border-b border-[#3e3e42] bg-[#252526] flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-[#858585]">
-        <span>{t.phase3.consoleHeader}</span>
+        <span>{t.phase2.consoleHeader}</span>
         {lines.length > 0 && runState === "idle" && (
           <button
             onClick={onClear}
             className="hover:text-white transition-colors"
           >
-            {t.phase3.consoleClear}
+            {t.phase2.consoleClear}
           </button>
         )}
       </div>
@@ -1140,7 +1037,7 @@ function RunConsole({
         className="flex-1 overflow-y-auto px-3 py-2 text-[13px] font-mono whitespace-pre-wrap break-words"
       >
         {lines.length === 0 && runState === "idle" ? (
-          <span className="text-[#6a6a6a]">{t.phase3.consoleEmpty}</span>
+          <span className="text-[#6a6a6a]">{t.phase2.consoleEmpty}</span>
         ) : (
           lines.map((line, i) => (
             <span
@@ -1199,12 +1096,11 @@ function RunConsole({
   );
 }
 
-// ─── Phase 4 — divergence review ─────────────────────────────────────
+// ─── Phase 3 — divergence review ─────────────────────────────────────
 
-function Phase4View({
+function Phase3View({
   iterations,
   finalSpec,
-  plan,
   finalCode,
   divergences,
   currentIndex,
@@ -1220,7 +1116,6 @@ function Phase4View({
 }: {
   iterations: Phase1Iteration[];
   finalSpec: string;
-  plan: string | null;
   finalCode: string;
   divergences: DivergenceQuestion[];
   currentIndex: number;
@@ -1239,7 +1134,7 @@ function Phase4View({
     divergences.length > 0 && divergences.every((d) => d.result !== null);
 
   // Terminal states after the divergence loop:
-  //   - 0 divergences  → phase already 5, show "session complete" (closed)
+  //   - 0 divergences  → phase already 4, show "session complete" (closed)
   //   - answered, no choice yet → show the revision handoff
   //   - editing        → swap to the Monaco revision editor
   //   - revised/skipped → show "session complete" with an optional badge
@@ -1258,7 +1153,6 @@ function Phase4View({
     return (
       <RevisionEditor
         finalSpec={finalSpec}
-        plan={plan}
         originalCode={finalCode}
         divergences={divergences}
         onSubmit={(code) => onFinalize(code)}
@@ -1287,10 +1181,10 @@ function Phase4View({
           <div className="rounded-md border border-[#dcdcaa]/40 bg-[#2a2411] px-5 py-5 space-y-4">
             <div>
               <div className="text-base font-semibold text-[#d4d4d4]">
-                {t.phase4.revisionPromptTitle}
+                {t.phase3.revisionPromptTitle}
               </div>
               <div className="text-sm text-[#858585] mt-1 leading-relaxed">
-                {t.phase4.revisionPromptBody}
+                {t.phase3.revisionPromptBody}
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -1298,14 +1192,14 @@ function Phase4View({
                 onClick={() => setEditingRevision(true)}
                 disabled={finalizing}
               >
-                {t.phase4.revisionYes}
+                {t.phase3.revisionYes}
               </Button>
               <button
                 onClick={() => onFinalize(null)}
                 disabled={finalizing}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded border border-[#3e3e42] bg-[#252526] text-[#d4d4d4] text-sm hover:bg-[#2d2d30] disabled:opacity-60 transition-colors"
               >
-                {finalizing ? t.phase4.finishingUp : t.phase4.revisionNo}
+                {finalizing ? t.phase3.finishingUp : t.phase3.revisionNo}
               </button>
               {error && (
                 <span className="text-xs text-[#f48771] font-mono self-center">
@@ -1319,15 +1213,15 @@ function Phase4View({
             <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <div className="text-base font-semibold text-[#d4d4d4] flex items-center gap-2">
-                  {t.phase4.sessionComplete}
+                  {t.phase3.sessionComplete}
                   {revisionChoice === "revised" && (
                     <span className="text-[10px] uppercase tracking-wider text-[#75beff] font-mono border border-[#3e5d7a] bg-[#1f3a5c] px-1.5 py-0.5 rounded">
-                      {t.phase4.revisedBadge}
+                      {t.phase3.revisedBadge}
                     </span>
                   )}
                 </div>
                 <div className="text-sm text-[#858585] mt-1">
-                  {t.phase4.nothingMore}
+                  {t.phase3.nothingMore}
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
@@ -1337,24 +1231,24 @@ function Phase4View({
                     disabled={restarting}
                     className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border border-[#3e3e42] bg-[#252526] text-[#d4d4d4] text-sm hover:bg-[#2d2d30] disabled:opacity-60 transition-colors whitespace-nowrap"
                   >
-                    {restarting ? t.phase4.startingFresh : t.phase4.startFresh}
+                    {restarting ? t.phase3.startingFresh : t.phase3.startFresh}
                   </button>
                 )}
                 <Link
                   href="/exercises"
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
                 >
-                  {t.phase4.headBack}
+                  {t.phase3.headBack}
                 </Link>
               </div>
             </div>
           )
         )}
 
-        <Phase5Section title={t.phase4.reviewSection}>
+        <Phase5Section title={t.phase3.reviewSection}>
           {divergences.length === 0 ? (
             <div className="rounded border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 text-sm text-[#d4d4d4]">
-              {t.phase4.noDivergences}
+              {t.phase3.noDivergences}
             </div>
           ) : allAnswered ? (
             <div className="space-y-3">
@@ -1372,10 +1266,10 @@ function Phase4View({
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs font-mono text-[#858585]">
                 <span>
-                  {t.phase4.questionOf(currentIndex + 1, divergences.length)}
+                  {t.phase3.questionOf(currentIndex + 1, divergences.length)}
                 </span>
                 <span>
-                  {t.phase4.answeredOf(
+                  {t.phase3.answeredOf(
                     divergences.filter((x) => x.result).length,
                     divergences.length,
                   )}
@@ -1412,29 +1306,21 @@ function Phase4View({
         </Phase5Section>
 
         {iterations.length > 0 && (
-          <Phase5Section title={t.phase4.iterationHistory(iterations.length)}>
+          <Phase5Section title={t.phase3.iterationHistory(iterations.length)}>
             <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
               <IterationHistory iterations={iterations} />
             </div>
           </Phase5Section>
         )}
 
-        <Phase5Section title={t.phase4.finalSpec}>
+        <Phase5Section title={t.phase3.finalSpec}>
           <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
-            {finalSpec || t.phase4.empty}
+            {finalSpec || t.phase3.empty}
           </div>
         </Phase5Section>
 
-        {plan && (
-          <Phase5Section title={t.phase3.yourPlan}>
-            <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
-              {plan}
-            </div>
-          </Phase5Section>
-        )}
-
         {finalCode && (
-          <Phase5Section title={t.phase4.submittedCode}>
+          <Phase5Section title={t.phase3.submittedCode}>
             <div className="border border-[#3e3e42] rounded overflow-hidden">
               <PythonEditor
                 value={finalCode}
@@ -1451,7 +1337,6 @@ function Phase4View({
 
 function RevisionEditor({
   finalSpec,
-  plan,
   originalCode,
   divergences,
   onSubmit,
@@ -1460,7 +1345,6 @@ function RevisionEditor({
   error,
 }: {
   finalSpec: string;
-  plan: string | null;
   originalCode: string;
   divergences: DivergenceQuestion[];
   onSubmit: (code: string) => void;
@@ -1475,10 +1359,10 @@ function RevisionEditor({
       <div className="max-w-6xl mx-auto space-y-4">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-[#d4d4d4]">
-            {t.phase4.revisionEditingTitle}
+            {t.phase3.revisionEditingTitle}
           </h2>
           <p className="text-sm text-[#858585] leading-relaxed">
-            {t.phase4.revisionEditingBody}
+            {t.phase3.revisionEditingBody}
           </p>
         </div>
 
@@ -1487,19 +1371,12 @@ function RevisionEditor({
             <PythonEditor value={draft} onChange={setDraft} readOnly={false} />
           </section>
           <aside className="space-y-2 lg:max-h-[440px] lg:overflow-y-auto lg:pr-1">
-            <CollapseRow label={t.phase4.finalSpec} defaultOpen>
+            <CollapseRow label={t.phase3.finalSpec} defaultOpen>
               <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-                {finalSpec || t.phase4.empty}
+                {finalSpec || t.phase3.empty}
               </div>
             </CollapseRow>
-            {plan && (
-              <CollapseRow label={t.phase3.yourPlan} defaultOpen>
-                <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-                  {plan}
-                </div>
-              </CollapseRow>
-            )}
-            <CollapseRow label={t.phase4.revisionRecap}>
+            <CollapseRow label={t.phase3.revisionRecap}>
               <div className="space-y-2">
                 {divergences.map((d, i) => (
                   <div
@@ -1513,10 +1390,10 @@ function RevisionEditor({
                       {d.studentFacingQuestion}
                     </p>
                     <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-                      {t.phase4.yourAnswer}
+                      {t.phase3.yourAnswer}
                     </div>
                     <p className="text-xs whitespace-pre-wrap bg-[#252526] border border-[#3e3e42] rounded p-1.5">
-                      {d.answer || t.phase4.noAnswer}
+                      {d.answer || t.phase3.noAnswer}
                     </p>
                   </div>
                 ))}
@@ -1530,14 +1407,14 @@ function RevisionEditor({
             onClick={() => onSubmit(draft)}
             disabled={finalizing || !draft.trim()}
           >
-            {finalizing ? t.phase4.revisionSubmitting : t.phase4.revisionSubmit}
+            {finalizing ? t.phase3.revisionSubmitting : t.phase3.revisionSubmit}
           </Button>
           <button
             onClick={onCancel}
             disabled={finalizing}
             className="text-sm text-[#858585] hover:text-white underline underline-offset-2 disabled:opacity-60"
           >
-            {t.phase4.revisionCancel}
+            {t.phase3.revisionCancel}
           </button>
           {error && (
             <span className="text-xs text-[#f48771] font-mono">{error}</span>
@@ -1571,7 +1448,7 @@ function DivergenceCard({
         </span>
         {answered && (
           <span className="text-[10px] uppercase tracking-wider text-[#89d185] font-mono">
-            {t.phase4.answered}
+            {t.phase3.answered}
           </span>
         )}
       </div>
@@ -1582,10 +1459,10 @@ function DivergenceCard({
         {answered ? (
           <div className="space-y-1.5">
             <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-              {t.phase4.yourAnswer}
+              {t.phase3.yourAnswer}
             </div>
             <p className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2.5">
-              {d.answer || t.phase4.noAnswer}
+              {d.answer || t.phase3.noAnswer}
             </p>
           </div>
         ) : (
@@ -1594,7 +1471,7 @@ function DivergenceCard({
               value={draft}
               onChange={setDraft}
               rows={4}
-              placeholder={t.phase4.answerPlaceholder}
+              placeholder={t.phase3.answerPlaceholder}
               disabled={d.submitting}
             />
             <div className="flex items-center gap-3">
@@ -1602,7 +1479,7 @@ function DivergenceCard({
                 onClick={() => onAnswer(draft)}
                 disabled={d.submitting || !draft.trim()}
               >
-                {d.submitting ? t.phase4.recording : t.phase4.submitAnswer}
+                {d.submitting ? t.phase3.recording : t.phase3.submitAnswer}
               </Button>
               {error && (
                 <span className="text-xs text-[#f48771] font-mono">
@@ -1614,133 +1491,6 @@ function DivergenceCard({
         )}
       </div>
     </div>
-  );
-}
-
-// ─── Phase 5 — closed ─────────────────────────────────────────────────
-
-function Phase5View({
-  iterations,
-  finalSpec,
-  plan,
-  finalCode,
-  liveDivergences,
-  storedPhase4,
-}: {
-  iterations: Phase1Iteration[];
-  finalSpec: string;
-  plan: string | null;
-  finalCode: string;
-  liveDivergences: DivergenceQuestion[];
-  storedPhase4: Phase4Data | null;
-}) {
-  // Prefer the in-memory state (just completed) and fall back to the
-  // persisted Phase 4 record on reload.
-  const qAndA: { question: string; answer: string }[] = useMemo(() => {
-    if (liveDivergences.length > 0) {
-      return liveDivergences.map((d) => ({
-        question: d.studentFacingQuestion,
-        answer: d.answer ?? "",
-      }));
-    }
-    if (storedPhase4) {
-      return storedPhase4.divergences.map((d) => ({
-        question: d.studentFacingQuestion,
-        answer: d.studentResponse ?? "",
-      }));
-    }
-    return [];
-  }, [liveDivergences, storedPhase4]);
-
-  return (
-    <main className="flex-1 overflow-y-auto p-8">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 flex items-center justify-between gap-4">
-          <div className="text-sm">
-            <span className="text-[#89d185]">✓</span>{" "}
-            <span className="font-semibold">Session complete.</span>{" "}
-            <span className="text-[#858585]">
-              Nothing more to do — head back to the{" "}
-              <Link
-                href="/exercises"
-                className="text-[#569cd6] hover:text-white underline"
-              >
-                exercise list
-              </Link>{" "}
-              for another.
-            </span>
-          </div>
-        </div>
-
-        <Phase5Section title="Review">
-          {qAndA.length === 0 ? (
-            <div className="rounded border border-[#4ec9b0]/40 bg-[#162521] px-4 py-3 text-sm text-[#d4d4d4]">
-              Opus found no meaningful divergences between your specification
-              and your code. Nicely done.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {qAndA.map((qa, i) => (
-                <div
-                  key={i}
-                  className="border border-[#3e3e42] bg-[#252526] rounded overflow-hidden"
-                >
-                  <div className="px-4 py-2 border-b border-[#3e3e42] flex items-center gap-2">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono border border-[#3e3e42] bg-[#1e1e1e]">
-                      <span className="text-[#858585]">Q</span>
-                      <span className="text-[#569cd6] ml-1">{i + 1}</span>
-                    </span>
-                  </div>
-                  <div className="px-4 py-3 space-y-3">
-                    <p className="text-sm text-[#d4d4d4]">{qa.question}</p>
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] uppercase tracking-wider text-[#858585]">
-                        Your answer
-                      </div>
-                      <p className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2.5">
-                        {qa.answer || "(no answer recorded)"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Phase5Section>
-
-        {iterations.length > 0 && (
-          <Phase5Section
-            title={`Specification iteration history · ${iterations.length} round${iterations.length === 1 ? "" : "s"}`}
-          >
-            <div className="border border-[#3e3e42] bg-[#252526] rounded p-4">
-              <IterationHistory iterations={iterations} />
-            </div>
-          </Phase5Section>
-        )}
-
-        <Phase5Section title="Your final specification">
-          <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
-            {finalSpec || "(empty)"}
-          </div>
-        </Phase5Section>
-
-        {plan && (
-          <Phase5Section title="Your plan">
-            <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-3">
-              {plan}
-            </div>
-          </Phase5Section>
-        )}
-
-        {finalCode && (
-          <Phase5Section title="Your submitted code">
-            <div className="border border-[#3e3e42] rounded overflow-hidden h-96">
-              <PythonEditor value={finalCode} readOnly />
-            </div>
-          </Phase5Section>
-        )}
-      </div>
-    </main>
   );
 }
 
@@ -1761,18 +1511,16 @@ function Phase5Section({
   );
 }
 
-// ─── Collapsible spec + plan + history + final code bundle ───────────
+// ─── Collapsible spec + history + final code bundle ───────────
 
 function SpecAndHistoryTop({
   finalSpec,
-  plan,
   iterations,
   finalCode,
   compact,
   defaultOpen,
 }: {
   finalSpec: string;
-  plan?: string | null;
   iterations: Phase1Iteration[];
   finalCode?: string;
   compact?: boolean;
@@ -1782,30 +1530,23 @@ function SpecAndHistoryTop({
   return (
     <div className={compact ? "space-y-1.5" : "space-y-2"}>
       <CollapseRow
-        label={`${t.phase4.finalSpec}${finalSpec ? "" : t.phase4.specEmptySuffix}`}
+        label={`${t.phase3.finalSpec}${finalSpec ? "" : t.phase3.specEmptySuffix}`}
         defaultOpen={defaultOpen}
       >
         <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-          {finalSpec || t.phase4.notSubmittedYet}
+          {finalSpec || t.phase3.notSubmittedYet}
         </div>
       </CollapseRow>
-      {plan && (
-        <CollapseRow label={t.phase3.yourPlan} defaultOpen={defaultOpen}>
-          <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
-            {plan}
-          </div>
-        </CollapseRow>
-      )}
       {iterations.length > 0 && (
         <CollapseRow
-          label={t.phase4.iterationHistory(iterations.length)}
+          label={t.phase3.iterationHistory(iterations.length)}
           defaultOpen={defaultOpen}
         >
           <IterationHistory iterations={iterations} />
         </CollapseRow>
       )}
       {finalCode && (
-        <CollapseRow label={t.phase4.submittedCode} defaultOpen={defaultOpen}>
+        <CollapseRow label={t.phase3.submittedCode} defaultOpen={defaultOpen}>
           <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-2 overflow-x-auto font-mono">
             {finalCode}
           </pre>
@@ -1893,7 +1634,7 @@ function AcceptedSpecInline({ text }: { text: string }) {
       <div className="px-3 py-1.5 border-b border-[#4ec9b0]/25 bg-[#4ec9b0]/10 flex items-center gap-2">
         <span className="text-[#89d185] text-xs">✓</span>
         <span className="text-[11px] font-semibold tracking-wider uppercase text-[#4ec9b0]">
-          {t.phase3.acceptedSpec}
+          {t.phase2.acceptedSpec}
         </span>
       </div>
       <div className="px-3 py-2 text-[13px] whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto text-[#d4d4d4]">
@@ -1925,7 +1666,7 @@ function ChatPanel({
   sendChat,
   chatBusy,
 }: {
-  exchanges: Phase3Exchange[];
+  exchanges: Phase2Exchange[];
   chatInput: string;
   setChatInput: (v: string) => void;
   sendChat: () => void;
@@ -1947,9 +1688,9 @@ function ChatPanel({
           OP
         </div>
         <div>
-          <div className="text-sm font-semibold">{t.phase3.chatWithOpus}</div>
+          <div className="text-sm font-semibold">{t.phase2.chatWithOpus}</div>
           <div className="text-[10px] text-[#858585] font-mono">
-            {t.phase3.chatSubtitle}
+            {t.phase2.chatSubtitle}
           </div>
         </div>
       </div>
@@ -1959,25 +1700,25 @@ function ChatPanel({
         className="flex-1 px-4 py-3 overflow-y-auto space-y-4 min-h-0"
       >
         {exchanges.length === 0 ? (
-          <p className="text-sm text-[#858585]">{t.phase3.chatEmpty}</p>
+          <p className="text-sm text-[#858585]">{t.phase2.chatEmpty}</p>
         ) : (
           exchanges.map((ex, i) => (
             <div key={i} className="space-y-2">
-              <Bubble side="right" label={t.phase3.you}>
+              <Bubble side="right" label={t.phase2.you}>
                 {ex.studentMessage}
               </Bubble>
               <Bubble
                 side="left"
                 label={
                   ex.opusResponse === "__pending__"
-                    ? t.phase3.opus
-                    : `${t.phase3.opus} · ${ex.opusMode}`
+                    ? t.phase2.opus
+                    : `${t.phase2.opus} · ${ex.opusMode}`
                 }
                 highlight
               >
                 {ex.opusResponse === "__pending__" ? (
                   <span className="italic text-[#75beff]">
-                    {t.phase3.thinking}
+                    {t.phase2.thinking}
                   </span>
                 ) : (
                   ex.opusResponse
@@ -1993,7 +1734,7 @@ function ChatPanel({
           value={chatInput}
           onChange={setChatInput}
           rows={3}
-          placeholder={t.phase3.chatPlaceholder}
+          placeholder={t.phase2.chatPlaceholder}
           disabled={chatBusy}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -2004,14 +1745,14 @@ function ChatPanel({
         />
         <div className="flex items-center justify-between">
           <span className="text-xs text-[#858585] font-mono">
-            {t.phase3.sendHint}
+            {t.phase2.sendHint}
           </span>
           <Button
             size="sm"
             onClick={sendChat}
             disabled={chatBusy || !chatInput.trim()}
           >
-            {chatBusy ? t.phase3.sendShort : t.phase3.send}
+            {chatBusy ? t.phase2.sendShort : t.phase2.send}
           </Button>
         </div>
       </div>
@@ -2181,14 +1922,14 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
         onClick={() => setOpen(true)}
         className="text-sm px-3 py-1.5 rounded border border-[#3e3e42] bg-[#2d2d30] text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors"
       >
-        {t.phase3.changeOfPlan}
+        {t.phase2.changeOfPlan}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t.phase3.changeOfPlan}</DialogTitle>
+            <DialogTitle>{t.phase2.changeOfPlan}</DialogTitle>
             <DialogDescription>
-              {t.phase3.changeOfPlanDesc}
+              {t.phase2.changeOfPlanDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -2196,12 +1937,12 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
               value={amendment}
               onChange={setAmendment}
               rows={3}
-              placeholder={t.phase3.amendmentPlaceholder}
+              placeholder={t.phase2.amendmentPlaceholder}
               disabled={sending}
             />
             <div className="space-y-2">
               <label className="text-xs text-[#858585] font-mono block">
-                {t.phase3.why}
+                {t.phase2.why}
               </label>
               <select
                 value={reason}
@@ -2209,19 +1950,19 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
                 disabled={sending}
                 className="w-full bg-[#1e1e1e] border border-[#3e3e42] text-[#d4d4d4] text-sm rounded px-3 py-2 font-mono focus:outline-none focus:border-[#007acc]"
               >
-                <option value="faster">{t.phase3.reasonFaster}</option>
-                <option value="simpler">{t.phase3.reasonSimpler}</option>
+                <option value="faster">{t.phase2.reasonFaster}</option>
+                <option value="simpler">{t.phase2.reasonSimpler}</option>
                 <option value="more correct">
-                  {t.phase3.reasonMoreCorrect}
+                  {t.phase2.reasonMoreCorrect}
                 </option>
-                <option value="other">{t.phase3.reasonOther}</option>
+                <option value="other">{t.phase2.reasonOther}</option>
               </select>
               {reason === "other" && (
                 <StudentTextarea
                   value={reasonDetail}
                   onChange={setReasonDetail}
                   rows={2}
-                  placeholder={t.phase3.otherPlaceholder}
+                  placeholder={t.phase2.otherPlaceholder}
                   disabled={sending}
                 />
               )}
@@ -2229,7 +1970,7 @@ function RevisePlanDialog({ sessionId }: { sessionId: string }) {
           </div>
           <DialogFooter>
             <Button onClick={submit} disabled={sending || !canSubmit}>
-              {sending ? t.common.saving : t.phase3.saveRevision}
+              {sending ? t.common.saving : t.phase2.saveRevision}
             </Button>
           </DialogFooter>
         </DialogContent>

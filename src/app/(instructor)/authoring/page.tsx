@@ -48,7 +48,6 @@ export default function AuthoringPage() {
     useState<ScaffoldingOutput | null>(null);
   const [dimensions, setDimensions] = useState<EditableDimension[]>([]);
   const [divergences, setDivergences] = useState<ExpectedDivergence[]>([]);
-  const [phase2Required, setPhase2Required] = useState(false);
   const [studentLevel, setStudentLevel] = useState<StudentLevel>("week_1_2");
   const [unit, setUnit] = useState<Unit>("unit_2");
   const [promptQualityNote, setPromptQualityNote] = useState<string | null>(
@@ -93,7 +92,6 @@ export default function AuthoringPage() {
           source: "opus",
         })),
       );
-      setPhase2Required(s.phase_2_required);
       setStudentLevel(s.student_level);
       setUnit(defaultUnitForLevel(s.student_level));
       setPromptQualityNote(s.prompt_quality_note);
@@ -171,8 +169,7 @@ export default function AuthoringPage() {
     dimensions.some((d) => d.source !== "opus") ||
     divergences.some((d) => d.source !== "opus") ||
     (originalScaffolding !== null &&
-      (phase2Required !== originalScaffolding.phase_2_required ||
-        studentLevel !== originalScaffolding.student_level));
+      studentLevel !== originalScaffolding.student_level);
 
   const canPublish =
     originalScaffolding !== null &&
@@ -196,12 +193,10 @@ export default function AuthoringPage() {
           ({ originalId: _original, ...rest }) => rest,
         ),
         expectedDivergences: divergences,
-        phase2Required,
         studentLevel,
         unit,
         opusGeneratedDimensions: originalScaffolding.spec_gate_dimensions,
         opusGeneratedDivergences: originalScaffolding.expected_divergences,
-        opusGeneratedPhase2Required: originalScaffolding.phase_2_required,
         opusGeneratedStudentLevel: originalScaffolding.student_level,
       };
       const res = await fetch("/api/author/publish", {
@@ -414,12 +409,9 @@ export default function AuthoringPage() {
                 </div>
               </Section>
 
-              <Section title="Unit & planning step">
+              <Section title="Unit">
                 <div className="border border-[#3e3e42] bg-[#252526] rounded p-4 space-y-4">
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-[#858585] font-mono mb-2">
-                      Unit
-                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {UNIT_IDS.map((u) => (
                         <label
@@ -458,22 +450,6 @@ export default function AuthoringPage() {
                     <p className="text-xs text-[#858585] mt-2">
                       The Opus-calibration level follows from the unit:{" "}
                       <span className="font-mono">{studentLevel}</span>.
-                    </p>
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={phase2Required}
-                        onChange={(e) => setPhase2Required(e.target.checked)}
-                        className="accent-[#007acc]"
-                      />
-                      Require a planning step (Phase 2)
-                    </label>
-                    <p className="text-xs text-[#858585] mt-1 ml-6">
-                      On for exercises with non-trivial implementation
-                      decisions. Off when the spec essentially determines the
-                      code.
                     </p>
                   </div>
                 </div>

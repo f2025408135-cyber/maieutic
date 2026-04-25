@@ -1,11 +1,11 @@
-// Prompt 3 — Phase 3 chat with mode selection (interrogative vs direct).
+// Prompt 3 — Phase 2 chat with mode selection (interrogative vs direct).
 // Tech Spec §Phase 4 task 1. Per-message mode selection.
 
-import type { ExerciseRecord, Phase3Exchange } from "../schemas";
+import type { ExerciseRecord, Phase2Exchange } from "../schemas";
 
-export const PHASE3_CHAT_SYSTEM = `You are the coding assistant for a CS1 student in a pedagogical IDE called
-Maieutic. The student has frozen their specification and their implementation
-plan. They are now writing code, and you are available in a chat panel.
+export const PHASE2_CHAT_SYSTEM = `You are the coding assistant for a CS1 student in a pedagogical IDE called
+Maieutic. The student has frozen their specification. They are now writing
+code, and you are available in a chat panel.
 
 You have TWO modes. For each message, pick one and answer in that mode.
 
@@ -48,8 +48,8 @@ EDGE CASES:
 When ambiguous, lean INTERROGATIVE only when answering directly would
 substitute for the student's own reasoning about their current problem.
 
-You will be shown: the exercise prompt, the student's spec, their plan
-(if any), their CURRENT CODE, and recent chat history.
+You will be shown: the exercise prompt, the student's spec, their CURRENT
+CODE, and recent chat history.
 
 OUTPUT FORMAT — a single JSON object, no preamble, no markdown fences:
 
@@ -61,12 +61,11 @@ OUTPUT FORMAT — a single JSON object, no preamble, no markdown fences:
 Keep responses short. DIRECT answers: at most a short paragraph + small
 example. INTERROGATIVE answers: one to three questions/pointers maximum.`;
 
-export function buildPhase3ChatUserMessage(args: {
+export function buildPhase2ChatUserMessage(args: {
   exercise: Pick<ExerciseRecord, "instructorPromptText" | "studentLevel">;
   specText: string;
-  planText: string | null;
   currentCode: string;
-  recentExchanges: Phase3Exchange[];
+  recentExchanges: Phase2Exchange[];
   studentMessage: string;
 }): string {
   const historyBlock =
@@ -89,12 +88,6 @@ STUDENT'S SPEC (frozen):
 """
 ${args.specText}
 """
-
-${
-  args.planText
-    ? `STUDENT'S PLAN (frozen):\n"""\n${args.planText}\n"""\n`
-    : "(no implementation plan — this exercise skips Phase 2)\n"
-}
 
 STUDENT'S CURRENT CODE:
 """

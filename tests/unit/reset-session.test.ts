@@ -51,7 +51,7 @@ const STALE_EMPTY = {
 const OLD_COMPLETED = {
   id: "old-completed",
   exerciseId: EX,
-  currentPhase: 5,
+  currentPhase: 4,
   phase1Data: { iterations: [{}] },
   startedAt: new Date("2026-03-15"),
   completedAt: new Date("2026-04-01"),
@@ -67,7 +67,7 @@ const JUST_RESET = {
 const MID_ATTEMPT = {
   id: "mid-attempt",
   exerciseId: EX,
-  currentPhase: 3,
+  currentPhase: 2,
   phase1Data: { iterations: [{ studentSpecText: "…" }] },
   startedAt: new Date("2026-04-10"),
   completedAt: null,

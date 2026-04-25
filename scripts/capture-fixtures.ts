@@ -50,12 +50,11 @@ import {
   appendPhase1Iteration,
   createExercise,
   createSession,
-  finalizePhase3Code,
+  finalizePhase2Code,
   getExercise,
   getSession,
   recordDivergenceResponse,
-  setPhase2Plan,
-  setPhase4Divergences,
+  setPhase3Divergences,
 } from "../src/lib/sessions";
 import { refreshSummaryForSession } from "../src/lib/opus/summaries";
 
@@ -73,7 +72,6 @@ async function publishExerciseViaScaffolding(args: {
   title: string;
   prompt: string;
   levelOverride?: StudentLevel;
-  phase2Override?: boolean;
 }): Promise<ExerciseRecord> {
   console.log(`\n[scaffolding] ${args.id} — "${args.title}"`);
   const scaffolding = await callOpusAndParse({
@@ -99,15 +97,9 @@ async function publishExerciseViaScaffolding(args: {
     ...(args.levelOverride
       ? { studentLevel: args.levelOverride, opusGeneratedStudentLevel: args.levelOverride }
       : {}),
-    ...(args.phase2Override !== undefined
-      ? {
-          phase2Required: args.phase2Override,
-          opusGeneratedPhase2Required: args.phase2Override,
-        }
-      : {}),
   });
   console.log(
-    `  ✓ published with ${fields.specGateDimensions.length} dimensions, level=${fields.studentLevel}, phase2=${fields.phase2Required}`,
+    `  ✓ published with ${fields.specGateDimensions.length} dimensions, level=${fields.studentLevel}`,
   );
   void ex;
   return getExercise(args.id);
@@ -163,7 +155,7 @@ async function captureAna(vowels: ExerciseRecord) {
   );
   console.log(`  round 2: passed=${r2.passed}, open=[${r2.gapsIdentified.join(", ")}]`);
   if (!r2.passed) throw new Error("ana spec didn't close in 2 rounds; tighten the spec");
-  await advancePhase(session.id, 3);
+  await advancePhase(session.id, 2);
 
   const droppedCode = `def count_vowels(s):
     count = 0
@@ -172,10 +164,10 @@ async function captureAna(vowels: ExerciseRecord) {
             count = count + 1
     return count
 `;
-  await finalizePhase3Code(session.id, droppedCode);
+  await finalizePhase2Code(session.id, droppedCode);
 
   // Intent-diff
-  const phase3 = { opusExchanges: [], revisions: [], currentCode: droppedCode, finalCode: droppedCode, submittedAt: new Date().toISOString() };
+  const phase2 = { opusExchanges: [], revisions: [], currentCode: droppedCode, finalCode: droppedCode, submittedAt: new Date().toISOString() };
   const diff = await callOpusAndParse({
     promptName: "capture-fixtures:intent-diff",
     system: INTENT_DIFF_SYSTEM,
@@ -185,8 +177,7 @@ async function captureAna(vowels: ExerciseRecord) {
         content: buildIntentDiffUserMessage({
           exercise: vowels,
           phase1: Phase1Data.parse((await getSession(session.id)).phase1Data),
-          phase2: null,
-          phase3,
+          phase2,
         }),
       },
     ],
@@ -194,8 +185,8 @@ async function captureAna(vowels: ExerciseRecord) {
     schema: IntentDiffOutput,
   });
   const divergences = intentDiffOutputToDivergences(diff);
-  await setPhase4Divergences(session.id, divergences);
-  await advancePhase(session.id, 4);
+  await setPhase3Divergences(session.id, divergences);
+  await advancePhase(session.id, 3);
   console.log(`  intent-diff: ${divergences.length} divergences, classifications=[${divergences.map((d) => d.initialClassification).join(",")}]`);
 
   // Student answers each divergence with real post-hoc classification.
@@ -231,7 +222,7 @@ async function captureAna(vowels: ExerciseRecord) {
     );
   }
   const s = await getSession(session.id);
-  if (!s.completedAt) await advancePhase(session.id, 5);
+  if (!s.completedAt) await advancePhase(session.id, 4);
 
   const summary = await refreshSummaryForSession(session.id);
   console.log(`  live summary (post-close): ${summary?.summaryText ?? "(none — session closed)"}`);
@@ -270,14 +261,7 @@ async function captureBeto(password: ExerciseRecord) {
       );
   }
 
-  if (password.phase2Required) {
-    await advancePhase(session.id, 2);
-    await setPhase2Plan(
-      session.id,
-      "I'll declare four boolean flags: has_digit, has_upper, has_special, long_enough. Initialize has_digit/has_upper/has_special to False and long_enough to len(pw) >= 8 plus the type check. Loop through the string once, updating each flag when I see a match. At the end, return True only if all four flags are True.",
-    );
-  }
-  await advancePhase(session.id, 3);
+  await advancePhase(session.id, 2);
 
   const revisedCode = `def validate(pw):
     if not isinstance(pw, str) or len(pw) < 8:
@@ -286,9 +270,9 @@ async function captureBeto(password: ExerciseRecord) {
             and any(c.isupper() for c in pw)
             and any(c in '!@#$%' for c in pw))
 `;
-  await finalizePhase3Code(session.id, revisedCode);
+  await finalizePhase2Code(session.id, revisedCode);
 
-  const phase3 = { opusExchanges: [], revisions: [], currentCode: revisedCode, finalCode: revisedCode, submittedAt: new Date().toISOString() };
+  const phase2 = { opusExchanges: [], revisions: [], currentCode: revisedCode, finalCode: revisedCode, submittedAt: new Date().toISOString() };
   const sessLoaded = await getSession(session.id);
   const diff = await callOpusAndParse({
     promptName: "capture-fixtures:intent-diff",
@@ -299,10 +283,7 @@ async function captureBeto(password: ExerciseRecord) {
         content: buildIntentDiffUserMessage({
           exercise: password,
           phase1: Phase1Data.parse(sessLoaded.phase1Data),
-          phase2: sessLoaded.phase2Data
-            ? { planText: (sessLoaded.phase2Data as { planText: string }).planText, submittedAt: new Date().toISOString() }
-            : null,
-          phase3,
+          phase2,
         }),
       },
     ],
@@ -310,8 +291,8 @@ async function captureBeto(password: ExerciseRecord) {
     schema: IntentDiffOutput,
   });
   const divergences = intentDiffOutputToDivergences(diff);
-  await setPhase4Divergences(session.id, divergences);
-  await advancePhase(session.id, 4);
+  await setPhase3Divergences(session.id, divergences);
+  await advancePhase(session.id, 3);
   console.log(`  intent-diff: ${divergences.length} divergences, classifications=[${divergences.map((d) => d.initialClassification).join(",")}]`);
 
   for (const d of divergences) {
@@ -344,7 +325,7 @@ async function captureBeto(password: ExerciseRecord) {
     );
   }
   const s = await getSession(session.id);
-  if (!s.completedAt) await advancePhase(session.id, 5);
+  if (!s.completedAt) await advancePhase(session.id, 4);
 
   await refreshSummaryForSession(session.id);
   return session.id;
@@ -416,11 +397,11 @@ async function captureCohortFill(vowels: ExerciseRecord) {
       console.log(`  cohort ${i}: spec didn't pass in 1 round, skipping`);
       continue;
     }
-    await advancePhase(session.id, 3);
+    await advancePhase(session.id, 2);
     const code = i < 3 ? codesWithDrift[i] : cleanCode;
-    await finalizePhase3Code(session.id, code);
+    await finalizePhase2Code(session.id, code);
 
-    const phase3 = { opusExchanges: [], revisions: [], currentCode: code, finalCode: code, submittedAt: new Date().toISOString() };
+    const phase2 = { opusExchanges: [], revisions: [], currentCode: code, finalCode: code, submittedAt: new Date().toISOString() };
     const sessLoaded = await getSession(session.id);
     const diff = await callOpusAndParse({
       promptName: "capture-fixtures:intent-diff",
@@ -431,8 +412,7 @@ async function captureCohortFill(vowels: ExerciseRecord) {
           content: buildIntentDiffUserMessage({
             exercise: vowels,
             phase1: Phase1Data.parse(sessLoaded.phase1Data),
-            phase2: null,
-            phase3,
+            phase2,
           }),
         },
       ],
@@ -440,8 +420,8 @@ async function captureCohortFill(vowels: ExerciseRecord) {
       schema: IntentDiffOutput,
     });
     const divergences = intentDiffOutputToDivergences(diff);
-    await setPhase4Divergences(session.id, divergences);
-    await advancePhase(session.id, 4);
+    await setPhase3Divergences(session.id, divergences);
+    await advancePhase(session.id, 3);
     console.log(`  cohort ${i}: ${divergences.length} divergences`);
 
     for (const d of divergences) {
@@ -472,7 +452,7 @@ async function captureCohortFill(vowels: ExerciseRecord) {
       );
     }
     const s = await getSession(session.id);
-    if (!s.completedAt) await advancePhase(session.id, 5);
+    if (!s.completedAt) await advancePhase(session.id, 4);
   }
 }
 
@@ -511,7 +491,6 @@ async function main() {
     title: "Count vowels",
     prompt: "Write a function that counts vowels in a string.",
     levelOverride: "week_1_2",
-    phase2Override: false,
   });
 
   const password = await publishExerciseViaScaffolding({
@@ -520,7 +499,6 @@ async function main() {
     prompt:
       "Write a function that validates a password. It must be at least 8 characters, contain at least one digit, at least one uppercase letter, and at least one special character from !@#$%. Return True if valid, False otherwise.",
     levelOverride: "week_7_plus",
-    phase2Override: true,
   });
 
   const fibonacci = await publishExerciseViaScaffolding({
@@ -529,7 +507,6 @@ async function main() {
     prompt:
       "Write a function that returns the nth Fibonacci number, where fib(0) = 0 and fib(1) = 1.",
     levelOverride: "week_3_6",
-    phase2Override: false,
   });
 
   await captureAna(vowels);

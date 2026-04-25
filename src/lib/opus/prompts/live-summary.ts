@@ -7,7 +7,6 @@ import type {
   ExerciseRecord,
   Phase1Data,
   Phase2Data,
-  Phase3Data,
   Divergence,
   SessionEventKind,
 } from "../schemas";
@@ -30,23 +29,21 @@ student's head right now. It must:
   phase. Each phase has different affordances:
     Phase 1 (specification): student submits a natural-language spec; Opus
       asks gap-filling questions; the student iterates. NO chat, NO code
-      editor, NO plan, NO divergences yet.
-    Phase 2 (plan): student writes a short implementation plan. NO chat,
-      NO code editor.
-    Phase 3 (writing): code editor AND free-form chat with Opus exist;
+      editor, NO divergences yet.
+    Phase 2 (writing): code editor AND free-form chat with Opus exist;
       student may invoke "change of plan" to record a revision.
-    Phase 4 (review): Opus poses divergence questions one at a time;
+    Phase 3 (review): Opus poses divergence questions one at a time;
       student answers.
-    Phase 5 (closed): session complete.
-  So "no chat activity" in Phase 1 or 2 is FORBIDDEN (chat doesn't exist
-  there). "No code written" in Phase 1 or 2 is FORBIDDEN. "No divergences
-  answered" in Phase 1, 2, or 3 is FORBIDDEN. Frame observations around
-  what the phase actually offers.
+    Phase 4 (closed): session complete.
+  So "no chat activity" in Phase 1 is FORBIDDEN (chat doesn't exist there).
+  "No code written" in Phase 1 is FORBIDDEN. "No divergences answered" in
+  Phase 1 or 2 is FORBIDDEN. Frame observations around what the phase
+  actually offers.
 
 Flag rules: return a \`flags\` list with any of:
 - "help_requested": active ask-for-help
 - "alignment_failure": the most recent divergence response diverged from prediction
-- "proactive_revision": student invoked "revise plan" in phase 3
+- "proactive_revision": student invoked "revise plan" in phase 2
 - "stuck_signal": >5 minutes with no state change in a phase that should have
   motion, or 3+ failed spec iterations on the same gap
 - "high_performer": passed spec gate in one iteration AND code has no
@@ -62,10 +59,10 @@ Output format:
 
 Register examples (copy this register, not these exact words):
 - "Writing spec; has stated the happy path three times, hasn't considered empty input."
-- "Phase 3; code compiles but intent declaration said hashmap and they wrote nested loops — likely a revision, worth a check."
+- "Phase 2; code compiles but spec said hashmap and they wrote nested loops — likely a revision, worth a check."
 - "Prediction-alignment just failed on a boundary-condition question; student answered 'I don't know.' High-value intervention target."
 - "Phase 1, iteration 4, same gap unresolved (empty input); 6 minutes since last submission."
-- "Phase 3, 15 minutes in, no code written, chat log shows three questions about syntax — possibly stuck on how to start, not on what to write."`;
+- "Phase 2, 15 minutes in, no code written, chat log shows three questions about syntax — possibly stuck on how to start, not on what to write."`;
 
 interface LiveSummaryContext {
   exercise: Pick<ExerciseRecord, "title" | "studentLevel" | "specGateDimensions">;
@@ -75,8 +72,7 @@ interface LiveSummaryContext {
   minutesInPhase: number;
   minutesInSession: number;
   phase1: Phase1Data;
-  phase2: Phase2Data | null;
-  phase3: Phase3Data;
+  phase2: Phase2Data;
   divergences: Divergence[] | null;
   recentEvents: Array<{ kind: SessionEventKind; createdAt: Date; payload: unknown }>;
 }
@@ -98,17 +94,17 @@ function formatPhase1(phase1: Phase1Data): string {
   return lines.join("\n");
 }
 
-function formatPhase3(phase3: Phase3Data): string {
+function formatPhase2(phase2: Phase2Data): string {
   const lines = [
-    `  Current code (${phase3.currentCode.length} bytes):`,
+    `  Current code (${phase2.currentCode.length} bytes):`,
     "  ```",
-    phase3.currentCode.slice(0, 800) || "(empty)",
+    phase2.currentCode.slice(0, 800) || "(empty)",
     "  ```",
-    `  Chat exchanges: ${phase3.opusExchanges.length}`,
-    `  Revisions: ${phase3.revisions.length}`,
+    `  Chat exchanges: ${phase2.opusExchanges.length}`,
+    `  Revisions: ${phase2.revisions.length}`,
   ];
-  if (phase3.opusExchanges.length) {
-    const last = phase3.opusExchanges[phase3.opusExchanges.length - 1];
+  if (phase2.opusExchanges.length) {
+    const last = phase2.opusExchanges[phase2.opusExchanges.length - 1];
     lines.push(
       `  Last exchange — student: ${JSON.stringify(last.studentMessage.slice(0, 120))}`,
     );
@@ -117,7 +113,7 @@ function formatPhase3(phase3: Phase3Data): string {
   return lines.join("\n");
 }
 
-function formatPhase4(divergences: Divergence[] | null): string {
+function formatPhase3(divergences: Divergence[] | null): string {
   if (!divergences || divergences.length === 0)
     return "  (no divergences recorded)";
   const answered = divergences.filter((d) => d.studentResponse !== null);
@@ -146,10 +142,8 @@ export function buildLiveSummaryUserMessage(ctx: LiveSummaryContext): string {
 
   const phaseBlock = (() => {
     if (ctx.currentPhase === 1) return formatPhase1(ctx.phase1);
-    if (ctx.currentPhase === 2)
-      return `  Spec closed. Plan text length: ${ctx.phase2?.planText.length ?? 0} bytes.`;
-    if (ctx.currentPhase === 3) return formatPhase3(ctx.phase3);
-    if (ctx.currentPhase === 4) return formatPhase4(ctx.divergences);
+    if (ctx.currentPhase === 2) return formatPhase2(ctx.phase2);
+    if (ctx.currentPhase === 3) return formatPhase3(ctx.divergences);
     return "  (session closed)";
   })();
 

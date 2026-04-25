@@ -20,14 +20,12 @@ model Exercise {
   // Final, post-edit
   specGateDimensions   Json     // SpecDimension[]
   expectedDivergences  Json     // ExpectedDivergence[]
-  phase2Required       Boolean
   studentLevel         String   // "week_1_2" | "week_3_6" | "week_7_plus"
   unit                 String   @default("unit_2") // "unit_1" | "unit_2" | "unit_3" | "unit_4"
 
   // Authoring trace — Opus first-pass output, preserved
   opusGeneratedDimensions      Json
   opusGeneratedDivergences     Json
-  opusGeneratedPhase2Required  Boolean
   opusGeneratedStudentLevel    String
 
   sessions             Session[]
@@ -60,12 +58,11 @@ model Session {
   startedAt     DateTime @default(now())
   lastActiveAt  DateTime @default(now())
   completedAt   DateTime?
-  currentPhase  Int      // 1, 2, 3, 4, or 5 (closed)
+  currentPhase  Int      // 1 (spec), 2 (writing), 3 (review), or 4 (closed)
 
   phase1Data    Json     // Phase1Data
-  phase2Data    Json?    // Phase2Data
-  phase3Data    Json     // Phase3Data (starts empty)
-  phase4Data    Json?    // Phase4Data
+  phase2Data    Json     // Phase2Data (starts empty)
+  phase3Data    Json?    // Phase3Data
   liveSummaries Json     // LiveSummary[] (append-only)
 
   events        SessionEvent[]

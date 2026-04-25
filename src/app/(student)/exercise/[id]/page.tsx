@@ -5,7 +5,6 @@ import {
   Phase1Data,
   Phase2Data,
   Phase3Data,
-  Phase4Data,
 } from "@/lib/opus/schemas";
 import { ExerciseClient } from "@/components/student/ExerciseClient";
 import { getLang } from "@/lib/i18n/server";
@@ -41,12 +40,9 @@ export default async function Page(
 
   // Parse the Json blobs so the client receives strongly-typed shapes.
   const phase1 = Phase1Data.parse(session.phase1Data);
-  const phase2 = session.phase2Data
-    ? Phase2Data.parse(session.phase2Data)
-    : null;
-  const phase3 = Phase3Data.parse(session.phase3Data);
-  const phase4 = session.phase4Data
-    ? Phase4Data.parse(session.phase4Data)
+  const phase2 = Phase2Data.parse(session.phase2Data);
+  const phase3 = session.phase3Data
+    ? Phase3Data.parse(session.phase3Data)
     : null;
 
   return (
@@ -57,7 +53,6 @@ export default async function Page(
         instructorPromptText: translated.instructorPromptText,
         studentLevel: exercise.studentLevel,
         unit: exercise.unit,
-        phase2Required: exercise.phase2Required,
         specGateDimensions: exercise.specGateDimensions,
       }}
       initialSession={{
@@ -67,7 +62,6 @@ export default async function Page(
         phase1,
         phase2,
         phase3,
-        phase4,
       }}
     />
   );

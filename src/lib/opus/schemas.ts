@@ -85,12 +85,10 @@ export const ExerciseRecord = z.object({
   publishedAt: z.coerce.date().nullable(),
   specGateDimensions: z.array(SpecDimension),
   expectedDivergences: z.array(ExpectedDivergence),
-  phase2Required: z.boolean(),
   studentLevel: StudentLevel,
   unit: UnitId,
   opusGeneratedDimensions: z.array(OpusGeneratedDimension),
   opusGeneratedDivergences: z.array(OpusGeneratedDivergence),
-  opusGeneratedPhase2Required: z.boolean(),
   opusGeneratedStudentLevel: StudentLevel,
 });
 export type ExerciseRecord = z.infer<typeof ExerciseRecord>;
@@ -103,14 +101,12 @@ export const ExerciseAuthoringInput = z.object({
   instructorPromptText: z.string().min(1),
   specGateDimensions: z.array(SpecDimension).min(1),
   expectedDivergences: z.array(ExpectedDivergence).min(1),
-  phase2Required: z.boolean(),
   studentLevel: StudentLevel,
   // Optional at the boundary — createExercise derives from studentLevel
   // when absent so legacy demo/test scripts keep working.
   unit: UnitId.optional(),
   opusGeneratedDimensions: z.array(OpusGeneratedDimension),
   opusGeneratedDivergences: z.array(OpusGeneratedDivergence),
-  opusGeneratedPhase2Required: z.boolean(),
   opusGeneratedStudentLevel: StudentLevel,
 });
 export type ExerciseAuthoringInput = z.infer<typeof ExerciseAuthoringInput>;
@@ -153,25 +149,17 @@ export const emptyPhase1Data = (): Phase1Data => ({
   helpRequests: [],
 });
 
-// ─── Phase 2 — intent declaration ─────────────────────────────────────────
+// ─── Phase 2 — constrained writing ────────────────────────────────────────
 
-export const Phase2Data = z.object({
-  planText: z.string(),
-  submittedAt: z.string(),
-});
-export type Phase2Data = z.infer<typeof Phase2Data>;
-
-// ─── Phase 3 — constrained writing ────────────────────────────────────────
-
-export const Phase3Exchange = z.object({
+export const Phase2Exchange = z.object({
   timestamp: z.string(),
   studentMessage: z.string(),
   opusMode: OpusMode,
   opusResponse: z.string(),
 });
-export type Phase3Exchange = z.infer<typeof Phase3Exchange>;
+export type Phase2Exchange = z.infer<typeof Phase2Exchange>;
 
-export const Phase3Revision = z.object({
+export const Phase2Revision = z.object({
   timestamp: z.string(),
   amendmentText: z.string(),
   justificationText: z.string(),
@@ -180,18 +168,18 @@ export const Phase3Revision = z.object({
   opusQuestion: z.string().optional(),
   opusFollowupQuestion: z.string().nullable().optional(),
 });
-export type Phase3Revision = z.infer<typeof Phase3Revision>;
+export type Phase2Revision = z.infer<typeof Phase2Revision>;
 
-export const Phase3Data = z.object({
-  opusExchanges: z.array(Phase3Exchange),
-  revisions: z.array(Phase3Revision),
+export const Phase2Data = z.object({
+  opusExchanges: z.array(Phase2Exchange),
+  revisions: z.array(Phase2Revision),
   currentCode: z.string(), // autosave target
   finalCode: z.string().nullable(),
   submittedAt: z.string().nullable(),
 });
-export type Phase3Data = z.infer<typeof Phase3Data>;
+export type Phase2Data = z.infer<typeof Phase2Data>;
 
-export const emptyPhase3Data = (): Phase3Data => ({
+export const emptyPhase2Data = (): Phase2Data => ({
   opusExchanges: [],
   revisions: [],
   currentCode: "",
@@ -199,7 +187,7 @@ export const emptyPhase3Data = (): Phase3Data => ({
   submittedAt: null,
 });
 
-// ─── Phase 4 — intent-diff review ─────────────────────────────────────────
+// ─── Phase 3 — intent-diff review ─────────────────────────────────────────
 
 export const Divergence = z.object({
   divergenceId: z.string(),
@@ -208,7 +196,6 @@ export const Divergence = z.object({
   predictedJustification: z.string(), // instructor-visible
   studentFacingQuestion: z.string(), // student-visible
   evidenceFromSpec: z.string(),
-  evidenceFromPlan: z.string().nullable(),
   evidenceFromCode: z.string(),
   // Post-hoc fields — populated after the student responds.
   studentResponse: z.string().nullable(),
@@ -219,19 +206,19 @@ export const Divergence = z.object({
 });
 export type Divergence = z.infer<typeof Divergence>;
 
-export const Phase4Data = z.object({
+export const Phase3Data = z.object({
   divergences: z.array(Divergence),
   startedAt: z.string(),
   completedAt: z.string().nullable(),
   // Revision pass: after all divergences are answered, the student chooses
-  // to either revise their code or finish. The original phase3.finalCode and
+  // to either revise their code or finish. The original phase2.finalCode and
   // the divergence classifications stay frozen — revision is a coda, not a
   // rewrite of the learning signal.
   revisionChoice: z.enum(["skipped", "revised"]).nullable().default(null),
   revisedCode: z.string().nullable().default(null),
   revisedAt: z.string().nullable().default(null),
 });
-export type Phase4Data = z.infer<typeof Phase4Data>;
+export type Phase3Data = z.infer<typeof Phase3Data>;
 
 // ─── Live summaries ───────────────────────────────────────────────────────
 
@@ -345,7 +332,6 @@ const ScaffoldingDivergenceOutput = z.object({
 export const ScaffoldingOutput = z.object({
   spec_gate_dimensions: z.array(ScaffoldingDimensionOutput).min(1),
   expected_divergences: z.array(ScaffoldingDivergenceOutput).min(1),
-  phase_2_required: z.boolean(),
   student_level: StudentLevel,
   prompt_quality_note: z.string().nullable(),
 });
@@ -371,7 +357,6 @@ const IntentDiffDivergenceOutput = z.object({
   predicted_justification: z.string(),
   student_facing_question: z.string(),
   evidence_from_spec: z.string(),
-  evidence_from_plan: z.string().nullable(),
   evidence_from_code: z.string(),
 });
 
@@ -408,12 +393,12 @@ export const CohortNarrativeOutput = z.object({
 });
 export type CohortNarrativeOutput = z.infer<typeof CohortNarrativeOutput>;
 
-// 7. Phase-3 chat mode selector (Tech Spec §Phase 4 task 1)
-export const Phase3ChatOutput = z.object({
+// 7. Phase-2 chat mode selector (Tech Spec §Phase 4 task 1)
+export const Phase2ChatOutput = z.object({
   mode: OpusMode,
   response: z.string(),
 });
-export type Phase3ChatOutput = z.infer<typeof Phase3ChatOutput>;
+export type Phase2ChatOutput = z.infer<typeof Phase2ChatOutput>;
 
 
 // ─── LLM-output → internal-storage converters ────────────────────────────
@@ -424,11 +409,9 @@ export function scaffoldingOutputToAuthoringFields(
   ExerciseAuthoringInput,
   | "specGateDimensions"
   | "expectedDivergences"
-  | "phase2Required"
   | "studentLevel"
   | "opusGeneratedDimensions"
   | "opusGeneratedDivergences"
-  | "opusGeneratedPhase2Required"
   | "opusGeneratedStudentLevel"
 > {
   return {
@@ -443,11 +426,9 @@ export function scaffoldingOutputToAuthoringFields(
       pattern: d.pattern,
       source: "opus" as const,
     })),
-    phase2Required: out.phase_2_required,
     studentLevel: out.student_level,
     opusGeneratedDimensions: out.spec_gate_dimensions,
     opusGeneratedDivergences: out.expected_divergences,
-    opusGeneratedPhase2Required: out.phase_2_required,
     opusGeneratedStudentLevel: out.student_level,
   };
 }
@@ -462,7 +443,6 @@ export function intentDiffOutputToDivergences(
     predictedJustification: d.predicted_justification,
     studentFacingQuestion: d.student_facing_question,
     evidenceFromSpec: d.evidence_from_spec,
-    evidenceFromPlan: d.evidence_from_plan,
     evidenceFromCode: d.evidence_from_code,
     studentResponse: null,
     alignment: null,

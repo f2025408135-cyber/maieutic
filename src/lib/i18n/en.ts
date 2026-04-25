@@ -47,10 +47,9 @@ export const en = {
   },
   phaseLabel: {
     "1": "specification",
-    "2": "plan",
-    "3": "writing",
-    "4": "review",
-    "5": "closed",
+    "2": "writing",
+    "3": "review",
+    "4": "closed",
   },
   statusBar: {
     phase: (n: number, label: string) => `phase ${n} · ${label}`,
@@ -88,20 +87,12 @@ export const en = {
     passed: "✓ passed",
   },
   phase2: {
-    title: "Implementation plan",
-    intro:
-      "Before the editor unlocks, write down the data structures you'll use, the order of operations, and the functions you'll define. This is your prediction — your code will be diffed against it later.",
-    placeholder: "I'll use a single loop over the characters…",
-    submit: "Submit plan",
-    submitting: "Submitting…",
-  },
-  phase3: {
     comparing: "Comparing your code against your specification…",
     submit: "Submit for review",
     submitting: "Reviewing your work…",
     changeOfPlan: "Change of plan",
     changeOfPlanDesc:
-      "What's changing, and why? Your original plan stays on record, and the revision is factored into the final review.",
+      "What's changing, and why? Your original spec stays on record, and the revision is factored into the final review.",
     amendmentPlaceholder: "What are you changing?",
     why: "Why?",
     reasonFaster: "Faster",
@@ -122,7 +113,6 @@ export const en = {
     send: "Send",
     sendShort: "…",
     acceptedSpec: "Your accepted specification",
-    yourPlan: "Your plan",
     run: "Run",
     running: "Running…",
     loadingPython: "Loading Python…",
@@ -130,7 +120,7 @@ export const en = {
     consoleEmpty: "Run your code to see output here.",
     consoleClear: "Clear",
   },
-  phase4: {
+  phase3: {
     sessionComplete: "✓ Session complete.",
     nothingMore: "Nothing more to do — ready for another?",
     headBack: "Head back to Exercise list →",
@@ -155,12 +145,12 @@ export const en = {
     specEmptySuffix: " (empty)",
     revisionPromptTitle: "Want a pass at closing those gaps?",
     revisionPromptBody:
-      "You can revise your code now to line it up with your plan. Your original submission and your answers above stay on record — this is an unassisted pass.",
+      "You can revise your code now to line it up with your specification. Your original submission and your answers above stay on record — this is an unassisted pass.",
     revisionYes: "Revise my code",
     revisionNo: "I'm done",
     revisionEditingTitle: "Close the gaps",
     revisionEditingBody:
-      "Edit your code to line it up with your plan. Your specification and plan are pinned for reference.",
+      "Edit your code to line it up with your specification. Your specification is pinned for reference.",
     revisionRecap: "Your divergence answers",
     revisionSubmit: "Submit revised code",
     revisionSubmitting: "Saving…",

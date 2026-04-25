@@ -9,15 +9,14 @@ import {
   IntentDiffOutput,
   Phase1Data,
   Phase2Data,
-  Phase3Data,
   intentDiffOutputToDivergences,
 } from "@/lib/opus/schemas";
 import {
   advancePhase,
-  finalizePhase3Code,
+  finalizePhase2Code,
   getExercise,
   getSession,
-  setPhase4Divergences,
+  setPhase3Divergences,
 } from "@/lib/sessions";
 import { getLang } from "@/lib/i18n/server";
 import { langDirective } from "@/lib/i18n/prompt";
@@ -42,7 +41,7 @@ export async function POST(
   }
 
   const session = await getSession(sid);
-  if (session.currentPhase !== 3) {
+  if (session.currentPhase !== 2) {
     return NextResponse.json(
       { error: "wrong_phase", currentPhase: session.currentPhase },
       { status: 409 },
@@ -51,13 +50,12 @@ export async function POST(
 
   const exercise = await getExercise(session.exerciseId);
   const phase1 = Phase1Data.parse(session.phase1Data);
-  const phase2 = session.phase2Data ? Phase2Data.parse(session.phase2Data) : null;
 
   // Persist the final code first, so the intent-diff prompt reads the
   // authoritative text even if the client's body somehow diverged.
-  await finalizePhase3Code(sid, body.finalCode);
+  await finalizePhase2Code(sid, body.finalCode);
   const session2 = await getSession(sid);
-  const phase3 = Phase3Data.parse(session2.phase3Data);
+  const phase2 = Phase2Data.parse(session2.phase2Data);
   const lang = await getLang();
 
   let diff;
@@ -74,7 +72,6 @@ export async function POST(
             exercise,
             phase1,
             phase2,
-            phase3,
           }),
         },
       ],
@@ -92,11 +89,11 @@ export async function POST(
   }
 
   const divergences = intentDiffOutputToDivergences(diff);
-  await setPhase4Divergences(sid, divergences);
+  await setPhase3Divergences(sid, divergences);
   // No divergences → the student's work is already accepted; skip the
   // question loop and mark the session complete so the exercise shows
   // as done in the list.
-  await advancePhase(sid, divergences.length === 0 ? 5 : 4);
+  await advancePhase(sid, divergences.length === 0 ? 4 : 3);
 
   // Return only student-visible fields. Classification, prediction, and
   // confidence stay on the server (visible to instructors only).

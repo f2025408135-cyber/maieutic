@@ -30,12 +30,10 @@ type ExerciseJson = {
   publishedAt: string | null;
   specGateDimensions: unknown;
   expectedDivergences: unknown;
-  phase2Required: boolean;
   studentLevel: string;
   unit?: string;
   opusGeneratedDimensions: unknown;
   opusGeneratedDivergences: unknown;
-  opusGeneratedPhase2Required: boolean;
   opusGeneratedStudentLevel: string;
 };
 
@@ -57,7 +55,6 @@ type SessionJson = {
   phase1Data: unknown;
   phase2Data: unknown;
   phase3Data: unknown;
-  phase4Data: unknown;
   liveSummaries: unknown;
   events: EventJson[];
 };
@@ -99,12 +96,10 @@ async function replayExercise(ex: ExerciseJson) {
       publishedAt: ex.publishedAt ? new Date(ex.publishedAt) : null,
       specGateDimensions: ex.specGateDimensions as never,
       expectedDivergences: ex.expectedDivergences as never,
-      phase2Required: ex.phase2Required,
       studentLevel: ex.studentLevel,
       unit: ex.unit ?? "unit_2",
       opusGeneratedDimensions: ex.opusGeneratedDimensions as never,
       opusGeneratedDivergences: ex.opusGeneratedDivergences as never,
-      opusGeneratedPhase2Required: ex.opusGeneratedPhase2Required,
       opusGeneratedStudentLevel: ex.opusGeneratedStudentLevel,
     },
   });
@@ -157,9 +152,8 @@ async function replaySession(s: SessionJson) {
       completedAt,
       currentPhase: s.currentPhase,
       phase1Data: (phase1 ?? {}) as never,
-      phase2Data: (s.phase2Data ?? null) as never,
-      phase3Data: (s.phase3Data ?? {}) as never,
-      phase4Data: (s.phase4Data ?? null) as never,
+      phase2Data: (s.phase2Data ?? {}) as never,
+      phase3Data: (s.phase3Data ?? null) as never,
       liveSummaries: (s.liveSummaries ?? []) as never,
     },
   });

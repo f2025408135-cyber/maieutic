@@ -42,9 +42,9 @@ export async function aggregateExercise(
       }
     }
 
-    if (s.phase4Data) {
-      const phase4 = s.phase4Data as { divergences: Divergence[] };
-      for (const d of phase4.divergences) {
+    if (s.phase3Data) {
+      const phase3 = s.phase3Data as { divergences: Divergence[] };
+      for (const d of phase3.divergences) {
         const finalCat = d.finalClassification ?? d.initialClassification;
         if (finalCat) divergenceCounts[finalCat]++;
         if (d.initialConfidence === "low" && !d.finalClassification) unresolved++;
@@ -65,7 +65,7 @@ export async function aggregateExercise(
   }
 
   // Count proactive revisions via SessionEvent rows — more authoritative than
-  // parsing phase3Data per-session.
+  // parsing phase2Data per-session.
   proactiveRevisions = await prisma.sessionEvent.count({
     where: {
       kind: "revision",
@@ -156,9 +156,9 @@ export async function summarizeAllExercises(): Promise<ExerciseSummary[]> {
           missed.set(gapId, (missed.get(gapId) ?? 0) + 1);
         }
       }
-      if (s.phase4Data) {
-        const phase4 = s.phase4Data as { divergences: Divergence[] };
-        for (const d of phase4.divergences) {
+      if (s.phase3Data) {
+        const phase3 = s.phase3Data as { divergences: Divergence[] };
+        for (const d of phase3.divergences) {
           const cat = d.finalClassification ?? d.initialClassification;
           if (cat) divergenceCounts[cat]++;
         }

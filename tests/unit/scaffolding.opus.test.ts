@@ -117,7 +117,6 @@ describe("scaffolding prompt — structural quality", () => {
     // calls it either way depending on how much weight it places on the
     // "validation" cue. Both are defensible; accept either.
     expect(["week_3_6", "week_7_plus"]).toContain(out.student_level);
-    expect(out.phase_2_required).toBe(true);
     for (const d of out.spec_gate_dimensions) {
       assertNoGenericMarkers(d.description, `dimension (${d.id})`);
     }

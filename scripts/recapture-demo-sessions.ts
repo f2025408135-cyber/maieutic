@@ -38,11 +38,11 @@ import {
   appendHelpRequest,
   appendPhase1Iteration,
   createSession,
-  finalizePhase3Code,
+  finalizePhase2Code,
   getExercise,
   getSession,
   recordDivergenceResponse,
-  setPhase4Divergences,
+  setPhase3Divergences,
 } from "../src/lib/sessions";
 import { refreshSummaryForSession } from "../src/lib/opus/summaries";
 
@@ -140,7 +140,7 @@ async function recaptureAna() {
     if (!r3.passed) throw new Error("ana didn't close spec in 3 rounds");
   }
 
-  await advancePhase(session.id, 3);
+  await advancePhase(session.id, 2);
 
   // Lowercase-only drift code — program style.
   const droppedCode = `s = input("Enter a string: ")
@@ -150,10 +150,10 @@ for c in s:
         count = count + 1
 print(count)
 `;
-  await finalizePhase3Code(session.id, droppedCode);
+  await finalizePhase2Code(session.id, droppedCode);
 
   const loaded = await getSession(session.id);
-  const phase3 = {
+  const phase2 = {
     opusExchanges: [],
     revisions: [],
     currentCode: droppedCode,
@@ -169,8 +169,7 @@ print(count)
         content: buildIntentDiffUserMessage({
           exercise: vowels,
           phase1: Phase1Data.parse(loaded.phase1Data),
-          phase2: null,
-          phase3,
+          phase2,
         }),
       },
     ],
@@ -178,8 +177,8 @@ print(count)
     schema: IntentDiffOutput,
   });
   const divergences = intentDiffOutputToDivergences(diff);
-  await setPhase4Divergences(session.id, divergences);
-  await advancePhase(session.id, 4);
+  await setPhase3Divergences(session.id, divergences);
+  await advancePhase(session.id, 3);
   console.log(`  intent-diff: ${divergences.length} divergences`);
 
   for (const d of divergences) {
@@ -214,7 +213,7 @@ print(count)
     );
   }
   const s = await getSession(session.id);
-  if (!s.completedAt) await advancePhase(session.id, 5);
+  if (!s.completedAt) await advancePhase(session.id, 4);
 
   await refreshSummaryForSession(session.id);
   return session.id;
@@ -305,12 +304,12 @@ print(total)
         `${specs[i]}\n\nExplicit commitments for ${iter.gapsIdentified.join(", ")}.`,
       );
     }
-    await advancePhase(session.id, 3);
+    await advancePhase(session.id, 2);
     const code = i < 3 ? codesWithDrift[i] : cleanCode;
-    await finalizePhase3Code(session.id, code);
+    await finalizePhase2Code(session.id, code);
 
     const loaded = await getSession(session.id);
-    const phase3 = {
+    const phase2 = {
       opusExchanges: [],
       revisions: [],
       currentCode: code,
@@ -326,8 +325,7 @@ print(total)
           content: buildIntentDiffUserMessage({
             exercise: vowels,
             phase1: Phase1Data.parse(loaded.phase1Data),
-            phase2: null,
-            phase3,
+            phase2,
           }),
         },
       ],
@@ -335,8 +333,8 @@ print(total)
       schema: IntentDiffOutput,
     });
     const divergences = intentDiffOutputToDivergences(diff);
-    await setPhase4Divergences(session.id, divergences);
-    await advancePhase(session.id, 4);
+    await setPhase3Divergences(session.id, divergences);
+    await advancePhase(session.id, 3);
     console.log(`  cohort ${i}: ${divergences.length} divergences`);
 
     for (const d of divergences) {
@@ -367,7 +365,7 @@ print(total)
       );
     }
     const s = await getSession(session.id);
-    if (!s.completedAt) await advancePhase(session.id, 5);
+    if (!s.completedAt) await advancePhase(session.id, 4);
   }
 }
 

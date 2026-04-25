@@ -10,17 +10,16 @@ import {
   appendHelpRequest,
   appendLiveSummary,
   appendPhase1Iteration,
-  appendPhase3Exchange,
-  appendPhase3Revision,
+  appendPhase2Exchange,
+  appendPhase2Revision,
   createExercise,
   createSession,
-  finalizePhase3Code,
+  finalizePhase2Code,
   getExercise,
   getSessionFull,
   listActiveSessions,
   recordDivergenceResponse,
-  setPhase2Plan,
-  setPhase4Divergences,
+  setPhase3Divergences,
   updateCurrentCode,
 } from "../src/lib/sessions";
 import {
@@ -29,7 +28,6 @@ import {
   Phase1Data,
   Phase2Data,
   Phase3Data,
-  Phase4Data,
   type Divergence,
 } from "../src/lib/opus/schemas";
 
@@ -70,7 +68,6 @@ async function main() {
         source: "opus",
       },
     ],
-    phase2Required: false,
     studentLevel: "week_1_2",
     opusGeneratedDimensions: [
       {
@@ -92,7 +89,6 @@ async function main() {
           "Student's spec commits to counting uppercase but code only checks lowercase.",
       },
     ],
-    opusGeneratedPhase2Required: false,
     opusGeneratedStudentLevel: "week_1_2",
   });
 
@@ -153,13 +149,13 @@ async function main() {
     resolution: null,
   });
 
-  // ── 7. Advance phase → 3 (phase2Required=false skips phase 2) ────────────
-  await advancePhase(session.id, 3);
+  // ── 7. Advance phase → 2 (writing) ───────────────────────────────────────
+  await advancePhase(session.id, 2);
 
-  // ── 8. Phase 3 activity ──────────────────────────────────────────────────
+  // ── 8. Phase 2 activity ──────────────────────────────────────────────────
   await updateCurrentCode(session.id, "def count_vowels(s):\n    pass\n");
 
-  await appendPhase3Exchange(session.id, {
+  await appendPhase2Exchange(session.id, {
     timestamp: new Date().toISOString(),
     studentMessage: "why does my loop not terminate?",
     opusMode: "interrogative",
@@ -167,14 +163,14 @@ async function main() {
       "What condition have you written for the loop to stop? Walk me through it.",
   });
 
-  await appendPhase3Exchange(session.id, {
+  await appendPhase2Exchange(session.id, {
     timestamp: new Date().toISOString(),
     studentMessage: "what is the syntax of a dict in python?",
     opusMode: "direct",
     opusResponse: "`d = {\"key\": \"value\"}` — curly braces, colons.",
   });
 
-  await appendPhase3Revision(session.id, {
+  await appendPhase2Revision(session.id, {
     timestamp: new Date().toISOString(),
     amendmentText: "Use sum() comprehension instead of accumulator.",
     justificationText: "It's cleaner and reads more naturally in Python.",
@@ -182,14 +178,14 @@ async function main() {
     opusFollowupQuestion: null,
   });
 
-  await finalizePhase3Code(
+  await finalizePhase2Code(
     session.id,
     "def count_vowels(s):\n    return sum(1 for c in s if c in 'aeiou')\n",
   );
 
-  await advancePhase(session.id, 4);
+  await advancePhase(session.id, 3);
 
-  // ── 9. Phase 4 divergences + responses ──────────────────────────────────
+  // ── 9. Phase 3 divergences + responses ──────────────────────────────────
   const divergences: Divergence[] = [
     {
       divergenceId: "case_drift_1",
@@ -199,7 +195,6 @@ async function main() {
       studentFacingQuestion:
         "Your spec mentioned uppercase vowels too. I noticed the code uses 'aeiou' only. Walk me through what happened there.",
       evidenceFromSpec: "counts both lowercase and uppercase",
-      evidenceFromPlan: null,
       evidenceFromCode: "if c in 'aeiou'",
       studentResponse: null,
       alignment: null,
@@ -208,7 +203,7 @@ async function main() {
       respondedAt: null,
     },
   ];
-  await setPhase4Divergences(session.id, divergences);
+  await setPhase3Divergences(session.id, divergences);
 
   const result = await recordDivergenceResponse(
     session.id,
@@ -226,19 +221,18 @@ async function main() {
   await appendLiveSummary(session.id, {
     timestamp: new Date().toISOString(),
     summaryText:
-      "Phase 4; one divergence answered with aligned prediction (drift on case). No intervention needed.",
+      "Phase 3; one divergence answered with aligned prediction (drift on case). No intervention needed.",
     flags: [],
   });
 
   // ── 11. Advance to closed ───────────────────────────────────────────────
-  await advancePhase(session.id, 5);
+  await advancePhase(session.id, 4);
 
   // ── 12. Round-trip full read ────────────────────────────────────────────
   const full = await getSessionFull(session.id);
   Phase1Data.parse(full.phase1Data);
-  if (full.phase2Data !== null) Phase2Data.parse(full.phase2Data);
-  Phase3Data.parse(full.phase3Data);
-  Phase4Data.parse(full.phase4Data);
+  Phase2Data.parse(full.phase2Data);
+  if (full.phase3Data !== null) Phase3Data.parse(full.phase3Data);
   const summaries = full.liveSummaries;
   if (!Array.isArray(summaries)) throw new Error("liveSummaries not array");
   for (const s of summaries) LiveSummary.parse(s);
@@ -306,14 +300,14 @@ async function main() {
             .instructorConfiguredDimensionsAddressed,
           helpRequests: (snapshot.phase1Data as Phase1Data).helpRequests.length,
         },
-        phase3: {
-          exchanges: (snapshot.phase3Data as Phase3Data).opusExchanges.length,
-          revisions: (snapshot.phase3Data as Phase3Data).revisions.length,
-          finalCodeBytes: (snapshot.phase3Data as Phase3Data).finalCode?.length,
+        phase2: {
+          exchanges: (snapshot.phase2Data as Phase2Data).opusExchanges.length,
+          revisions: (snapshot.phase2Data as Phase2Data).revisions.length,
+          finalCodeBytes: (snapshot.phase2Data as Phase2Data).finalCode?.length,
         },
-        phase4: {
-          divergences: (snapshot.phase4Data as Phase4Data).divergences.length,
-          aligned: (snapshot.phase4Data as Phase4Data).divergences.filter(
+        phase3: {
+          divergences: (snapshot.phase3Data as Phase3Data).divergences.length,
+          aligned: (snapshot.phase3Data as Phase3Data).divergences.filter(
             (d) => d.alignment === "aligned",
           ).length,
         },

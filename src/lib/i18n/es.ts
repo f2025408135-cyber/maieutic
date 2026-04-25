@@ -46,10 +46,9 @@ export const es = {
   },
   phaseLabel: {
     "1": "especificación",
-    "2": "plan",
-    "3": "programando",
-    "4": "revisión",
-    "5": "cerrado",
+    "2": "programando",
+    "3": "revisión",
+    "4": "cerrado",
   },
   statusBar: {
     phase: (n: number, label: string) => `fase ${n} · ${label}`,
@@ -89,20 +88,12 @@ export const es = {
     passed: "✓ aprobada",
   },
   phase2: {
-    title: "Plan de implementación",
-    intro:
-      "Antes de que se desbloquee el editor, escribe las estructuras de datos que usarás, el orden de las operaciones y las funciones que definirás. Esta es tu predicción — tu código se comparará con ella más tarde.",
-    placeholder: "Usaré un único bucle sobre los caracteres…",
-    submit: "Enviar plan",
-    submitting: "Enviando…",
-  },
-  phase3: {
     comparing: "Comparando tu código con tu especificación…",
     submit: "Enviar para revisión",
     submitting: "Revisando tu trabajo…",
     changeOfPlan: "Cambio de plan",
     changeOfPlanDesc:
-      "¿Qué está cambiando y por qué? Tu plan original queda registrado, y la revisión se considera en la evaluación final.",
+      "¿Qué está cambiando y por qué? Tu especificación original queda registrada, y la revisión se considera en la evaluación final.",
     amendmentPlaceholder: "¿Qué estás cambiando?",
     why: "¿Por qué?",
     reasonFaster: "Más rápido",
@@ -123,7 +114,6 @@ export const es = {
     send: "Enviar",
     sendShort: "…",
     acceptedSpec: "Tu especificación aceptada",
-    yourPlan: "Tu plan",
     run: "Ejecutar",
     running: "Ejecutando…",
     loadingPython: "Cargando Python…",
@@ -131,7 +121,7 @@ export const es = {
     consoleEmpty: "Ejecuta tu código para ver la salida aquí.",
     consoleClear: "Limpiar",
   },
-  phase4: {
+  phase3: {
     sessionComplete: "✓ Sesión completada.",
     nothingMore: "No hay nada más que hacer — ¿listo/a para otro?",
     headBack: "Volver a la lista de ejercicios →",
@@ -157,12 +147,12 @@ export const es = {
     specEmptySuffix: " (vacía)",
     revisionPromptTitle: "¿Quieres un intento más para cerrar esas brechas?",
     revisionPromptBody:
-      "Puedes revisar tu código ahora para alinearlo con tu plan. Tu envío original y tus respuestas de arriba quedan registrados — esta es una pasada sin asistencia.",
+      "Puedes revisar tu código ahora para alinearlo con tu especificación. Tu envío original y tus respuestas de arriba quedan registrados — esta es una pasada sin asistencia.",
     revisionYes: "Revisar mi código",
     revisionNo: "Estoy listo/a",
     revisionEditingTitle: "Cierra las brechas",
     revisionEditingBody:
-      "Edita tu código para alinearlo con tu plan. Tu especificación y tu plan quedan fijados como referencia.",
+      "Edita tu código para alinearlo con tu especificación. Tu especificación queda fijada como referencia.",
     revisionRecap: "Tus respuestas a las divergencias",
     revisionSubmit: "Enviar código revisado",
     revisionSubmitting: "Guardando…",

@@ -11,21 +11,20 @@ import {
   buildIntentDiffUserMessage,
 } from "../src/lib/opus/prompts/intent-diff";
 import {
-  PHASE3_CHAT_SYSTEM,
-  buildPhase3ChatUserMessage,
-} from "../src/lib/opus/prompts/phase3-chat";
+  PHASE2_CHAT_SYSTEM,
+  buildPhase2ChatUserMessage,
+} from "../src/lib/opus/prompts/phase2-chat";
 import {
   POST_HOC_SYSTEM,
   buildPostHocUserMessage,
 } from "../src/lib/opus/prompts/post-hoc";
 import {
   IntentDiffOutput,
-  Phase3ChatOutput,
+  Phase2ChatOutput,
   PostHocOutput,
   type ExerciseRecord,
   type Phase1Data,
   type Phase2Data,
-  type Phase3Data,
   type StudentLevel,
 } from "../src/lib/opus/schemas";
 
@@ -36,15 +35,13 @@ type Scenario = {
     "instructorPromptText" | "studentLevel" | "expectedDivergences"
   >;
   phase1Spec: string;
-  phase2Plan: string | null;
   finalCode: string;
   expectedClassification: "drift" | "revision" | "bug" | "empty";
 };
 
 function buildPhases(s: Scenario): {
   phase1: Phase1Data;
-  phase2: Phase2Data | null;
-  phase3: Phase3Data;
+  phase2: Phase2Data;
 } {
   return {
     phase1: {
@@ -53,10 +50,7 @@ function buildPhases(s: Scenario): {
       instructorConfiguredDimensionsAddressed: [],
       helpRequests: [],
     },
-    phase2: s.phase2Plan
-      ? { planText: s.phase2Plan, submittedAt: new Date().toISOString() }
-      : null,
-    phase3: {
+    phase2: {
       opusExchanges: [],
       revisions: [],
       currentCode: s.finalCode,
@@ -104,7 +98,6 @@ const scenarios: Scenario[] = [
     },
     phase1Spec:
       "The function takes a string and counts how many vowels are in it. Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. An empty string returns 0.",
-    phase2Plan: null,
     finalCode: `def count_vowels(s):
     count = 0
     for c in s:
@@ -123,7 +116,6 @@ const scenarios: Scenario[] = [
     },
     phase1Spec:
       "The function takes a string and returns the count of lowercase a,e,i,o,u AND uppercase A,E,I,O,U. 'y' is not a vowel. Empty string returns 0.",
-    phase2Plan: null,
     finalCode: `def count_vowels(s):
     count = 0
     vowels = 'aeiouAEIOU'
@@ -150,8 +142,6 @@ const scenarios: Scenario[] = [
     },
     phase1Spec:
       "The function takes a string of space-separated words and returns the word with the highest count. Empty string returns the empty string. Ties are broken by first appearance.",
-    phase2Plan:
-      "Split the string on whitespace. Build a dictionary mapping each word to its count. Loop through the words and increment the count. Return the word with the maximum count.",
     finalCode: `def most_common(s):
     if s == "":
         return ""
@@ -180,8 +170,6 @@ const scenarios: Scenario[] = [
     },
     phase1Spec:
       "The function takes a password string. It returns exactly True if length >= 8 AND contains at least one digit AND at least one uppercase letter AND at least one of !@#$%. Otherwise exactly False. Non-string input: return False. Empty string: return False.",
-    phase2Plan:
-      "I'll define four boolean variables, one for each rule. Loop through the string once, updating each flag. At the end, return True only if all four are True, plus the length check at the start.",
     finalCode: `def validate(pw):
     if not isinstance(pw, str) or len(pw) < 8:
         return False
@@ -203,8 +191,6 @@ const scenarios: Scenario[] = [
     },
     phase1Spec:
       "The function takes a password string. It returns True iff length >= 8 AND at least one digit AND at least one uppercase letter AND at least one of !@#$%. Otherwise False. Non-string input returns False.",
-    phase2Plan:
-      "Validate length first. Then four boolean checks (has_digit, has_upper, has_special) using explicit loops. Return True only if all pass.",
     finalCode: `def validate(pw):
     if not isinstance(pw, str) or len(pw) < 8:
         return False
@@ -240,7 +226,7 @@ const chatScenarios: ChatScenario[] = [
   },
 ];
 
-// Shared context for chat scenarios — a mid-Phase-3 student working the vowels exercise
+// Shared context for chat scenarios — a mid-Phase-2 student working the vowels exercise
 const chatContext = {
   exercise: {
     instructorPromptText: "Write a function that counts vowels in a string.",
@@ -248,7 +234,6 @@ const chatContext = {
   },
   specText:
     "The function takes a string and counts both lowercase and uppercase vowels. Empty string returns 0.",
-  planText: null,
   currentCode: `def count_vowels(s):
     count = 0
     for c in s:
@@ -262,19 +247,19 @@ const chatContext = {
 async function runChat(s: ChatScenario) {
   const start = Date.now();
   const out = await callOpusAndParse({
-    promptName: "phase3-chat",
-    system: PHASE3_CHAT_SYSTEM,
+    promptName: "phase2-chat",
+    system: PHASE2_CHAT_SYSTEM,
     messages: [
       {
         role: "user",
-        content: buildPhase3ChatUserMessage({
+        content: buildPhase2ChatUserMessage({
           ...chatContext,
           studentMessage: s.message,
         }),
       },
     ],
     maxTokens: 1024,
-    schema: Phase3ChatOutput,
+    schema: Phase2ChatOutput,
   });
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   return { out, elapsed };

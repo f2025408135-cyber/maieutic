@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { callOpusAndParse } from "@/lib/opus/client";
 import {
-  PHASE3_CHAT_SYSTEM,
-  buildPhase3ChatUserMessage,
-} from "@/lib/opus/prompts/phase3-chat";
-import { Phase3ChatOutput, Phase3Data, Phase1Data, Phase2Data } from "@/lib/opus/schemas";
+  PHASE2_CHAT_SYSTEM,
+  buildPhase2ChatUserMessage,
+} from "@/lib/opus/prompts/phase2-chat";
+import { Phase2ChatOutput, Phase2Data, Phase1Data } from "@/lib/opus/schemas";
 import {
-  appendPhase3Exchange,
+  appendPhase2Exchange,
   getExercise,
   getSession,
 } from "@/lib/sessions";
@@ -34,7 +34,7 @@ export async function POST(
   }
 
   const session = await getSession(sid);
-  if (session.currentPhase !== 3) {
+  if (session.currentPhase !== 2) {
     return NextResponse.json(
       { error: "wrong_phase", currentPhase: session.currentPhase },
       { status: 409 },
@@ -43,30 +43,28 @@ export async function POST(
 
   const exercise = await getExercise(session.exerciseId);
   const phase1 = Phase1Data.parse(session.phase1Data);
-  const phase2 = session.phase2Data ? Phase2Data.parse(session.phase2Data) : null;
-  const phase3 = Phase3Data.parse(session.phase3Data);
+  const phase2 = Phase2Data.parse(session.phase2Data);
   const lang = await getLang();
 
   let chat;
   try {
     chat = await callOpusAndParse({
-      promptName: "phase3-chat",
-      system: PHASE3_CHAT_SYSTEM + langDirective(lang, ["response"]),
+      promptName: "phase2-chat",
+      system: PHASE2_CHAT_SYSTEM + langDirective(lang, ["response"]),
       messages: [
         {
           role: "user",
-          content: buildPhase3ChatUserMessage({
+          content: buildPhase2ChatUserMessage({
             exercise,
             specText: phase1.finalSpecText ?? "",
-            planText: phase2?.planText ?? null,
-            currentCode: phase3.currentCode,
-            recentExchanges: phase3.opusExchanges,
+            currentCode: phase2.currentCode,
+            recentExchanges: phase2.opusExchanges,
             studentMessage: body.message,
           }),
         },
       ],
       maxTokens: 1024,
-      schema: Phase3ChatOutput,
+      schema: Phase2ChatOutput,
     });
   } catch (err) {
     return NextResponse.json(
@@ -84,7 +82,7 @@ export async function POST(
     opusMode: chat.mode,
     opusResponse: chat.response,
   };
-  await appendPhase3Exchange(sid, exchange);
+  await appendPhase2Exchange(sid, exchange);
 
   return NextResponse.json({ exchange });
 }

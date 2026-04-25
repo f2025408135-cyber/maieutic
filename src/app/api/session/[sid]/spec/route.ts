@@ -94,12 +94,12 @@ export async function POST(
   await appendPhase1Iteration(sid, iteration);
 
   if (passed) {
-    await advancePhase(sid, exercise.phase2Required ? 2 : 3);
+    await advancePhase(sid, 2);
   }
 
   return NextResponse.json({
     iteration,
     passed,
-    nextPhase: passed ? (exercise.phase2Required ? 2 : 3) : 1,
+    nextPhase: passed ? 2 : 1,
   });
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { appendPhase3Revision, getSession } from "@/lib/sessions";
+import { appendPhase2Revision, getSession } from "@/lib/sessions";
 
 const Body = z.object({
   amendment: z.string().min(1).max(5_000),
@@ -23,14 +23,14 @@ export async function POST(
   }
 
   const session = await getSession(sid);
-  if (session.currentPhase !== 3) {
+  if (session.currentPhase !== 2) {
     return NextResponse.json(
       { error: "wrong_phase", currentPhase: session.currentPhase },
       { status: 409 },
     );
   }
 
-  await appendPhase3Revision(sid, {
+  await appendPhase2Revision(sid, {
     timestamp: new Date().toISOString(),
     amendmentText: body.amendment,
     justificationText: body.justification,
