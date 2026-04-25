@@ -26,6 +26,7 @@ import {
   Phase3Data,
   Phase3Exchange,
   Phase3Revision,
+  Phase4Data,
   SessionEventKind,
   SessionEventPayloadSchemaByKind,
   SpecDimension,
@@ -109,19 +110,87 @@ export async function getSession(sessionId: string) {
   return prisma.session.findUniqueOrThrow({ where: { id: sessionId } });
 }
 
-// Returns the most recent active (not-yet-completed) session for this
-// (student, exercise) pair, or creates one if none exists. Used by the
-// student exercise page so refreshing the tab doesn't spawn new sessions.
+// Pure resolver: given every session for one (student, exercise) pair,
+// pick the one the student should land on. Order of preference:
+//   1. resumable in-progress (phase > 1, or phase 1 with iterations)
+//   2. fresh empty session created after the last completion
+//      (a just-clicked "Start fresh" lives here)
+//   3. most-recent completed session (read-only review)
+//   4. nothing — caller should create a new session
+//
+// The exercise list uses the same rule to decide whether to show the
+// green ✅: only when this resolver would land the student on a
+// completed session.
+type ResolvableSession = {
+  id: string;
+  exerciseId: string;
+  startedAt: Date;
+  completedAt: Date | null;
+  currentPhase: number;
+  phase1Data: unknown;
+};
+export function resolveSession<T extends ResolvableSession>(
+  sessions: T[],
+): T | null {
+  const inProgress = sessions
+    .filter((s) => s.completedAt === null)
+    .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+  const resumable = inProgress.find((s) => {
+    if (s.currentPhase > 1) return true;
+    const p1 = s.phase1Data as { iterations?: unknown[] } | null;
+    return (p1?.iterations?.length ?? 0) > 0;
+  });
+  if (resumable) return resumable;
+
+  const completed = sessions
+    .filter((s): s is T & { completedAt: Date } => s.completedAt !== null)
+    .sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime())[0];
+
+  const mostRecentEmpty = inProgress[0];
+  if (mostRecentEmpty) {
+    if (!completed || mostRecentEmpty.startedAt > completed.completedAt) {
+      return mostRecentEmpty;
+    }
+  }
+
+  return completed ?? null;
+}
+
 export async function findOrCreateSession(
   exerciseId: string,
   studentId: string,
 ) {
-  const existing = await prisma.session.findFirst({
-    where: { exerciseId, studentId, completedAt: null },
+  const sessions = await prisma.session.findMany({
+    where: { exerciseId, studentId },
     orderBy: { startedAt: "desc" },
   });
-  if (existing) return existing;
+  const resolved = resolveSession(sessions);
+  if (resolved) return resolved;
   return createSession(exerciseId, studentId);
+}
+
+// Returns the resolved session per exercise the student has touched.
+// Callers (e.g. /exercises) inspect `completedAt` on each resolved
+// session to render the ✅ — staying in lockstep with findOrCreateSession.
+export async function listResolvedSessionsForStudent(
+  studentId: string,
+): Promise<Map<string, Awaited<ReturnType<typeof prisma.session.findMany>>[number]>> {
+  if (!studentId) return new Map();
+  const rows = await prisma.session.findMany({
+    where: { studentId },
+  });
+  const byExercise = new Map<string, typeof rows>();
+  for (const s of rows) {
+    const arr = byExercise.get(s.exerciseId) ?? [];
+    arr.push(s);
+    byExercise.set(s.exerciseId, arr);
+  }
+  const out = new Map<string, (typeof rows)[number]>();
+  for (const [exId, sessions] of byExercise) {
+    const resolved = resolveSession(sessions);
+    if (resolved) out.set(exId, resolved);
+  }
+  return out;
 }
 
 export async function getSessionFull(sessionId: string) {
@@ -334,15 +403,17 @@ export async function setPhase4Divergences(
 ): Promise<void> {
   const parsed = z.array(Divergence).parse(divergences);
   const now = new Date().toISOString();
+  const phase4: Phase4Data = {
+    divergences: parsed,
+    startedAt: now,
+    completedAt: null,
+    revisionChoice: null,
+    revisedCode: null,
+    revisedAt: null,
+  };
   await prisma.session.update({
     where: { id: sessionId },
-    data: {
-      phase4Data: asJson({
-        divergences: parsed,
-        startedAt: now,
-        completedAt: null,
-      }),
-    },
+    data: { phase4Data: asJson(phase4) },
   });
 }
 
@@ -359,13 +430,7 @@ export async function recordDivergenceResponse(
   });
   if (!session.phase4Data)
     throw new Error(`session ${sessionId} has no phase4Data`);
-  const phase4 = z
-    .object({
-      divergences: z.array(Divergence),
-      startedAt: z.string(),
-      completedAt: z.string().nullable(),
-    })
-    .parse(session.phase4Data);
+  const phase4 = Phase4Data.parse(session.phase4Data);
   const target = phase4.divergences.find((d) => d.divergenceId === divergenceId);
   if (!target) throw new Error(`unknown divergenceId: ${divergenceId}`);
   const predictionUsed = target.predictedJustification;
@@ -394,6 +459,33 @@ export async function recordDivergenceResponse(
   }
 
   return { allAnswered, predictionUsed };
+}
+
+// Revision pass: called once, after all divergences are answered. Either
+// records a skipped pass (no code change) or stores the revised code. Does
+// not touch phase3.finalCode, divergence answers, or classifications —
+// those are the frozen learning signal.
+export async function recordFinalRevision(
+  sessionId: string,
+  revisedCode: string | null,
+): Promise<void> {
+  const session = await prisma.session.findUniqueOrThrow({
+    where: { id: sessionId },
+  });
+  if (!session.phase4Data)
+    throw new Error(`session ${sessionId} has no phase4Data`);
+  const phase4 = Phase4Data.parse(session.phase4Data);
+  if (phase4.completedAt === null)
+    throw new Error(`session ${sessionId} has unanswered divergences`);
+  if (phase4.revisionChoice !== null)
+    throw new Error(`session ${sessionId} already finalized`);
+  phase4.revisionChoice = revisedCode === null ? "skipped" : "revised";
+  phase4.revisedCode = revisedCode;
+  phase4.revisedAt = new Date().toISOString();
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { phase4Data: asJson(phase4) },
+  });
 }
 
 // ─── Live summaries ───────────────────────────────────────────────────────

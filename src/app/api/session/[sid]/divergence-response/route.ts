@@ -6,11 +6,10 @@ import {
   buildPostHocUserMessage,
 } from "@/lib/opus/prompts/post-hoc";
 import {
-  Divergence,
+  Phase4Data,
   PostHocOutput,
 } from "@/lib/opus/schemas";
 import {
-  advancePhase,
   getExercise,
   getSession,
   recordDivergenceResponse,
@@ -47,13 +46,7 @@ export async function POST(
     return NextResponse.json({ error: "no_phase4" }, { status: 500 });
 
   const exercise = await getExercise(session.exerciseId);
-  const phase4 = z
-    .object({
-      divergences: z.array(Divergence),
-      startedAt: z.string(),
-      completedAt: z.string().nullable(),
-    })
-    .parse(session.phase4Data);
+  const phase4 = Phase4Data.parse(session.phase4Data);
   const divergence = phase4.divergences.find(
     (d) => d.divergenceId === body.divergenceId,
   );
@@ -106,12 +99,9 @@ export async function POST(
     postHoc.final_classification_reason,
   );
 
-  // Once every divergence has a response, close the session. This sets
-  // Session.completedAt (used by /exercises to show the ✅ check) and emits
-  // the phase_transition event.
-  if (allAnswered) {
-    await advancePhase(sid, 5);
-  }
+  // Session stays in phase 4 after the last answer; the student then
+  // picks between revising their code and finishing via /finalize, which
+  // is what advances to phase 5.
 
   return NextResponse.json({
     ok: true,

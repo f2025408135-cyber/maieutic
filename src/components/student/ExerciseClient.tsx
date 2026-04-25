@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { PythonEditor } from "@/components/student/PythonEditor";
+import { provideInput, runPython } from "@/lib/run-python";
 import { TopNav } from "@/components/editor/TopNav";
 import { FileTabBar } from "@/components/editor/FileTab";
 import { StatusBar } from "@/components/editor/StatusBar";
@@ -66,6 +67,12 @@ interface DivergenceQuestion {
   result: { alignment: string; finalClassification: string } | null;
 }
 
+type ConsoleLine = {
+  kind: "stdout" | "stderr" | "input" | "system" | "error";
+  text: string;
+};
+type RunState = "idle" | "loading" | "running" | "waiting-input";
+
 // ─── Main ─────────────────────────────────────────────────────────────────
 
 export function ExerciseClient({
@@ -96,6 +103,80 @@ export function ExerciseClient({
   const [chatBusy, setChatBusy] = useState(false);
   const [finalSubmitting, setFinalSubmitting] = useState(false);
 
+  // ── browser-side Python runner (Pyodide-in-a-Worker) ──────────────
+  // The console is a unified stream: stdout, stderr, echoed input, and
+  // any errors arrive as ConsoleLine entries in arrival order.
+  const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
+  const [runState, setRunState] = useState<RunState>("idle");
+  const pyodideEverLoaded = useRef(false);
+
+  async function runCode() {
+    if (runState !== "idle") return;
+    setConsoleLines([]);
+    if (!pyodideEverLoaded.current) {
+      setRunState("loading");
+      setConsoleLines([{ kind: "system", text: "Loading Python…\n" }]);
+    } else {
+      setRunState("running");
+    }
+    try {
+      // Strip the "Loading Python…" placeholder the moment real output
+      // (or an input prompt) arrives, so the console only shows what
+      // the program produced.
+      const dropLoadingPlaceholder = (lines: ConsoleLine[]) =>
+        lines.filter((l) => l.kind !== "system");
+      await runPython(code, (event) => {
+        if (event.type === "stdout") {
+          setConsoleLines((prev) => [
+            ...dropLoadingPlaceholder(prev),
+            { kind: "stdout", text: event.text },
+          ]);
+          pyodideEverLoaded.current = true;
+          setRunState("running");
+        } else if (event.type === "stderr") {
+          setConsoleLines((prev) => [
+            ...dropLoadingPlaceholder(prev),
+            { kind: "stderr", text: event.text },
+          ]);
+        } else if (event.type === "inputRequest") {
+          setConsoleLines((prev) => dropLoadingPlaceholder(prev));
+          pyodideEverLoaded.current = true;
+          setRunState("waiting-input");
+        } else if (event.type === "error") {
+          setConsoleLines((prev) => [
+            ...prev,
+            { kind: "error", text: event.text + "\n" },
+          ]);
+          pyodideEverLoaded.current = true;
+          setRunState("idle");
+        } else if (event.type === "done") {
+          pyodideEverLoaded.current = true;
+          setRunState("idle");
+        }
+      });
+    } catch (err) {
+      setConsoleLines((prev) => [
+        ...prev,
+        {
+          kind: "error",
+          text:
+            (err instanceof Error ? err.message : String(err)) + "\n",
+        },
+      ]);
+      setRunState("idle");
+    }
+  }
+  function submitConsoleInput(text: string) {
+    if (runState !== "waiting-input") return;
+    provideInput(text);
+    setConsoleLines((prev) => [...prev, { kind: "input", text: text + "\n" }]);
+    setRunState("running");
+  }
+  function clearConsole() {
+    if (runState !== "idle") return;
+    setConsoleLines([]);
+  }
+
   // Seed from persisted phase4 data so reloading mid-review preserves any
   // answers the student has already given.
   const [divergences, setDivergences] = useState<DivergenceQuestion[]>(() => {
@@ -119,6 +200,14 @@ export function ExerciseClient({
     const firstUnanswered = divergences.findIndex((d) => d.result === null);
     return firstUnanswered === -1 ? 0 : firstUnanswered;
   });
+
+  // Revision pass: mirror of phase4Data.revisionChoice. Stays null until the
+  // student either skips or submits a revised version after the divergence
+  // loop finishes. Triggers the handoff UI; finalizing advances to phase 5.
+  const [revisionChoice, setRevisionChoice] = useState<
+    "skipped" | "revised" | null
+  >(initialSession.phase4?.revisionChoice ?? null);
+  const [finalizing, setFinalizing] = useState(false);
 
   const hasPendingAnswers =
     divergences.length > 0 && divergences.some((d) => d.result === null);
@@ -379,19 +468,64 @@ export function ExerciseClient({
             : x,
         ),
       );
-      if (body.allAnswered) {
-        setSession((prev) => ({ ...prev, currentPhase: 5 }));
-      } else {
+      if (!body.allAnswered) {
         const next = divergences.findIndex(
           (d, idx) => idx !== i && d.result === null,
         );
         if (next !== -1) setDivergenceIndex(next);
       }
+      // Once every divergence is answered we stay in phase 4. The student
+      // picks between revising their code and finishing via /finalize,
+      // which advances the phase.
     } catch (err) {
       setError(err instanceof Error ? err.message : t.common.unknownError);
       setDivergences((prev) =>
         prev.map((x, idx) => (idx === i ? { ...x, submitting: false } : x)),
       );
+    }
+  }
+
+  async function finalizeSession(revisedCode: string | null) {
+    if (finalizing) return;
+    setFinalizing(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/session/${session.id}/finalize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(revisedCode === null ? {} : { revisedCode }),
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      const body = (await res.json()) as {
+        revisionChoice: "skipped" | "revised";
+      };
+      setRevisionChoice(body.revisionChoice);
+      setSession((prev) => ({ ...prev, currentPhase: 5 }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.common.unknownError);
+    } finally {
+      setFinalizing(false);
+    }
+  }
+
+  const [restarting, setRestarting] = useState(false);
+  async function startFreshSession() {
+    if (restarting) return;
+    if (!window.confirm(t.phase4.startFreshConfirm)) return;
+    setRestarting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/exercise/${exercise.id}/reset`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error(await readError(res));
+      // The new session becomes "most recent" for this (student, exercise)
+      // pair; a full reload picks it up via findOrCreateSession and clears
+      // any in-memory drafts from the prior session.
+      window.location.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.common.unknownError);
+      setRestarting(false);
     }
   }
 
@@ -475,6 +609,11 @@ export function ExerciseClient({
           finalSubmitting={finalSubmitting}
           sessionId={session.id}
           error={error}
+          consoleLines={consoleLines}
+          runState={runState}
+          runCode={runCode}
+          submitConsoleInput={submitConsoleInput}
+          clearConsole={clearConsole}
         />
       )}
 
@@ -483,12 +622,25 @@ export function ExerciseClient({
           iterations={session.phase1.iterations}
           finalSpec={session.phase1.finalSpecText ?? ""}
           plan={session.phase2?.planText ?? null}
-          finalCode={session.phase3.finalCode ?? code}
+          // Show the revised code when one exists — that's the version
+          // the student actually ended with. The original stays as the
+          // diff anchor in the teacher reasoning view.
+          finalCode={
+            session.phase4?.revisedCode ??
+            session.phase3.finalCode ??
+            code
+          }
           divergences={divergences}
           currentIndex={divergenceIndex}
           setIndex={setDivergenceIndex}
           onAnswer={answerDivergence}
           error={error}
+          revisionChoice={revisionChoice}
+          onFinalize={finalizeSession}
+          finalizing={finalizing}
+          closed={closed}
+          onStartFresh={startFreshSession}
+          restarting={restarting}
         />
       )}
 
@@ -844,6 +996,11 @@ function Phase3View({
   finalSubmitting,
   sessionId,
   error,
+  consoleLines,
+  runState,
+  runCode,
+  submitConsoleInput,
+  clearConsole,
 }: {
   code: string;
   setCode: (v: string) => void;
@@ -856,6 +1013,11 @@ function Phase3View({
   finalSubmitting: boolean;
   sessionId: string;
   error: string | null;
+  consoleLines: ConsoleLine[];
+  runState: RunState;
+  runCode: () => void;
+  submitConsoleInput: (text: string) => void;
+  clearConsole: () => void;
 }) {
   const t = useT();
   return (
@@ -865,6 +1027,12 @@ function Phase3View({
           <div className="flex-1 min-h-0">
             <PythonEditor value={code} onChange={setCode} readOnly={false} />
           </div>
+          <RunConsole
+            lines={consoleLines}
+            runState={runState}
+            onSubmitInput={submitConsoleInput}
+            onClear={clearConsole}
+          />
           <div className="px-6 py-3 border-t border-[#3e3e42] bg-[#252526] flex items-center justify-between gap-3">
             <div className="min-w-0">
               {finalSubmitting && (
@@ -880,6 +1048,26 @@ function Phase3View({
               )}
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={runCode}
+                disabled={runState !== "idle" || !code.trim()}
+                className="text-sm px-3 py-1.5 rounded border border-[#3e3e42] bg-[#252526] text-[#d4d4d4] hover:bg-[#2d2d30] disabled:opacity-60 transition-colors inline-flex items-center gap-2"
+              >
+                {runState === "loading" && (
+                  <span className="w-2 h-2 rounded-full bg-[#dcdcaa] animate-pulse" />
+                )}
+                {runState === "running" && (
+                  <span className="w-2 h-2 rounded-full bg-[#569cd6] animate-pulse" />
+                )}
+                <span>▶</span>
+                <span>
+                  {runState === "loading"
+                    ? t.phase3.loadingPython
+                    : runState === "running"
+                      ? t.phase3.running
+                      : t.phase3.run}
+                </span>
+              </button>
               <RevisePlanDialog sessionId={sessionId} />
               <Button
                 onClick={submitFinalCode}
@@ -903,6 +1091,114 @@ function Phase3View({
   );
 }
 
+function RunConsole({
+  lines,
+  runState,
+  onSubmitInput,
+  onClear,
+}: {
+  lines: ConsoleLine[];
+  runState: RunState;
+  onSubmitInput: (text: string) => void;
+  onClear: () => void;
+}) {
+  const t = useT();
+  const [draft, setDraft] = useState("");
+  const [consoleInputFocused, setConsoleInputFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (runState === "waiting-input") inputRef.current?.focus();
+  }, [runState]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [lines, runState]);
+
+  function submit() {
+    onSubmitInput(draft);
+    setDraft("");
+  }
+
+  return (
+    <section className="shrink-0 border-t border-[#3e3e42] bg-[#1e1e1e] flex flex-col h-[200px]">
+      <div className="px-3 py-1.5 border-b border-[#3e3e42] bg-[#252526] flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-[#858585]">
+        <span>{t.phase3.consoleHeader}</span>
+        {lines.length > 0 && runState === "idle" && (
+          <button
+            onClick={onClear}
+            className="hover:text-white transition-colors"
+          >
+            {t.phase3.consoleClear}
+          </button>
+        )}
+      </div>
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-3 py-2 text-[13px] font-mono whitespace-pre-wrap break-words"
+      >
+        {lines.length === 0 && runState === "idle" ? (
+          <span className="text-[#6a6a6a]">{t.phase3.consoleEmpty}</span>
+        ) : (
+          lines.map((line, i) => (
+            <span
+              key={i}
+              className={
+                line.kind === "stderr" || line.kind === "error"
+                  ? "text-[#f48771]"
+                  : line.kind === "input"
+                    ? "text-[#9cdcfe]"
+                    : line.kind === "system"
+                      ? "text-[#858585] italic"
+                      : "text-[#d4d4d4]"
+              }
+            >
+              {line.text}
+            </span>
+          ))
+        )}
+        {runState === "waiting-input" && (
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-[#4ec9b0] select-none">›</span>
+            <input
+              ref={inputRef}
+              type="text"
+              // The readOnly-then-clear-on-focus trick is the only thing
+              // that reliably suppresses native form autofill across
+              // Firefox/Zen, Chrome, and Safari — autocomplete="off" is
+              // ignored, password-manager data-* attrs don't cover the
+              // browser's built-in autofill.
+              readOnly={!consoleInputFocused}
+              onFocus={() => setConsoleInputFocused(true)}
+              onBlur={() => setConsoleInputFocused(false)}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-bwignore="true"
+              data-form-type="other"
+              aria-label="Console input"
+              className="flex-1 bg-transparent text-[#d4d4d4] outline-none font-mono text-[13px]"
+            />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ─── Phase 4 — divergence review ─────────────────────────────────────
 
 function Phase4View({
@@ -915,6 +1211,12 @@ function Phase4View({
   setIndex,
   onAnswer,
   error,
+  revisionChoice,
+  onFinalize,
+  finalizing,
+  closed,
+  onStartFresh,
+  restarting,
 }: {
   iterations: Phase1Iteration[];
   finalSpec: string;
@@ -925,10 +1227,50 @@ function Phase4View({
   setIndex: (i: number) => void;
   onAnswer: (i: number, answer: string) => void;
   error: string | null;
+  revisionChoice: "skipped" | "revised" | null;
+  onFinalize: (revisedCode: string | null) => void;
+  finalizing: boolean;
+  closed: boolean;
+  onStartFresh: () => void;
+  restarting: boolean;
 }) {
   const t = useT();
   const allAnswered =
     divergences.length > 0 && divergences.every((d) => d.result !== null);
+
+  // Terminal states after the divergence loop:
+  //   - 0 divergences  → phase already 5, show "session complete" (closed)
+  //   - answered, no choice yet → show the revision handoff
+  //   - editing        → swap to the Monaco revision editor
+  //   - revised/skipped → show "session complete" with an optional badge
+  const needsFinalization =
+    allAnswered && revisionChoice === null && !closed;
+  const [editingRevision, setEditingRevision] = useState(false);
+
+  // Once the server confirms the finalize (revisionChoice flips from null),
+  // drop the editor so the student lands on the "session complete" view
+  // instead of a stale editor that would reject a second submit.
+  useEffect(() => {
+    if (revisionChoice !== null) setEditingRevision(false);
+  }, [revisionChoice]);
+
+  if (editingRevision) {
+    return (
+      <RevisionEditor
+        finalSpec={finalSpec}
+        plan={plan}
+        originalCode={finalCode}
+        divergences={divergences}
+        onSubmit={(code) => onFinalize(code)}
+        onCancel={() => {
+          setEditingRevision(false);
+          onFinalize(null);
+        }}
+        finalizing={finalizing}
+        error={error}
+      />
+    );
+  }
 
   // Size the read-only editor to exactly the code's line count so there's no
   // internal scrollbar and no dead space. Monaco's line height at fontSize
@@ -941,23 +1283,72 @@ function Phase4View({
   return (
     <main className="flex-1 overflow-y-auto p-8">
       <div className="max-w-3xl mx-auto space-y-8">
-        {(divergences.length === 0 || allAnswered) && (
-          <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {needsFinalization ? (
+          <div className="rounded-md border border-[#dcdcaa]/40 bg-[#2a2411] px-5 py-5 space-y-4">
             <div>
               <div className="text-base font-semibold text-[#d4d4d4]">
-                {t.phase4.sessionComplete}
+                {t.phase4.revisionPromptTitle}
               </div>
-              <div className="text-sm text-[#858585] mt-1">
-                {t.phase4.nothingMore}
+              <div className="text-sm text-[#858585] mt-1 leading-relaxed">
+                {t.phase4.revisionPromptBody}
               </div>
             </div>
-            <Link
-              href="/exercises"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
-            >
-              {t.phase4.headBack}
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={() => setEditingRevision(true)}
+                disabled={finalizing}
+              >
+                {t.phase4.revisionYes}
+              </Button>
+              <button
+                onClick={() => onFinalize(null)}
+                disabled={finalizing}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded border border-[#3e3e42] bg-[#252526] text-[#d4d4d4] text-sm hover:bg-[#2d2d30] disabled:opacity-60 transition-colors"
+              >
+                {finalizing ? t.phase4.finishingUp : t.phase4.revisionNo}
+              </button>
+              {error && (
+                <span className="text-xs text-[#f48771] font-mono self-center">
+                  {error}
+                </span>
+              )}
+            </div>
           </div>
+        ) : (
+          (divergences.length === 0 || allAnswered) && (
+            <div className="rounded-md border border-[#4ec9b0]/40 bg-[#162521] px-5 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="text-base font-semibold text-[#d4d4d4] flex items-center gap-2">
+                  {t.phase4.sessionComplete}
+                  {revisionChoice === "revised" && (
+                    <span className="text-[10px] uppercase tracking-wider text-[#75beff] font-mono border border-[#3e5d7a] bg-[#1f3a5c] px-1.5 py-0.5 rounded">
+                      {t.phase4.revisedBadge}
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-[#858585] mt-1">
+                  {t.phase4.nothingMore}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                {closed && (
+                  <button
+                    onClick={onStartFresh}
+                    disabled={restarting}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border border-[#3e3e42] bg-[#252526] text-[#d4d4d4] text-sm hover:bg-[#2d2d30] disabled:opacity-60 transition-colors whitespace-nowrap"
+                  >
+                    {restarting ? t.phase4.startingFresh : t.phase4.startFresh}
+                  </button>
+                )}
+                <Link
+                  href="/exercises"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md bg-[#007acc] hover:bg-[#1188dd] text-white text-sm font-semibold transition-colors whitespace-nowrap"
+                >
+                  {t.phase4.headBack}
+                </Link>
+              </div>
+            </div>
+          )
         )}
 
         <Phase5Section title={t.phase4.reviewSection}>
@@ -1053,6 +1444,105 @@ function Phase4View({
             </div>
           </Phase5Section>
         )}
+      </div>
+    </main>
+  );
+}
+
+function RevisionEditor({
+  finalSpec,
+  plan,
+  originalCode,
+  divergences,
+  onSubmit,
+  onCancel,
+  finalizing,
+  error,
+}: {
+  finalSpec: string;
+  plan: string | null;
+  originalCode: string;
+  divergences: DivergenceQuestion[];
+  onSubmit: (code: string) => void;
+  onCancel: () => void;
+  finalizing: boolean;
+  error: string | null;
+}) {
+  const t = useT();
+  const [draft, setDraft] = useState(originalCode);
+  return (
+    <main className="flex-1 overflow-y-auto p-8">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-[#d4d4d4]">
+            {t.phase4.revisionEditingTitle}
+          </h2>
+          <p className="text-sm text-[#858585] leading-relaxed">
+            {t.phase4.revisionEditingBody}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_20rem] gap-4 items-start">
+          <section className="border border-[#3e3e42] rounded overflow-hidden h-[440px]">
+            <PythonEditor value={draft} onChange={setDraft} readOnly={false} />
+          </section>
+          <aside className="space-y-2 lg:max-h-[440px] lg:overflow-y-auto lg:pr-1">
+            <CollapseRow label={t.phase4.finalSpec} defaultOpen>
+              <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+                {finalSpec || t.phase4.empty}
+              </div>
+            </CollapseRow>
+            {plan && (
+              <CollapseRow label={t.phase3.yourPlan} defaultOpen>
+                <div className="text-sm whitespace-pre-wrap bg-[#1e1e1e] border border-[#3e3e42] rounded p-2">
+                  {plan}
+                </div>
+              </CollapseRow>
+            )}
+            <CollapseRow label={t.phase4.revisionRecap}>
+              <div className="space-y-2">
+                {divergences.map((d, i) => (
+                  <div
+                    key={d.divergenceId}
+                    className="border border-[#3e3e42] bg-[#1e1e1e] rounded p-2 space-y-1.5"
+                  >
+                    <div className="text-[10px] font-mono text-[#858585]">
+                      Q{i + 1}
+                    </div>
+                    <p className="text-xs text-[#d4d4d4] whitespace-pre-wrap">
+                      {d.studentFacingQuestion}
+                    </p>
+                    <div className="text-[10px] uppercase tracking-wider text-[#858585]">
+                      {t.phase4.yourAnswer}
+                    </div>
+                    <p className="text-xs whitespace-pre-wrap bg-[#252526] border border-[#3e3e42] rounded p-1.5">
+                      {d.answer || t.phase4.noAnswer}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CollapseRow>
+          </aside>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => onSubmit(draft)}
+            disabled={finalizing || !draft.trim()}
+          >
+            {finalizing ? t.phase4.revisionSubmitting : t.phase4.revisionSubmit}
+          </Button>
+          <button
+            onClick={onCancel}
+            disabled={finalizing}
+            className="text-sm text-[#858585] hover:text-white underline underline-offset-2 disabled:opacity-60"
+          >
+            {t.phase4.revisionCancel}
+          </button>
+          {error && (
+            <span className="text-xs text-[#f48771] font-mono">{error}</span>
+          )}
+        </div>
       </div>
     </main>
   );

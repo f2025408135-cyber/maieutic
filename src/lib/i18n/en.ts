@@ -24,20 +24,15 @@ export const en = {
     markdownUtf8: "Markdown · UTF-8",
   },
   home: {
-    tagline: "A pedagogical coding tool for programming-education classes.",
-    directedHere: "Built on Claude Opus 4.7, directed here to",
-    askQuestions: "ask questions",
-    ratherThan: "rather than produce code on the student's behalf.",
-    phasesOverview:
-      "Students work through each exercise as a sequence of specification, plan, implementation, and review.",
-    opusRole:
-      "At every stage Opus draws out the commitments a student has left implicit, rather than producing code on their behalf.",
+    tagline: "Coding practice that builds thinking, not just code.",
+    pitchLead: "Built for the classrooms shaping",
+    pitchHighlight: "tomorrow's programmers",
+    pitchTail: ".",
     imAStudent: "I'm a student",
     imAStudentHint: "pick an exercise and start working",
-    teacherOverview:
-      "Teachers see every session as it unfolds, and, once complete, per-exercise analyses of how the class reasoned through the problem and where it struggled.",
     imATeacher: "I'm a teacher",
-    imATeacherHint: "see the live class dashboard or manage exercises",
+    imATeacherHint:
+      "watch the class live, or review how each student reasoned through a problem",
     published: (n: number) => `${n} exercise${n === 1 ? "" : "s"} published`,
   },
   exercises: {
@@ -128,6 +123,12 @@ export const en = {
     sendShort: "…",
     acceptedSpec: "Your accepted specification",
     yourPlan: "Your plan",
+    run: "Run",
+    running: "Running…",
+    loadingPython: "Loading Python…",
+    consoleHeader: "Console",
+    consoleEmpty: "Run your code to see output here.",
+    consoleClear: "Clear",
   },
   phase4: {
     sessionComplete: "✓ Session complete.",
@@ -152,6 +153,24 @@ export const en = {
     empty: "(empty)",
     notSubmittedYet: "(not submitted yet)",
     specEmptySuffix: " (empty)",
+    revisionPromptTitle: "Want a pass at closing those gaps?",
+    revisionPromptBody:
+      "You can revise your code now to line it up with your plan. Your original submission and your answers above stay on record — this is an unassisted pass.",
+    revisionYes: "Revise my code",
+    revisionNo: "I'm done",
+    revisionEditingTitle: "Close the gaps",
+    revisionEditingBody:
+      "Edit your code to line it up with your plan. Your specification and plan are pinned for reference.",
+    revisionRecap: "Your divergence answers",
+    revisionSubmit: "Submit revised code",
+    revisionSubmitting: "Saving…",
+    revisionCancel: "Actually, I'm done",
+    revisedBadge: "✓ revised",
+    finishingUp: "Finishing…",
+    startFresh: "Start fresh",
+    startingFresh: "Starting…",
+    startFreshConfirm:
+      "Start a new attempt? Your answers above stay on record — this just gives you a blank slate for another pass.",
   },
   languageSwitcher: {
     label: "Language",

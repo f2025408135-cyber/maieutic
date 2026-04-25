@@ -20,21 +20,15 @@ export const es = {
   },
   home: {
     tagline:
-      "Una herramienta pedagógica de programación para clases de introducción al código.",
-    directedHere:
-      "Construida sobre Claude Opus 4.7, orientada aquí a",
-    askQuestions: "hacer preguntas",
-    ratherThan: "en lugar de producir código en nombre del estudiante.",
-    phasesOverview:
-      "Los estudiantes trabajan cada ejercicio como una secuencia de especificación, plan, implementación y revisión.",
-    opusRole:
-      "En cada etapa, Opus hace explícitos los compromisos que el estudiante ha dejado implícitos, en lugar de escribir el código por él.",
+      "Práctica de programación que desarrolla el pensamiento, no solo el código.",
+    pitchLead: "Construido para las aulas que forman a",
+    pitchHighlight: "los programadores del mañana",
+    pitchTail: ".",
     imAStudent: "Soy estudiante",
     imAStudentHint: "elige un ejercicio y comienza a trabajar",
-    teacherOverview:
-      "Los profesores ven cada sesión mientras ocurre y, al terminar, reciben un análisis por ejercicio de cómo razonó la clase el problema y dónde tuvo dificultades.",
     imATeacher: "Soy profesor/a",
-    imATeacherHint: "ver el panel en vivo o administrar ejercicios",
+    imATeacherHint:
+      "mira la clase en vivo, o revisa cómo razonó cada estudiante un problema",
     published: (n: number) =>
       `${n} ejercicio${n === 1 ? "" : "s"} publicado${n === 1 ? "" : "s"}`,
   },
@@ -130,6 +124,12 @@ export const es = {
     sendShort: "…",
     acceptedSpec: "Tu especificación aceptada",
     yourPlan: "Tu plan",
+    run: "Ejecutar",
+    running: "Ejecutando…",
+    loadingPython: "Cargando Python…",
+    consoleHeader: "Consola",
+    consoleEmpty: "Ejecuta tu código para ver la salida aquí.",
+    consoleClear: "Limpiar",
   },
   phase4: {
     sessionComplete: "✓ Sesión completada.",
@@ -155,6 +155,24 @@ export const es = {
     empty: "(vacío)",
     notSubmittedYet: "(aún no enviada)",
     specEmptySuffix: " (vacía)",
+    revisionPromptTitle: "¿Quieres un intento más para cerrar esas brechas?",
+    revisionPromptBody:
+      "Puedes revisar tu código ahora para alinearlo con tu plan. Tu envío original y tus respuestas de arriba quedan registrados — esta es una pasada sin asistencia.",
+    revisionYes: "Revisar mi código",
+    revisionNo: "Estoy listo/a",
+    revisionEditingTitle: "Cierra las brechas",
+    revisionEditingBody:
+      "Edita tu código para alinearlo con tu plan. Tu especificación y tu plan quedan fijados como referencia.",
+    revisionRecap: "Tus respuestas a las divergencias",
+    revisionSubmit: "Enviar código revisado",
+    revisionSubmitting: "Guardando…",
+    revisionCancel: "Mejor termino aquí",
+    revisedBadge: "✓ revisado",
+    finishingUp: "Cerrando…",
+    startFresh: "Empezar de nuevo",
+    startingFresh: "Empezando…",
+    startFreshConfirm:
+      "¿Empezar un nuevo intento? Tus respuestas de arriba quedan registradas — esto solo te da una hoja en blanco para otra pasada.",
   },
   languageSwitcher: {
     label: "Idioma",

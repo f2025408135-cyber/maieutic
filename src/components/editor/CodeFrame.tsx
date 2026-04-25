@@ -30,6 +30,7 @@ export function CodeFrame({
   statusRight,
   banner,
   back,
+  topNavRight,
   hideTopNav,
   children,
 }: {
@@ -40,6 +41,9 @@ export function CodeFrame({
   banner?: React.ReactNode;
   /** Optional "← {label}" link in the top nav. */
   back?: { href: string; label: string };
+  /** Right-aligned content inside the top nav — e.g. a tiny control
+   * that doesn't deserve its own full-width banner. */
+  topNavRight?: React.ReactNode;
   /** Suppress the top bar entirely — useful when the body already
    * provides the Maieutic wordmark (e.g. the landing page). */
   hideTopNav?: boolean;
@@ -52,7 +56,7 @@ export function CodeFrame({
       className="min-h-screen flex flex-col bg-[#1e1e1e] text-[#d4d4d4] font-mono text-[15px]"
       style={{ lineHeight: `${LINE_H}px` }}
     >
-      {!hideTopNav && <TopNav back={back} />}
+      {!hideTopNav && <TopNav back={back} right={topNavRight} />}
       <TabBar fileName={fileName} />
       {banner && <div className="px-8 pt-10 pb-6">{banner}</div>}
       <div className="flex-1 flex overflow-auto">

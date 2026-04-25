@@ -3,11 +3,11 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Workbench } from "@/components/editor/Workbench";
 import {
-  Divergence,
   LiveSummary,
   Phase1Data,
   Phase2Data,
   Phase3Data,
+  Phase4Data,
 } from "@/lib/opus/schemas";
 import { UNIT_ROMAN, UNIT_TITLE, isUnit, type Unit } from "@/lib/units";
 
@@ -32,11 +32,7 @@ export default async function Page({
     : null;
   const phase3 = Phase3Data.parse(session.phase3Data);
   const phase4 = session.phase4Data
-    ? (session.phase4Data as {
-        divergences: Divergence[];
-        startedAt: string;
-        completedAt: string | null;
-      })
+    ? Phase4Data.parse(session.phase4Data)
     : null;
   const summaries = (session.liveSummaries as unknown as LiveSummary[]) ?? [];
 
@@ -199,6 +195,21 @@ export default async function Page({
               <Panel title="Final code">
                 <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-3 overflow-x-auto font-mono text-[#d4d4d4]">
                   {phase3.finalCode}
+                </pre>
+              </Panel>
+            )}
+
+            {phase4?.revisedCode && (
+              <Panel title="Revised after divergence review">
+                <div className="text-[10px] uppercase tracking-wider text-[#858585] mb-2 font-mono">
+                  student revised{" "}
+                  {phase4.revisedAt
+                    ? new Date(phase4.revisedAt).toLocaleString()
+                    : ""}
+                  {" · classifications above still refer to the original code"}
+                </div>
+                <pre className="text-xs bg-[#1e1e1e] border border-[#3e3e42] rounded p-3 overflow-x-auto font-mono text-[#d4d4d4]">
+                  {phase4.revisedCode}
                 </pre>
               </Panel>
             )}

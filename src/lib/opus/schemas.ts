@@ -223,6 +223,13 @@ export const Phase4Data = z.object({
   divergences: z.array(Divergence),
   startedAt: z.string(),
   completedAt: z.string().nullable(),
+  // Revision pass: after all divergences are answered, the student chooses
+  // to either revise their code or finish. The original phase3.finalCode and
+  // the divergence classifications stay frozen — revision is a coda, not a
+  // rewrite of the learning signal.
+  revisionChoice: z.enum(["skipped", "revised"]).nullable().default(null),
+  revisedCode: z.string().nullable().default(null),
+  revisedAt: z.string().nullable().default(null),
 });
 export type Phase4Data = z.infer<typeof Phase4Data>;
 

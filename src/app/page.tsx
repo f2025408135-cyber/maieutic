@@ -43,37 +43,29 @@ export default async function Home() {
       <Comment>{t.home.tagline}</Comment>
       {/* 2 */}
       <Comment>
-        {t.home.directedHere}{" "}
+        {t.home.pitchLead}{" "}
         <span style={{ color: SYNTAX.keyword, fontStyle: "normal" }}>
-          {t.home.askQuestions}
-        </span>{" "}
-        {t.home.ratherThan}
+          {t.home.pitchHighlight}
+        </span>
+        {t.home.pitchTail}
       </Comment>
       {/* 3 */} <span />
       {/* 4 */}
-      <Comment>{t.home.phasesOverview}</Comment>
-      {/* 5 */}
-      <Comment>{t.home.opusRole}</Comment>
-      {/* 6 */} <span />
-      {/* 7 */}
       <RoleRow
         href="/exercises"
         icon="🎓"
         label={t.home.imAStudent}
         hint={t.home.imAStudentHint}
       />
-      {/* 8 */} <span />
-      {/* 9 */}
-      <Comment>{t.home.teacherOverview}</Comment>
-      {/* 10 */} <span />
-      {/* 11 */}
+      {/* 5 */} <span />
+      {/* 6 */}
       <RoleRow
         href="/live"
         icon="🧑‍🏫"
         label={t.home.imATeacher}
         hint={t.home.imATeacherHint}
       />
-      {/* 12 */} <span />
+      {/* 7 */} <span />
     </CodeFrame>
   );
 }

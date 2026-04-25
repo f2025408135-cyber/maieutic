@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { CodeFrame, Comment, SYNTAX } from "@/components/editor/CodeFrame";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { prisma } from "@/lib/db";
+import { listResolvedSessionsForStudent } from "@/lib/sessions";
 import { UNIT_IDS, UNIT_ROMAN, type Unit } from "@/lib/units";
 import { getDict, getLang } from "@/lib/i18n/server";
 import type { Dict } from "@/lib/i18n/en";
@@ -18,15 +19,17 @@ async function getExercises() {
   });
 }
 
-// Exercises this specific student has completed (reached phase 5).
+// Mark an exercise ✅ only when the session the student would land on
+// (per findOrCreateSession's rule) is itself completed. So a "Start
+// fresh" session — which routes the student to phase 1 — clears the
+// check until they finish the new attempt.
 async function getDoneExerciseIds(studentId: string): Promise<Set<string>> {
-  if (!studentId) return new Set();
-  const rows = await prisma.session.findMany({
-    where: { studentId, completedAt: { not: null } },
-    select: { exerciseId: true },
-    distinct: ["exerciseId"],
-  });
-  return new Set(rows.map((r) => r.exerciseId));
+  const resolved = await listResolvedSessionsForStudent(studentId);
+  const done = new Set<string>();
+  for (const [exId, session] of resolved) {
+    if (session.completedAt !== null) done.add(exId);
+  }
+  return done;
 }
 
 type ExerciseRow = { id: string; title: string; done: boolean };
@@ -105,11 +108,7 @@ export default async function Exercises() {
       fileName="exercises.md"
       language="Markdown"
       back={{ href: "/", label: t.common.welcome }}
-      banner={
-        <div className="flex justify-end">
-          <LanguageSwitcher />
-        </div>
-      }
+      topNavRight={<LanguageSwitcher />}
       statusLeft={
         <>
           <span>✓ claude-opus-4-7</span>
