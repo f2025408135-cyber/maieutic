@@ -231,7 +231,16 @@ export async function advancePhase(
     },
   });
   await appendSessionEvent(sessionId, "phase_transition", { from, to });
-  if (to === 4) revalidatePath("/exercises");
+  if (to === 4) {
+    // revalidatePath only works inside a Next.js request. Wrap so that
+    // CLI scripts (emulate-students, capture-fixtures, etc.) can call
+    // advancePhase without tripping over the static-generation invariant.
+    try {
+      revalidatePath("/exercises");
+    } catch {
+      /* not in a request — the dashboard will revalidate on next visit */
+    }
+  }
 }
 
 // ─── Phase 1 ───────────────────────────────────────────────────────────────
