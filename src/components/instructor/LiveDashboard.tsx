@@ -34,7 +34,7 @@ type Presence = "live" | "stepped_away" | "left";
 
 function derivePresence(lastActiveAt: string): Presence {
   const ms = Date.now() - new Date(lastActiveAt).getTime();
-  if (ms < 30_000) return "live";
+  if (ms < 2 * 60_000) return "live";
   if (ms < 5 * 60_000) return "stepped_away";
   return "left";
 }

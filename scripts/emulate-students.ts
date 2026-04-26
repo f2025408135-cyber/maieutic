@@ -609,6 +609,11 @@ async function emulateOneSession(
   studentId: string,
   options: { stopAfterPhase: 1 | 2 | 3 | 4 } = { stopAfterPhase: 4 },
 ): Promise<string> {
+  // stopAfterPhase semantics:
+  //   1 → leave in phase 1 (spec still has open gaps)
+  //   2 → leave actively in phase 2 (spec accepted, no code submitted)
+  //   3 → leave in phase 3 (code submitted, divergences answered, no revision)
+  //   4 → completed
   const flavor = randomFlavor();
   const session = await createSession(exercise.id, studentId);
   console.log(
@@ -622,15 +627,11 @@ async function emulateOneSession(
   }
   await advancePhase(session.id, 2);
 
-  if (options.stopAfterPhase < 2) {
-    await refreshSummaryForSession(session.id);
-    return session.id;
-  }
-  const phase2 = await runPhase2(persona, flavor, exercise, session.id, phase1.finalSpecText);
   if (options.stopAfterPhase < 3) {
     await refreshSummaryForSession(session.id);
     return session.id;
   }
+  const phase2 = await runPhase2(persona, flavor, exercise, session.id, phase1.finalSpecText);
   if (phase2.divergenceCount === 0) {
     await refreshSummaryForSession(session.id);
     return session.id;
@@ -672,6 +673,7 @@ function parseArgs() {
   const args = process.argv.slice(2);
   let count = 8;
   let matrix = false;
+  let demoSpread = false;
   let inProgress = 0.2;
   let concurrency = 4;
   for (let i = 0; i < args.length; i++) {
@@ -679,6 +681,8 @@ function parseArgs() {
       count = parseInt(args[++i], 10);
     } else if (args[i] === "--matrix") {
       matrix = true;
+    } else if (args[i] === "--demo-spread") {
+      demoSpread = true;
     } else if (args[i] === "--in-progress" && args[i + 1]) {
       inProgress = parseFloat(args[++i]);
     } else if (args[i] === "--concurrency" && args[i + 1]) {
@@ -692,7 +696,7 @@ function parseArgs() {
   if (Number.isNaN(concurrency) || concurrency < 1) {
     throw new Error("invalid --concurrency");
   }
-  return { count, matrix, inProgress, concurrency };
+  return { count, matrix, demoSpread, inProgress, concurrency };
 }
 
 interface PlannedSession {
@@ -731,7 +735,7 @@ async function runWithConcurrency<T>(
 }
 
 async function main() {
-  const { count, matrix, inProgress, concurrency } = parseArgs();
+  const { count, matrix, demoSpread, inProgress, concurrency } = parseArgs();
 
   const exerciseRows = await prisma.exercise.findMany({
     where: { publishedAt: { not: null } },
@@ -744,7 +748,38 @@ async function main() {
 
   // Build the session plan.
   const planned: PlannedSession[] = [];
-  if (matrix) {
+  if (demoSpread) {
+    // Deterministic spread for the live dashboard demo. Bug-prone personas
+    // are paired with edge-case-rich exercises for stop=3 so phase-2
+    // intent-diff is likely to find divergences (otherwise the session
+    // auto-advances to phase 4 and disappears from the dashboard). Three
+    // stop=3 attempts hedge against intent-diff occasionally returning 0
+    // divergences.
+    const seed: Array<{ stop: 1 | 2 | 3; personaId: string; exerciseId: string }> = [
+      { stop: 1, personaId: "carlos_sloppy", exerciseId: "vowels-demo" },
+      { stop: 1, personaId: "gerardo_overconfident", exerciseId: "password-demo" },
+      { stop: 2, personaId: "diana_thorough", exerciseId: "fibonacci-demo" },
+      { stop: 2, personaId: "esteban_typical", exerciseId: "count-down-from-n" },
+      { stop: 3, personaId: "carlos_sloppy", exerciseId: "palindrome-check" },
+      { stop: 3, personaId: "gerardo_overconfident", exerciseId: "find-duplicates" },
+      { stop: 3, personaId: "carlos_sloppy", exerciseId: "most-common-word" },
+    ];
+    const exerciseIds = new Set(exerciseRows.map((e) => e.id));
+    console.log(`Demo-spread mode: ${seed.length} sessions, deterministic phase distribution.`);
+    for (const s of seed) {
+      const persona = PERSONAS.find((p) => p.id === s.personaId);
+      if (!persona) throw new Error(`unknown persona: ${s.personaId}`);
+      if (!exerciseIds.has(s.exerciseId)) {
+        throw new Error(`exercise not published: ${s.exerciseId}`);
+      }
+      planned.push({
+        persona,
+        studentId: `${persona.id}_${Math.random().toString(36).slice(2, 8)}`,
+        exerciseId: s.exerciseId,
+        stopAfterPhase: s.stop,
+      });
+    }
+  } else if (matrix) {
     const studentCount = randomInt(15, 30);
     console.log(
       `Matrix mode: ${studentCount} students × ${exerciseRows.length} exercises = ${studentCount * exerciseRows.length} sessions.`,
