@@ -16,7 +16,7 @@ to an instructor: not just whether the code passes the tests, but whether the
 student can explain *why* their code does what it does, where they drifted
 from their own spec, and whether they can say why. That's what a teacher needs
 to see individual students develop — and it's nearly impossible to capture by
-hand in a lab with eighty students.
+hand in a lab with forty students.
 
 ---
 
