@@ -2,10 +2,9 @@
 
 Maieutic flips the role an LLM usually plays in learning to program. Instead
 of handing the student working code, it guides them to think first about what
-the program should do and how they'll build it — the specification and the
-plan — before they write a single line. When the code is done, the student
-has to explain the differences between what they said they'd do and what they
-actually wrote.
+the program should do — the specification — before they write a single line.
+When the code is done, the student has to explain the differences between
+what they said they'd do and what they actually wrote.
 
 This is built on a bet about how programming is changing. Writing code from
 scratch matters less than it used to; specifying behavior precisely, reading
@@ -15,7 +14,7 @@ Those are the skills Maieutic trains.
 Along the way it surfaces a kind of learning signal that's normally invisible
 to an instructor: not just whether the code passes the tests, but whether the
 student can explain *why* their code does what it does, where they drifted
-from their own plan, and whether they can say why. That's what a teacher needs
+from their own spec, and whether they can say why. That's what a teacher needs
 to see individual students develop — and it's nearly impossible to capture by
 hand in a lab with eighty students.
 
@@ -39,7 +38,7 @@ hand in a lab with eighty students.
   questions ("why doesn't my count look right?"). The debugging thinking
   stays with the student.
 
-- **Noticing the gap between plan and implementation.** When the student
+- **Noticing the gap between spec and implementation.** When the student
   submits, Opus compares what they said they'd do with what they actually
   wrote. Wherever the two don't line up, it points the difference out as a
   neutral question — *"In your spec you said X. In the code I see Y. What
@@ -58,8 +57,8 @@ hand in a lab with eighty students.
 
 - **A per-session view of one student's reasoning.** For any session, the
   teacher can open a two-column view: on the left, everything the student
-  wrote — the specs, the plan, the code, the answer to the divergence
-  question. On the right (and only visible to the instructor) what the system
+  wrote — the specs, the code, the answer to the divergence question. On the
+  right (and only visible to the instructor) what the system
   understood about that student: what it predicted they would say, how their
   actual answer compared, and where it points to a genuine understanding
   versus a gap the student hasn't closed yet. This is how a teacher gets
@@ -148,8 +147,7 @@ to read them.
   whether the question is a reference one (syntax — answered directly) or a
   reasoning one (their own logic — answered with a counter-question).
 - When the student submits their code, Opus compares it to the specification
-  and the plan and writes a neutral question about any place the two don't
-  line up.
+  and writes a neutral question about any place the two don't line up.
 
 **Three serve the teacher's view of student learning.**
 
