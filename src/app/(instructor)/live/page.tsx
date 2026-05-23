@@ -9,7 +9,7 @@ async function getInitialSnapshot() {
     include: { exercise: true },
     orderBy: { lastActiveAt: "desc" },
   });
-  return sessions.map((s) => {
+  return sessions.map((s: any) => {
     const summaries = (s.liveSummaries as unknown as LiveSummary[]) ?? [];
     const mostRecentSummary = summaries.length
       ? summaries[summaries.length - 1]

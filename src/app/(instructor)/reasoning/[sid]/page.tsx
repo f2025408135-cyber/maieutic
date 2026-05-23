@@ -389,7 +389,7 @@ export default async function Page({
                 <Empty />
               ) : (
                 <ul className="space-y-1 font-mono text-xs">
-                  {session.events.map((e) => (
+                  {session.events.map((e: any) => (
                     <li key={e.id} className="flex gap-2">
                       <span className="text-[#858585] shrink-0">
                         {e.createdAt.toLocaleTimeString()}

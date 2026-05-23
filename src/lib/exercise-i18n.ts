@@ -99,7 +99,9 @@ export async function translatedExerciseTitles(
     where: { lang, exerciseId: { in: exercises.map((e) => e.id) } },
     select: { exerciseId: true, title: true },
   });
-  const cacheMap = new Map(cached.map((c) => [c.exerciseId, c.title]));
+  const cacheMap = new Map<string, string>(
+    cached.map((c: { exerciseId: string; title: string }) => [c.exerciseId, c.title]),
+  );
 
   const missing = exercises.filter((e) => !cacheMap.has(e.id));
   if (missing.length === 0) return cacheMap;

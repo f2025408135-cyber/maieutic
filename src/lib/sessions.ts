@@ -40,7 +40,7 @@ import { z } from "zod";
 
 // ─── Exercises ─────────────────────────────────────────────────────────────
 
-export async function createExercise(input: ExerciseAuthoringInput) {
+export async function createExercise(input: z.input<typeof ExerciseAuthoringInput>) {
   const parsed = ExerciseAuthoringInput.parse(input);
   return prisma.exercise.create({
     data: {
@@ -51,6 +51,7 @@ export async function createExercise(input: ExerciseAuthoringInput) {
       expectedDivergences: asJson(parsed.expectedDivergences),
       studentLevel: parsed.studentLevel,
       unit: parsed.unit ?? defaultUnitForLevel(parsed.studentLevel),
+      language: parsed.language,
       opusGeneratedDimensions: asJson(parsed.opusGeneratedDimensions),
       opusGeneratedDivergences: asJson(parsed.opusGeneratedDivergences),
       opusGeneratedStudentLevel: parsed.opusGeneratedStudentLevel,
