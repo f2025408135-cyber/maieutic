@@ -9,7 +9,7 @@ import type { Lang } from "./dict";
 // the dictionaries themselves are imported here (client-side) because they
 // contain helper functions (pluralizers) that cannot cross the
 // server→client props boundary.
-const DICTS: Record<Lang, Dict> = { en, es };
+const DICTS: Record<Lang, Dict> = { en, es, ur: en };
 
 type Ctx = { lang: Lang; t: Dict };
 

@@ -22,6 +22,7 @@ model Exercise {
   expectedDivergences  Json     // ExpectedDivergence[]
   studentLevel         String   // "week_1_2" | "week_3_6" | "week_7_plus"
   unit                 String   @default("unit_2") // "unit_1" | "unit_2" | "unit_3" | "unit_4"
+  language             String   @default("python")
 
   // Authoring trace — Opus first-pass output, preserved
   opusGeneratedDimensions      Json

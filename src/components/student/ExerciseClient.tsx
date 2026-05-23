@@ -12,8 +12,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { PythonEditor } from "@/components/student/PythonEditor";
-import { provideInput, runPython } from "@/lib/run-python";
+import { provideInput as providePythonInput, runPython } from "@/lib/run-python";
+import { provideInput as provideCppInput, runCpp } from "@/lib/run-cpp";
 import { TopNav } from "@/components/editor/TopNav";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { FileTabBar } from "@/components/editor/FileTab";
 import { StatusBar } from "@/components/editor/StatusBar";
 import type {
@@ -40,6 +42,7 @@ export interface ExerciseClientProps {
     studentLevel: StudentLevel;
     unit: Unit;
     specGateDimensions: SpecDimension[];
+    language?: string;
   };
   initialSession: {
     id: string;
@@ -99,7 +102,7 @@ export function ExerciseClient({
   const [chatBusy, setChatBusy] = useState(false);
   const [finalSubmitting, setFinalSubmitting] = useState(false);
 
-  // ── browser-side Python runner (Pyodide-in-a-Worker) ──────────────
+  // ── browser-side Code runner (Python & C++) ──────────────────────
   // The console is a unified stream: stdout, stderr, echoed input, and
   // any errors arrive as ConsoleLine entries in arrival order.
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
@@ -109,62 +112,111 @@ export function ExerciseClient({
   async function runCode() {
     if (runState !== "idle") return;
     setConsoleLines([]);
-    if (!pyodideEverLoaded.current) {
+    
+    const isCpp = exercise.language === "cpp";
+
+    if (isCpp) {
       setRunState("loading");
-      setConsoleLines([{ kind: "system", text: "Loading Python…\n" }]);
+      setConsoleLines([{ kind: "system", text: "Loading C++…\n" }]);
+      try {
+        await runCpp(code, (event) => {
+          if (event.type === "stdout") {
+            setConsoleLines((prev) => [
+              ...prev.filter((l) => l.kind !== "system"),
+              { kind: "stdout", text: event.text },
+            ]);
+            setRunState("running");
+          } else if (event.type === "stderr") {
+            setConsoleLines((prev) => [
+              ...prev.filter((l) => l.kind !== "system"),
+              { kind: "stderr", text: event.text },
+            ]);
+          } else if (event.type === "inputRequest") {
+            setConsoleLines((prev) => prev.filter((l) => l.kind !== "system"));
+            setRunState("waiting-input");
+          } else if (event.type === "error") {
+            setConsoleLines((prev) => [
+              ...prev,
+              { kind: "error", text: event.text + "\n" },
+            ]);
+            setRunState("idle");
+          } else if (event.type === "done") {
+            setRunState("idle");
+          }
+        });
+      } catch (err) {
+        setConsoleLines((prev) => [
+          ...prev,
+          {
+            kind: "error",
+            text:
+              (err instanceof Error ? err.message : String(err)) + "\n",
+          },
+        ]);
+        setRunState("idle");
+      }
     } else {
-      setRunState("running");
-    }
-    try {
-      // Strip the "Loading Python…" placeholder the moment real output
-      // (or an input prompt) arrives, so the console only shows what
-      // the program produced.
-      const dropLoadingPlaceholder = (lines: ConsoleLine[]) =>
-        lines.filter((l) => l.kind !== "system");
-      await runPython(code, (event) => {
-        if (event.type === "stdout") {
-          setConsoleLines((prev) => [
-            ...dropLoadingPlaceholder(prev),
-            { kind: "stdout", text: event.text },
-          ]);
-          pyodideEverLoaded.current = true;
-          setRunState("running");
-        } else if (event.type === "stderr") {
-          setConsoleLines((prev) => [
-            ...dropLoadingPlaceholder(prev),
-            { kind: "stderr", text: event.text },
-          ]);
-        } else if (event.type === "inputRequest") {
-          setConsoleLines((prev) => dropLoadingPlaceholder(prev));
-          pyodideEverLoaded.current = true;
-          setRunState("waiting-input");
-        } else if (event.type === "error") {
-          setConsoleLines((prev) => [
-            ...prev,
-            { kind: "error", text: event.text + "\n" },
-          ]);
-          pyodideEverLoaded.current = true;
-          setRunState("idle");
-        } else if (event.type === "done") {
-          pyodideEverLoaded.current = true;
-          setRunState("idle");
-        }
-      });
-    } catch (err) {
-      setConsoleLines((prev) => [
-        ...prev,
-        {
-          kind: "error",
-          text:
-            (err instanceof Error ? err.message : String(err)) + "\n",
-        },
-      ]);
-      setRunState("idle");
+      if (!pyodideEverLoaded.current) {
+        setRunState("loading");
+        setConsoleLines([{ kind: "system", text: "Loading Python…\n" }]);
+      } else {
+        setRunState("running");
+      }
+      try {
+        // Strip the "Loading Python…" placeholder the moment real output
+        // (or an input prompt) arrives, so the console only shows what
+        // the program produced.
+        const dropLoadingPlaceholder = (lines: ConsoleLine[]) =>
+          lines.filter((l) => l.kind !== "system");
+        await runPython(code, (event) => {
+          if (event.type === "stdout") {
+            setConsoleLines((prev) => [
+              ...dropLoadingPlaceholder(prev),
+              { kind: "stdout", text: event.text },
+            ]);
+            pyodideEverLoaded.current = true;
+            setRunState("running");
+          } else if (event.type === "stderr") {
+            setConsoleLines((prev) => [
+              ...dropLoadingPlaceholder(prev),
+              { kind: "stderr", text: event.text },
+            ]);
+          } else if (event.type === "inputRequest") {
+            setConsoleLines((prev) => dropLoadingPlaceholder(prev));
+            pyodideEverLoaded.current = true;
+            setRunState("waiting-input");
+          } else if (event.type === "error") {
+            setConsoleLines((prev) => [
+              ...prev,
+              { kind: "error", text: event.text + "\n" },
+            ]);
+            pyodideEverLoaded.current = true;
+            setRunState("idle");
+          } else if (event.type === "done") {
+            pyodideEverLoaded.current = true;
+            setRunState("idle");
+          }
+        });
+      } catch (err) {
+        setConsoleLines((prev) => [
+          ...prev,
+          {
+            kind: "error",
+            text:
+              (err instanceof Error ? err.message : String(err)) + "\n",
+          },
+        ]);
+        setRunState("idle");
+      }
     }
   }
   function submitConsoleInput(text: string) {
     if (runState !== "waiting-input") return;
-    provideInput(text);
+    if (exercise.language === "cpp") {
+      provideCppInput(text);
+    } else {
+      providePythonInput(text);
+    }
     setConsoleLines((prev) => [...prev, { kind: "input", text: text + "\n" }]);
     setRunState("running");
   }
@@ -506,6 +558,7 @@ export function ExerciseClient({
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] flex flex-col">
       <TopNav
+        left={<LanguageSwitcher />}
         back={
           hasPendingAnswers
             ? undefined
@@ -522,7 +575,7 @@ export function ExerciseClient({
           )
         }
       />
-      <FileTabBar fileName={`${exercise.id}.py`} />
+      <FileTabBar fileName={`${exercise.id}.${exercise.language === "cpp" ? "cpp" : "py"}`} />
 
       <ExerciseTitle
         title={exercise.title}
@@ -566,6 +619,7 @@ export function ExerciseClient({
           runCode={runCode}
           submitConsoleInput={submitConsoleInput}
           clearConsole={clearConsole}
+          language={exercise.language === "cpp" ? "cpp" : "python"}
         />
       )}
 
@@ -592,6 +646,7 @@ export function ExerciseClient({
           closed={closed}
           onStartFresh={startFreshSession}
           restarting={restarting}
+          language={exercise.language === "cpp" ? "cpp" : "python"}
         />
       )}
 
@@ -898,6 +953,7 @@ function Phase2View({
   runCode,
   submitConsoleInput,
   clearConsole,
+  language = "python",
 }: {
   code: string;
   setCode: (v: string) => void;
@@ -915,6 +971,7 @@ function Phase2View({
   runCode: () => void;
   submitConsoleInput: (text: string) => void;
   clearConsole: () => void;
+  language?: "python" | "cpp";
 }) {
   const t = useT();
   return (
@@ -922,7 +979,7 @@ function Phase2View({
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_24rem] min-h-0">
         <section className="flex flex-col min-h-[50vh] border-r border-[#3e3e42]">
           <div className="flex-1 min-h-0">
-            <PythonEditor value={code} onChange={setCode} readOnly={false} />
+            <PythonEditor value={code} onChange={setCode} readOnly={false} language={language} />
           </div>
           <RunConsole
             lines={consoleLines}
@@ -1113,6 +1170,7 @@ function Phase3View({
   closed,
   onStartFresh,
   restarting,
+  language = "python",
 }: {
   iterations: Phase1Iteration[];
   finalSpec: string;
@@ -1128,6 +1186,7 @@ function Phase3View({
   closed: boolean;
   onStartFresh: () => void;
   restarting: boolean;
+  language?: "python" | "cpp";
 }) {
   const t = useT();
   const allAnswered =
@@ -1162,6 +1221,7 @@ function Phase3View({
         }}
         finalizing={finalizing}
         error={error}
+        language={language}
       />
     );
   }
@@ -1326,6 +1386,7 @@ function Phase3View({
                 value={finalCode}
                 readOnly
                 height={codeHeight}
+                language={language}
               />
             </div>
           </Phase5Section>
@@ -1343,6 +1404,7 @@ function RevisionEditor({
   onCancel,
   finalizing,
   error,
+  language = "python",
 }: {
   finalSpec: string;
   originalCode: string;
@@ -1351,6 +1413,7 @@ function RevisionEditor({
   onCancel: () => void;
   finalizing: boolean;
   error: string | null;
+  language?: "python" | "cpp";
 }) {
   const t = useT();
   const [draft, setDraft] = useState(originalCode);
@@ -1368,7 +1431,7 @@ function RevisionEditor({
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_20rem] gap-4 items-start">
           <section className="border border-[#3e3e42] rounded overflow-hidden h-[440px]">
-            <PythonEditor value={draft} onChange={setDraft} readOnly={false} />
+            <PythonEditor value={draft} onChange={setDraft} readOnly={false} language={language} />
           </section>
           <aside className="space-y-2 lg:max-h-[440px] lg:overflow-y-auto lg:pr-1">
             <CollapseRow label={t.phase3.finalSpec} defaultOpen>

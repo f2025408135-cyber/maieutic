@@ -6,6 +6,9 @@ import type { NextConfig } from "next";
 // type). We scope the headers to the student exercise page so the rest
 // of the app isn't constrained.
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {
@@ -21,6 +24,15 @@ const nextConfig: NextConfig = {
         // inside the worker thread. Without this the Worker constructor
         // succeeds but loadPyodide / SAB use throws an opaque error.
         source: "/pyodide-worker.js",
+        headers: [
+          { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+        ],
+      },
+      {
+        // The C++ JSCPP worker uses SharedArrayBuffer the same way —
+        // it must also be served with COEP.
+        source: "/cpp-worker.js",
         headers: [
           { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },

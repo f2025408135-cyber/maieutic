@@ -11,7 +11,8 @@
     "test:opus": "vitest run --config vitest.opus.config.ts",
     "test:e2e": "playwright test",
     "capture-fixtures": "tsx scripts/capture-fixtures.ts",
-    "reset-demo": "tsx scripts/reset-demo.ts"
+    "reset-demo": "tsx scripts/reset-demo.ts",
+    "prisma": "prisma"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

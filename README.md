@@ -91,18 +91,27 @@ hand in a lab with forty students.
 
 ## Quick start
 
-Prerequisites: Node 20+ and an Anthropic API key.
+Prerequisites: Node 20+. You need **at least one** of the following API keys:
+
+| Provider | Free tier | Get key |
+|---|---|---|
+| **Google Gemini** | ✅ Yes (best for free) | https://aistudio.google.com/app/apikey |
+| **OpenRouter** | ✅ Yes (many free models) | https://openrouter.ai/keys |
+| **Anthropic Claude** | ❌ Paid only | https://console.anthropic.com/ |
+
+The system tries all configured providers in order and automatically falls back if one hits a rate limit.
 
 ```bash
 # Install
 npm install
 
-# Copy the env template and paste in your key
-cp .env.example .env
-# edit .env and set ANTHROPIC_API_KEY=sk-ant-...
+# Copy the env template and fill in at least one LLM key
+copy .env.example .env.local      # Windows
+# cp .env.example .env.local      # Mac/Linux
+# Then edit .env.local and set GEMINI_API_KEY= or OPENROUTER_API_KEY=
 
-# Apply migrations and generate the Prisma client
-npx prisma migrate dev
+# Apply schema and generate the Prisma client
+npx prisma db push
 
 # Seed the demo fixtures (Ana/Beto/Carmen + cohort sessions)
 npm run reset-demo
@@ -117,6 +126,20 @@ The landing page asks the visitor whether they're a student or a teacher and
 routes accordingly — no login. Students land on an exercise list grouped by
 unit; teachers land on the live dashboard.
 
+### UMT Lahore — Programming Fundamentals
+
+This fork is optimized for the Programming Fundamentals course at the
+**University of Management and Technology (UMT), Lahore**:
+
+- **C++ support** — exercises can target C++ instead of Python; the Monaco
+  editor switches language automatically and runs student code in-browser
+  via [JSCPP](https://github.com/felixhao28/JSCPP) (no backend sandbox needed).
+- **Roman Urdu UI** — students can switch the entire interface and LLM
+  responses to Roman Urdu (Urdu in Latin script, e.g. *"Aap ka loop bound
+  galat hai"*) via the language switcher in the nav bar.
+- **Free API routing** — uses Gemini / OpenRouter free tiers so students
+  and instructors don't need to pay for API access.
+
 ---
 
 ## Stack
@@ -124,7 +147,11 @@ unit; teachers land on the live dashboard.
 - Next.js 16 (app router) + React 19 + TypeScript strict
 - Tailwind v4 + shadcn/ui + Monaco editor (autocomplete explicitly disabled)
 - Prisma 6 + SQLite (local file, fine for MVP; Postgres swap is mechanical)
-- `@anthropic-ai/sdk` (model: `claude-opus-4-7`)
+- **Multi-provider LLM router** — Anthropic Claude → Google Gemini → OpenRouter
+  (with automatic failover on rate-limit / error)
+- **C++ in-browser execution** — [JSCPP](https://github.com/felixhao28/JSCPP)
+  running in a Web Worker with `SharedArrayBuffer` for interactive `cin >>`
+- **Roman Urdu i18n** — full UI + LLM prompt translations for UMT Lahore
 - Server-Sent Events for the live dashboard (plain Route Handler + in-process
   `EventEmitter`, no Redis)
 - Zod at every LLM response boundary

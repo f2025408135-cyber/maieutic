@@ -8,7 +8,7 @@ export const UNIT_IDS = ["unit_1", "unit_2", "unit_3", "unit_4"] as const;
 export type Unit = (typeof UNIT_IDS)[number];
 
 export const UNIT_TITLE: Record<Unit, string> = {
-  unit_1: "Python Fundamentals",
+  unit_1: "Programming Fundamentals",
   unit_2: "Control Structures",
   unit_3: "Data Structures",
   unit_4: "Functions",

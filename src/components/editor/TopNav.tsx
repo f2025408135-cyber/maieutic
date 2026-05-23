@@ -26,7 +26,7 @@ export function TopNav({
         >
           <span
             className="inline-block w-3 h-3 rounded-full mb-1.5"
-            style={{ backgroundColor: "#007acc" }}
+            style={{ backgroundColor: "#1e6b3b" }}
           />
           <span className="text-2xl font-bold tracking-tight leading-none">
             Maieutic
@@ -36,7 +36,7 @@ export function TopNav({
             style={{
               width: "3px",
               height: "18px",
-              backgroundColor: "#007acc",
+              backgroundColor: "#f5c518",
             }}
             aria-hidden
           />

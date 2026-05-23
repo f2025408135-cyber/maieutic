@@ -4,7 +4,7 @@ import { DEFAULT_LANG, LANG_COOKIE, isLang, type Lang } from "./dict";
 import { en, type Dict } from "./en";
 import { es } from "./es";
 
-const DICTS: Record<Lang, Dict> = { en, es };
+const DICTS: Record<Lang, Dict> = { en, es, ur: en };
 
 export async function getLang(): Promise<Lang> {
   const store = await cookies();

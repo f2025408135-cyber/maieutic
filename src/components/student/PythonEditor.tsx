@@ -40,6 +40,7 @@ export interface PythonEditorProps {
   onChange?: (value: string) => void;
   readOnly: boolean;
   height?: string;
+  language?: "python" | "cpp";
   /** Text to overlay when the editor is in its locked Phase 1/2 state. */
   lockNotice?: string;
 }
@@ -49,15 +50,16 @@ export function PythonEditor({
   onChange,
   readOnly,
   height = "100%",
+  language = "python",
   lockNotice,
 }: PythonEditorProps) {
   return (
     <div className="relative h-full w-full bg-[#1e1e1e]">
       <MonacoEditor
-        language="python"
+        language={language}
         value={value}
         theme="vs-dark"
-        onChange={(v) => onChange?.(v ?? "")}
+        onChange={(v?: string) => onChange?.(v ?? "")}
         height={height}
         options={{
           ...DISABLED_ASSIST_OPTIONS,
