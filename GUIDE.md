@@ -138,8 +138,7 @@ Open your browser → **http://localhost:3000**
 | **Teacher** | "I'm a teacher" | `/instructor` — live dashboard |
 
 ### Features available:
-- 🟢 **Python exercises** — runs in browser (no install needed)
-- 🔵 **C exercises** — runs in browser via JSCPP
+- 🔵 **Native C exercises** — runs in browser via JSCPP (no backend sandbox needed)
 - 🌐 **Roman Urdu** — switch language in the top-right nav
 - 🤖 **AI fallback** — if Gemini hits rate limit, auto-switches to backup models
 

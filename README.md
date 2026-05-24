@@ -131,7 +131,7 @@ unit; teachers land on the live dashboard.
 This fork is optimized for the Programming Fundamentals course at the
 **University of Management and Technology (UMT), Lahore**:
 
-- **C support** — exercises can target C instead of Python; the Monaco
+- **C support** — exercises target C; the Monaco
   editor switches language automatically and runs student code in-browser
   via [JSCPP](https://github.com/felixhao28/JSCPP) (no backend sandbox needed).
 - **Roman Urdu UI** — students can switch the entire interface and LLM
