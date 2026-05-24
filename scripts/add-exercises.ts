@@ -27,6 +27,7 @@ interface Seed {
   prompt: string;
   level: StudentLevel;
   unit: Unit;
+  language?: string;
   // Scaffolding's own phase2 judgment is usually fine; override here only
   // if we strongly disagree.
   phase2Override?: boolean;
@@ -210,6 +211,7 @@ async function publishOne(seed: Seed) {
     studentLevel: seed.level,
     opusGeneratedStudentLevel: seed.level,
     unit: seed.unit,
+    language: seed.language,
   });
   console.log(`    ${fields.specGateDimensions.length} dimensions`);
   return true;

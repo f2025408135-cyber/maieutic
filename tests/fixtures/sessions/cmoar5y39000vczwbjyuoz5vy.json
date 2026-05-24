@@ -35,8 +35,8 @@
   "phase3Data": {
     "opusExchanges": [],
     "revisions": [],
-    "currentCode": "print(sum(1 for c in input() if c in 'aeiou'))\n",
-    "finalCode": "print(sum(1 for c in input() if c in 'aeiou'))\n",
+    "currentCode": "#include <stdio.h>\n\nint main() {\n    char s[100];\n    scanf(\"%99s\", s);\n    int count = 0;\n    for(int i = 0; s[i]; i++) {\n        if(s[i]=='a'||s[i]=='e'||s[i]=='i'||s[i]=='o'||s[i]=='u') count++;\n    }\n    printf(\"%d\", count);\n    return 0;\n}",
+    "finalCode": "#include <stdio.h>\n\nint main() {\n    char s[100];\n    scanf(\"%99s\", s);\n    int count = 0;\n    for(int i = 0; s[i]; i++) {\n        if(s[i]=='a'||s[i]=='e'||s[i]=='i'||s[i]=='o'||s[i]=='u') count++;\n    }\n    printf(\"%d\", count);\n    return 0;\n}",
     "submittedAt": "2026-04-23T00:37:56.711Z"
   },
   "phase4Data": {

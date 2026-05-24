@@ -1,10 +1,3 @@
-// Browser-side Python runner. Code runs in a Web Worker (see
-// public/pyodide-worker.js) so that Python's synchronous input() can
-// truly block on a SharedArrayBuffer until the student types a line in
-// the console. The page that uses this needs Cross-Origin-Opener-Policy
-// = same-origin and Cross-Origin-Embedder-Policy = require-corp; the
-// /exercise/:path* route sets those headers in next.config.ts.
-
 export type RunEvent =
   | { type: "stdout"; text: string }
   | { type: "stderr"; text: string }
@@ -28,7 +21,7 @@ let initRejector: ((err: Error) => void) | null = null;
 
 function ensureWorker(): Promise<void> {
   if (typeof window === "undefined") {
-    return Promise.reject(new Error("pyodide is browser-only"));
+    return Promise.reject(new Error("c is browser-only"));
   }
   if (typeof SharedArrayBuffer === "undefined") {
     return Promise.reject(
@@ -39,7 +32,7 @@ function ensureWorker(): Promise<void> {
   }
   if (workerReady) return workerReady;
 
-  worker = new Worker("/pyodide-worker.js");
+  worker = new Worker("/c-worker.js");
   inputBuffer = new SharedArrayBuffer(1024);
   inputView = new Int32Array(inputBuffer);
   inputBytes = new Uint8Array(inputBuffer);
@@ -88,9 +81,7 @@ export function provideEOF(): void {
   Atomics.notify(inputView, 0);
 }
 
-// Starts a run. The listener receives stdout/stderr chunks, input
-// requests, and a terminal "done" or "error". Only one run at a time.
-export async function runPython(
+export async function runC(
   code: string,
   listener: (event: RunEvent) => void,
 ): Promise<void> {
@@ -104,18 +95,6 @@ export async function runPython(
   worker!.postMessage({ type: "run", code });
 }
 
-export function isPyodideLoaded(): boolean {
+export function isCLoaded(): boolean {
   return workerReady !== null;
-}
-
-// Surfaced for tests; not part of the runtime API otherwise.
-export function _resetForTests(): void {
-  if (worker) worker.terminate();
-  worker = null;
-  workerReady = null;
-  inputBuffer = null;
-  inputView = null;
-  inputBytes = null;
-  activeListener = null;
-  initRejector = null;
 }

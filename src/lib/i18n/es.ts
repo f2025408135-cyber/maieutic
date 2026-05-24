@@ -105,7 +105,7 @@ export const es = {
     chatWithOpus: "Chatea con Opus",
     chatSubtitle: "pregunta sobre tu lógica · explica sintaxis",
     chatEmpty:
-      "Pregunta sobre tu código o sobre la sintaxis de Python. Opus responderá directamente a las preguntas de sintaxis, y con contrapreguntas cuando preguntes sobre tu propio enfoque.",
+      "Pregunta sobre tu código o sobre la sintaxis de C. Opus responderá directamente a las preguntas de sintaxis, y con contrapreguntas cuando preguntes sobre tu propio enfoque.",
     you: "tú",
     opus: "opus",
     thinking: "pensando…",
@@ -116,7 +116,7 @@ export const es = {
     acceptedSpec: "Tu especificación aceptada",
     run: "Ejecutar",
     running: "Ejecutando…",
-    loadingPython: "Cargando Python…",
+    loadingPython: "Cargando C…",
     consoleHeader: "Consola",
     consoleEmpty: "Ejecuta tu código para ver la salida aquí.",
     consoleClear: "Limpiar",
@@ -170,7 +170,7 @@ export const es = {
     es: "Español",
   },
   units: {
-    unit_1: "Fundamentos de Python",
+    unit_1: "Fundamentos de C",
     unit_2: "Estructuras de Control",
     unit_3: "Estructuras de Datos",
     unit_4: "Funciones",

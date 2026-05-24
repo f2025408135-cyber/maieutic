@@ -26,37 +26,34 @@ CURRICULUM UNIT AWARENESS
 
 The instructor will tell you which unit this exercise belongs to. Unit
 membership is STRICTER than student_level — it tells you exactly which
-Python tools the student has been taught so far. Calibrate dimensions to
+C tools the student has been taught so far. Calibrate dimensions to
 that toolkit:
 
-- unit_1 · Python Fundamentals
-  Tools available: variables, input()/print(), numeric math (+ - * / //
-  % **), type casting (int, float, str), string concatenation/slicing/
-  formatting, booleans and operators, try/except.
-  NOT yet: if/else, for/while loops, lists, dicts, function definitions.
+- unit_1 · C Fundamentals
+  Tools available: variables (int, float, char, double), standard input/output
+  (printf()/scanf()), numeric math (+ - * / %), relational/logical operators,
+  type casting.
+  NOT yet: if/else, for/while loops, arrays, structures, user-defined functions.
 
 - unit_2 · Control Structures
-  All of unit_1 plus: if/elif/else, comparison operators, nested
-  conditionals, while and for loops, nested loops.
-  NOT yet: lists, dicts, function definitions.
+  All of unit_1 plus: if/else, switch-case, comparison/relational operators,
+  nested conditionals, while, for, and do-while loops, nested loops, break/continue.
+  NOT yet: arrays, structures, user-defined functions.
 
 - unit_3 · Data Structures
-  All of unit_2 plus: lists (creation, indexing, slicing, iteration,
-  modification, built-in methods), dictionaries (same), nested lists
-  and dicts.
-  NOT yet: user-defined functions (other than the top-level script).
+  All of unit_2 plus: 1D and 2D arrays, character arrays (strings) and standard
+  string functions (strlen, strcpy, strcmp, etc.), structures (struct).
+  NOT yet: user-defined functions (other than main), pointers, dynamic allocation.
 
-- unit_4 · Functions
-  Everything above plus: def, parameters, arguments, scope, return,
-  default arguments, *args / **kwargs.
+- unit_4 · Functions & Pointers
+  All of unit_3 plus: user-defined functions (declaration/prototype, definition,
+  parameters, arguments, return, scope), pointers (address-of &, dereferencing *),
+  simple dynamic memory allocation (malloc, free), basic file operations.
 
 HOW UNIT AFFECTS DIMENSIONS
 
 - Do NOT include dimensions whose only defensible answer requires tools
-  the student hasn't learned. Example: for a unit_1 exercise, do not ask
-  "what happens if the input is not a number?" if the only way to handle
-  it would be try/except and you expect the student to catch it — unless
-  try/except is in-curriculum (it is for unit_1).
+  the student hasn't learned.
 - DO include dimensions where the valid answer is "assume valid input"
   or "crash naturally on bad input" at any unit. Those are legitimate
   commitments, and forcing the student to NAME the assumption is valuable.
@@ -66,10 +63,9 @@ HOW UNIT AFFECTS DIMENSIONS
   acceptable commitment. Make the "assume" option explicit in the
   description (e.g. "Does the program assume the radius is positive, or
   does it need to handle zero/negative input specially?").
-- For unit_1/unit_2, do not assume the student will write a def. The code
-  will be a top-level script using input() and print().
-- For unit_3, dimensions may reference lists/dicts freely; do not assume
-  helper functions.
+- For unit_1/unit_2/unit_3, do not assume the student will write helper
+  functions. The code will be inside a main() function.
+- For unit_3, dimensions may reference arrays/strings/structures freely.
 - Dimension count rules still apply — proportional to complexity, never
   a fixed count.
 
@@ -106,45 +102,42 @@ Output format: a single JSON object, no preamble, no markdown fences. Schema:
 // proportionality rule and the `prompt_quality_note` path for vague prompts).
 const FEW_SHOTS = `Example A — trivial prompt:
 
-PROMPT: "Write a function that counts vowels in a string."
+PROMPT: "Write a program that counts vowels in a string."
 
 OUTPUT:
 {
   "spec_gate_dimensions": [
-    { "id": "case_sensitivity", "description": "Does the function count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?", "rationale": "Case handling is the most common unstated assumption in string-counting problems; forcing the student to commit surfaces whether they've thought about it." },
+    { "id": "case_sensitivity", "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?", "rationale": "Case handling is the most common unstated assumption in string-counting problems; forcing the student to commit surfaces whether they've thought about it." },
     { "id": "y_as_vowel", "description": "Does 'y' count as a vowel?", "rationale": "English teaches 'y is sometimes a vowel'; this has no objectively correct answer, so the spec must commit to one." },
-    { "id": "empty_string", "description": "What should the function return when given an empty string?", "rationale": "Empty input is the canonical missed case in CS1; surfacing it in the spec gate is cheaper than surfacing it in a failed test." }
+    { "id": "empty_string", "description": "What should the program print when given an empty string or when no characters are entered?", "rationale": "Empty input is the canonical missed case in CS1; surfacing it in the spec gate is cheaper than surfacing it in a failed run." }
   ],
   "expected_divergences": [
-    { "category": "drift", "pattern": "Student's spec commits to counting uppercase vowels but code only checks lowercase because they wrote \`if c in 'aeiou'\` without .lower()" },
-    { "category": "revision", "pattern": "Spec implies an accumulator variable; code uses \`sum(1 for c in s if ...)\` — coherent Pythonic refactor" },
-    { "category": "bug", "pattern": "Off-by-one or type-error when the input isn't a string, e.g. crashes on None" }
+    { "category": "drift", "pattern": "Student's spec commits to counting uppercase vowels but code only checks lowercase because they only checked c == 'a' || c == 'e' etc. without checking uppercase equivalent or using tolower()" },
+    { "category": "revision", "pattern": "Spec implies using a switch case; code uses multiple nested if-else blocks — coherent alternative structure" },
+    { "category": "bug", "pattern": "Off-by-one error or memory access bug when reading string with scanf or looping past the null terminator '\\0'" }
   ],
-  "student_level": "week_1_2",
+  "student_level": "week_3_6",
   "prompt_quality_note": null
 }
 
 Example B — complex prompt:
 
-PROMPT: "Write a function that validates a password. It must be at least 8 characters, contain at least one digit, at least one uppercase letter, and at least one special character from !@#$%. Return True if valid, False otherwise."
+PROMPT: "Write a program that validates a password. It must be at least 8 characters, contain at least one digit, at least one uppercase letter, and at least one special character from !@#$%. Print 'Valid' or 'Invalid'."
 
 OUTPUT:
 {
   "spec_gate_dimensions": [
     { "id": "exactly_8_behavior", "description": "Is a password of exactly 8 characters valid, or does 'at least 8' mean strictly more than 8?", "rationale": "Off-by-one on length is the most common drift in validation problems." },
-    { "id": "non_string_input", "description": "What happens if the input is not a string (None, integer, list)?", "rationale": "Forcing commitment to a type-contract before coding prevents the student from crashing on type errors and calling it a bug rather than missing spec." },
-    { "id": "unicode_letters", "description": "Do non-ASCII uppercase letters (Á, Ñ, Ü) count as uppercase, or only A-Z?", "rationale": "This is the kind of ambiguity a professional programmer would clarify with a product owner; surfacing it teaches the habit." },
+    { "id": "buffer_overflow_safety", "description": "How does the program handle inputs that exceed the allocated buffer size (e.g. if the student declares char password[20])?", "rationale": "Forcing commitment to a length boundary or safe input reading (e.g. limiting scanf width or using fgets) prevents buffer overflow vulnerabilities." },
     { "id": "special_char_set", "description": "Only !@#$% count as special, or is any non-alphanumeric character acceptable?", "rationale": "The prompt gave an explicit set, but students frequently interpret 'at least one special character' as 'any special character'. The spec must commit to one reading." },
-    { "id": "empty_string", "description": "What should be returned for an empty string?", "rationale": "An empty string fails the length requirement; the spec should confirm the function returns False rather than raising." },
-    { "id": "short_circuit_vs_all_rules", "description": "Should all rules be checked and a combined reason returned, or is returning False on the first failure sufficient?", "rationale": "The prompt says 'return True or False', so the answer is 'first failure', but students often over-engineer. Surfacing the simpler contract prevents that." }
+    { "id": "empty_string", "description": "What should be printed for an empty string?", "rationale": "An empty string fails the length requirement; the spec should confirm the program prints 'Invalid' rather than crashing." }
   ],
   "expected_divergences": [
     { "category": "drift", "pattern": "Code checks length but forgets to check the digit/uppercase/special requirements, or vice versa — student fixated on one rule and dropped the others" },
-    { "category": "drift", "pattern": "Code uses \`>\` instead of \`>=\` for length, rejecting valid 8-character passwords" },
-    { "category": "revision", "pattern": "Spec implies four separate boolean checks; code uses \`any(c.isdigit() for c in pw)\`-style comprehensions — coherent simplification" },
-    { "category": "revision", "pattern": "Code uses early returns instead of nested ifs — coherent restructure" },
-    { "category": "bug", "pattern": "Correct logic but wrong return type (returning None or the string 'True')" },
-    { "category": "bug", "pattern": "Uses \`in\` on a set of characters where the student meant membership but typed assignment" }
+    { "category": "drift", "pattern": "Code uses > instead of >= for length, rejecting valid 8-character passwords" },
+    { "category": "revision", "pattern": "Spec implies separate loops; code checks all rules in a single loop over the string — coherent optimization" },
+    { "category": "bug", "pattern": "Using dangerous gets() or scanf(\"%s\") without width limit, leading to buffer overflow on long input" },
+    { "category": "bug", "pattern": "Forgetting that string ends with '\\0' and running past the end of the input buffer" }
   ],
   "student_level": "week_7_plus",
   "prompt_quality_note": null

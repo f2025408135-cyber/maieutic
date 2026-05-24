@@ -1,4 +1,4 @@
-// public/cpp-worker.js
+// public/c-worker.js
 // Web Worker that runs JSCPP. Handles interactive stdin via a SharedArrayBuffer + Atomics.wait.
 
 self.addEventListener("error", (e) => {

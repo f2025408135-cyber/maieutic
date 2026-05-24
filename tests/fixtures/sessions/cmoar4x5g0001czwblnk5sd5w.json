@@ -9,7 +9,7 @@
     "iterations": [
       {
         "timestamp": "2026-04-23T00:37:10.942Z",
-        "studentSpecText": "The program asks the user for a string and prints the number of vowels in it.",
+        "studentSpecText": "The program asks the user for a string via scanf and prints the number of vowels in it.",
         "opusQuestions": [
           "Which letters count as vowels — just a, e, i, o, u, or does y count too? And should uppercase letters like 'A' or 'E' be counted as well?",
           "When the program prints the result, what exactly should it print — just a number like '3', or a full sentence? And what should it print if the user just presses Enter without typing anything?"
@@ -26,7 +26,7 @@
       },
       {
         "timestamp": "2026-04-23T00:37:16.585Z",
-        "studentSpecText": "The program asks the user for a string with input() and prints just the integer count of vowels (no accompanying text). Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. If the user enters an empty string, it prints 0.",
+        "studentSpecText": "The program asks the user for a string with scanf() and prints just the integer count of vowels (no accompanying text). Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. If the user enters an empty string, it prints 0.",
         "opusQuestions": [
           "Your spec is concrete enough to pass the gate. One optional thing to consider if you want: what should happen with characters that aren't letters at all, like spaces, digits, or punctuation?"
         ],
@@ -46,7 +46,7 @@
         "passed": true
       }
     ],
-    "finalSpecText": "The program asks the user for a string with input() and prints just the integer count of vowels (no accompanying text). Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. If the user enters an empty string, it prints 0.",
+    "finalSpecText": "The program asks the user for a string with scanf() and prints just the integer count of vowels (no accompanying text). Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U. 'y' is not a vowel. If the user enters an empty string, it prints 0.",
     "instructorConfiguredDimensionsAddressed": [
       "case_sensitivity",
       "y_as_vowel",
@@ -59,8 +59,8 @@
   "phase3Data": {
     "opusExchanges": [],
     "revisions": [],
-    "currentCode": "s = input(\"Enter a string: \")\ncount = 0\nfor c in s:\n    if c in 'aeiou':\n        count = count + 1\nprint(count)\n",
-    "finalCode": "s = input(\"Enter a string: \")\ncount = 0\nfor c in s:\n    if c in 'aeiou':\n        count = count + 1\nprint(count)\n",
+    "currentCode": "#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char s[100];\n    printf(\"Enter a string: \");\n    scanf(\"%99s\", s);\n    int count = 0;\n    for (int i = 0; s[i] != '\\0'; i++) {\n        char c = s[i];\n        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {\n            count = count + 1;\n        }\n    }\n    printf(\"%d\", count);\n    return 0;\n}",
+    "finalCode": "#include <stdio.h>\n#include <string.h>\n\nint main() {\n    char s[100];\n    printf(\"Enter a string: \");\n    scanf(\"%99s\", s);\n    int count = 0;\n    for (int i = 0; s[i] != '\\0'; i++) {\n        char c = s[i];\n        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {\n            count = count + 1;\n        }\n    }\n    printf(\"%d\", count);\n    return 0;\n}",
     "submittedAt": "2026-04-23T00:37:16.594Z"
   },
   "phase4Data": {
@@ -70,10 +70,10 @@
         "initialClassification": "drift",
         "initialConfidence": "high",
         "predictedJustification": "I forgot about the capital letters.",
-        "studentFacingQuestion": "Your spec said vowels include both lowercase a,e,i,o,u and uppercase A,E,I,O,U. I noticed your code checks if c in 'aeiou'. Can you tell me what happens there?",
+        "studentFacingQuestion": "Your spec said vowels include both lowercase a,e,i,o,u and uppercase A,E,I,O,U. I noticed your code checks if c == 'a' || c == 'e' etc.. Can you tell me what happens there?",
         "evidenceFromSpec": "Vowels are both lowercase a,e,i,o,u and uppercase A,E,I,O,U",
         "evidenceFromPlan": null,
-        "evidenceFromCode": "if c in 'aeiou': — only lowercase vowels",
+        "evidenceFromCode": "if (c == 'a' || c == 'e' ...) — only lowercase vowels",
         "studentResponse": "I forgot about the capital letters.",
         "alignment": "aligned",
         "finalClassification": "drift",

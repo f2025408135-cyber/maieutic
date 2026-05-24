@@ -22,7 +22,7 @@
         "passed": true
       }
     ],
-    "finalSpecText": "Reads a string with input() and prints the number of vowels — just the number, nothing else. Counts a,e,i,o,u and A,E,I,O,U. y is not counted. Empty string → prints 0.",
+    "finalSpecText": "Reads a string with scanf() and prints the number of vowels — just the number, nothing else. Counts a,e,i,o,u and A,E,I,O,U. y is not counted. Empty string → prints 0.",
     "instructorConfiguredDimensionsAddressed": [
       "case_sensitivity",
       "y_as_vowel",
@@ -35,8 +35,8 @@
   "phase3Data": {
     "opusExchanges": [],
     "revisions": [],
-    "currentCode": "text = input()\ntotal = 0\nfor ch in text:\n    if ch in 'aeiou':\n        total = total + 1\nprint(total)\n",
-    "finalCode": "text = input()\ntotal = 0\nfor ch in text:\n    if ch in 'aeiou':\n        total = total + 1\nprint(total)\n",
+    "currentCode": "#include <stdio.h>\n\nint main() {\n    char text[100];\n    scanf(\"%99s\", text);\n    int total = 0;\n    for (int i = 0; text[i] != '\\0'; i++) {\n        char ch = text[i];\n        if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') {\n            total = total + 1;\n        }\n    }\n    printf(\"%d\", total);\n    return 0;\n}",
+    "finalCode": "#include <stdio.h>\n\nint main() {\n    char text[100];\n    scanf(\"%99s\", text);\n    int total = 0;\n    for (int i = 0; text[i] != '\\0'; i++) {\n        char ch = text[i];\n        if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') {\n            total = total + 1;\n        }\n    }\n    printf(\"%d\", total);\n    return 0;\n}",
     "submittedAt": "2026-04-23T00:37:49.327Z"
   },
   "phase4Data": {

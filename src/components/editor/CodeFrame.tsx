@@ -24,8 +24,8 @@ export const SYNTAX = {
 } as const;
 
 export function CodeFrame({
-  fileName = "welcome.py",
-  language = "Python",
+  fileName = "welcome.c",
+  language = "C",
   statusLeft,
   statusRight,
   banner,

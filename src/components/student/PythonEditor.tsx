@@ -40,7 +40,7 @@ export interface PythonEditorProps {
   onChange?: (value: string) => void;
   readOnly: boolean;
   height?: string;
-  language?: "python" | "cpp";
+  language?: "c";
   /** Text to overlay when the editor is in its locked Phase 1/2 state. */
   lockNotice?: string;
 }
@@ -50,7 +50,7 @@ export function PythonEditor({
   onChange,
   readOnly,
   height = "100%",
-  language = "python",
+  language = "c",
   lockNotice,
 }: PythonEditorProps) {
   return (

@@ -12,8 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { PythonEditor } from "@/components/student/PythonEditor";
-import { provideInput as providePythonInput, runPython } from "@/lib/run-python";
-import { provideInput as provideCppInput, runCpp } from "@/lib/run-cpp";
+import { provideInput as provideCInput, runC } from "@/lib/run-c";
 import { TopNav } from "@/components/editor/TopNav";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { FileTabBar } from "@/components/editor/FileTab";
@@ -102,121 +101,59 @@ export function ExerciseClient({
   const [chatBusy, setChatBusy] = useState(false);
   const [finalSubmitting, setFinalSubmitting] = useState(false);
 
-  // ── browser-side Code runner (Python & C++) ──────────────────────
+  // ── browser-side Code runner (C only) ──────────────────────
   // The console is a unified stream: stdout, stderr, echoed input, and
   // any errors arrive as ConsoleLine entries in arrival order.
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [runState, setRunState] = useState<RunState>("idle");
-  const pyodideEverLoaded = useRef(false);
 
   async function runCode() {
     if (runState !== "idle") return;
     setConsoleLines([]);
     
-    const isCpp = exercise.language === "cpp";
-
-    if (isCpp) {
-      setRunState("loading");
-      setConsoleLines([{ kind: "system", text: "Loading C++…\n" }]);
-      try {
-        await runCpp(code, (event) => {
-          if (event.type === "stdout") {
-            setConsoleLines((prev) => [
-              ...prev.filter((l) => l.kind !== "system"),
-              { kind: "stdout", text: event.text },
-            ]);
-            setRunState("running");
-          } else if (event.type === "stderr") {
-            setConsoleLines((prev) => [
-              ...prev.filter((l) => l.kind !== "system"),
-              { kind: "stderr", text: event.text },
-            ]);
-          } else if (event.type === "inputRequest") {
-            setConsoleLines((prev) => prev.filter((l) => l.kind !== "system"));
-            setRunState("waiting-input");
-          } else if (event.type === "error") {
-            setConsoleLines((prev) => [
-              ...prev,
-              { kind: "error", text: event.text + "\n" },
-            ]);
-            setRunState("idle");
-          } else if (event.type === "done") {
-            setRunState("idle");
-          }
-        });
-      } catch (err) {
-        setConsoleLines((prev) => [
-          ...prev,
-          {
-            kind: "error",
-            text:
-              (err instanceof Error ? err.message : String(err)) + "\n",
-          },
-        ]);
-        setRunState("idle");
-      }
-    } else {
-      if (!pyodideEverLoaded.current) {
-        setRunState("loading");
-        setConsoleLines([{ kind: "system", text: "Loading Python…\n" }]);
-      } else {
-        setRunState("running");
-      }
-      try {
-        // Strip the "Loading Python…" placeholder the moment real output
-        // (or an input prompt) arrives, so the console only shows what
-        // the program produced.
-        const dropLoadingPlaceholder = (lines: ConsoleLine[]) =>
-          lines.filter((l) => l.kind !== "system");
-        await runPython(code, (event) => {
-          if (event.type === "stdout") {
-            setConsoleLines((prev) => [
-              ...dropLoadingPlaceholder(prev),
-              { kind: "stdout", text: event.text },
-            ]);
-            pyodideEverLoaded.current = true;
-            setRunState("running");
-          } else if (event.type === "stderr") {
-            setConsoleLines((prev) => [
-              ...dropLoadingPlaceholder(prev),
-              { kind: "stderr", text: event.text },
-            ]);
-          } else if (event.type === "inputRequest") {
-            setConsoleLines((prev) => dropLoadingPlaceholder(prev));
-            pyodideEverLoaded.current = true;
-            setRunState("waiting-input");
-          } else if (event.type === "error") {
-            setConsoleLines((prev) => [
-              ...prev,
-              { kind: "error", text: event.text + "\n" },
-            ]);
-            pyodideEverLoaded.current = true;
-            setRunState("idle");
-          } else if (event.type === "done") {
-            pyodideEverLoaded.current = true;
-            setRunState("idle");
-          }
-        });
-      } catch (err) {
-        setConsoleLines((prev) => [
-          ...prev,
-          {
-            kind: "error",
-            text:
-              (err instanceof Error ? err.message : String(err)) + "\n",
-          },
-        ]);
-        setRunState("idle");
-      }
+    setRunState("loading");
+    setConsoleLines([{ kind: "system", text: "Loading C…\n" }]);
+    try {
+      await runC(code, (event) => {
+        if (event.type === "stdout") {
+          setConsoleLines((prev) => [
+            ...prev.filter((l) => l.kind !== "system"),
+            { kind: "stdout", text: event.text },
+          ]);
+          setRunState("running");
+        } else if (event.type === "stderr") {
+          setConsoleLines((prev) => [
+            ...prev.filter((l) => l.kind !== "system"),
+            { kind: "stderr", text: event.text },
+          ]);
+        } else if (event.type === "inputRequest") {
+          setConsoleLines((prev) => prev.filter((l) => l.kind !== "system"));
+          setRunState("waiting-input");
+        } else if (event.type === "error") {
+          setConsoleLines((prev) => [
+            ...prev,
+            { kind: "error", text: event.text + "\n" },
+          ]);
+          setRunState("idle");
+        } else if (event.type === "done") {
+          setRunState("idle");
+        }
+      });
+    } catch (err) {
+      setConsoleLines((prev) => [
+        ...prev,
+        {
+          kind: "error",
+          text:
+            (err instanceof Error ? err.message : String(err)) + "\n",
+        },
+      ]);
+      setRunState("idle");
     }
   }
   function submitConsoleInput(text: string) {
     if (runState !== "waiting-input") return;
-    if (exercise.language === "cpp") {
-      provideCppInput(text);
-    } else {
-      providePythonInput(text);
-    }
+    provideCInput(text);
     setConsoleLines((prev) => [...prev, { kind: "input", text: text + "\n" }]);
     setRunState("running");
   }
@@ -575,7 +512,7 @@ export function ExerciseClient({
           )
         }
       />
-      <FileTabBar fileName={`${exercise.id}.${exercise.language === "cpp" ? "cpp" : "py"}`} />
+      <FileTabBar fileName={`${exercise.id}.c`} />
 
       <ExerciseTitle
         title={exercise.title}
@@ -619,7 +556,7 @@ export function ExerciseClient({
           runCode={runCode}
           submitConsoleInput={submitConsoleInput}
           clearConsole={clearConsole}
-          language={exercise.language === "cpp" ? "cpp" : "python"}
+          language="c"
         />
       )}
 
@@ -646,7 +583,7 @@ export function ExerciseClient({
           closed={closed}
           onStartFresh={startFreshSession}
           restarting={restarting}
-          language={exercise.language === "cpp" ? "cpp" : "python"}
+          language="c"
         />
       )}
 
@@ -953,7 +890,7 @@ function Phase2View({
   runCode,
   submitConsoleInput,
   clearConsole,
-  language = "python",
+  language = "c",
 }: {
   code: string;
   setCode: (v: string) => void;
@@ -971,7 +908,7 @@ function Phase2View({
   runCode: () => void;
   submitConsoleInput: (text: string) => void;
   clearConsole: () => void;
-  language?: "python" | "cpp";
+  language?: "c";
 }) {
   const t = useT();
   return (
@@ -1170,7 +1107,7 @@ function Phase3View({
   closed,
   onStartFresh,
   restarting,
-  language = "python",
+  language = "c",
 }: {
   iterations: Phase1Iteration[];
   finalSpec: string;
@@ -1186,7 +1123,7 @@ function Phase3View({
   closed: boolean;
   onStartFresh: () => void;
   restarting: boolean;
-  language?: "python" | "cpp";
+  language?: "c";
 }) {
   const t = useT();
   const allAnswered =
@@ -1404,7 +1341,7 @@ function RevisionEditor({
   onCancel,
   finalizing,
   error,
-  language = "python",
+  language = "c",
 }: {
   finalSpec: string;
   originalCode: string;
@@ -1413,7 +1350,7 @@ function RevisionEditor({
   onCancel: () => void;
   finalizing: boolean;
   error: string | null;
-  language?: "python" | "cpp";
+  language?: "c";
 }) {
   const t = useT();
   const [draft, setDraft] = useState(originalCode);

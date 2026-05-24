@@ -145,5 +145,6 @@
     }
   ],
   "opusGeneratedPhase2Required": true,
-  "opusGeneratedStudentLevel": "week_7_plus"
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
 }

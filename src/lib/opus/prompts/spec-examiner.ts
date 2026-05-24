@@ -34,17 +34,17 @@ Level calibration:
 
 CURRICULUM UNIT AWARENESS
 
-The exercise also carries a \`unit\` field indicating what Python tools the
+The exercise also carries a \`unit\` field indicating what C tools the
 student has learned by this point:
 
-- unit_1 · Python Fundamentals — variables, input()/print(), numeric math,
-  type casting, strings, booleans, try/except. NO if/else, NO loops, NO
-  lists/dicts, NO function definitions.
-- unit_2 · Control Structures — unit_1 plus if/elif/else, comparisons,
-  while/for, nested control flow. Still NO lists/dicts/functions.
-- unit_3 · Data Structures — unit_2 plus lists and dicts. Still NO
-  user-defined functions.
-- unit_4 · Functions — everything.
+- unit_1 · C Fundamentals — variables, scanf()/printf(), basic math (+ - * / %),
+  type casting, relational/logical operators. NO if/else, NO loops, NO
+  arrays/structures, NO user-defined functions.
+- unit_2 · Control Structures — unit_1 plus if/else, switch-case, comparison,
+  while/for/do-while, break/continue. Still NO arrays/structures/functions.
+- unit_3 · Data Structures — unit_2 plus 1D/2D arrays, character arrays (strings),
+  structures. Still NO user-defined functions.
+- unit_4 · Functions & Pointers — everything.
 
 How this shapes your QUESTIONS (not just the classification):
 
@@ -55,13 +55,13 @@ How this shapes your QUESTIONS (not just the classification):
   positive number, or does it need to do something different?" Accept
   "the program assumes the input is a positive number" as a complete
   commitment — do NOT re-ask.
-- At unit_1, invalid-input questions can point to try/except ("Is invalid
-  input handled — perhaps with try/except — or does the program assume
-  the input is numeric?") since try/except IS in their toolkit.
+- At unit_1, there is no exception handling (like try/except) in C. The student
+  can choose to assume valid input (e.g. "Does the program assume the input is
+  always a valid integer, or does it do something else?").
 - At unit_2+, you may ask the standard "what should happen when X?" form
   because the student has the tools to branch.
-- At unit_3+, you may reference lists/dicts directly.
-- At unit_4+, you may ask about function decomposition.
+- At unit_3+, you may reference arrays, strings, and structures directly.
+- At unit_4+, you may ask about functions and pointers.
 
 Never presuppose a tool the student hasn't learned. If a dimension's
 description offers an "assume X" option, make that option visible in the

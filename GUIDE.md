@@ -139,7 +139,7 @@ Open your browser → **http://localhost:3000**
 
 ### Features available:
 - 🟢 **Python exercises** — runs in browser (no install needed)
-- 🔵 **C++ exercises** — runs in browser via JSCPP
+- 🔵 **C exercises** — runs in browser via JSCPP
 - 🌐 **Roman Urdu** — switch language in the top-right nav
 - 🤖 **AI fallback** — if Gemini hits rate limit, auto-switches to backup models
 
@@ -203,6 +203,6 @@ The codebase has been fully verified and is 100% compilation-safe:
 - Original project by **Paula Vásquez-Henríquez** (Universidad del Desarrollo, Chile)
 - Fork customized for **UMT Lahore · Programming Fundamentals**
   - Multi-provider free LLM routing (Gemini / OpenRouter / Anthropic)
-  - C++ in-browser execution
+  - C in-browser execution
   - Roman Urdu language support
   - UMT branding

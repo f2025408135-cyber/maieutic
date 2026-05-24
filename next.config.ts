@@ -33,9 +33,9 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // The C++ JSCPP worker uses SharedArrayBuffer the same way —
+        // The C JSCPP worker uses SharedArrayBuffer the same way —
         // it must also be served with COEP.
-        source: "/cpp-worker.js",
+        source: "/c-worker.js",
         headers: [
           { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },

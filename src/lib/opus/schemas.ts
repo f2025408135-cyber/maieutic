@@ -87,7 +87,7 @@ export const ExerciseRecord = z.object({
   expectedDivergences: z.array(ExpectedDivergence),
   studentLevel: StudentLevel,
   unit: UnitId,
-  language: z.string().default("python"),
+  language: z.string().default("c"),
   opusGeneratedDimensions: z.array(OpusGeneratedDimension),
   opusGeneratedDivergences: z.array(OpusGeneratedDivergence),
   opusGeneratedStudentLevel: StudentLevel,
@@ -106,7 +106,7 @@ export const ExerciseAuthoringInput = z.object({
   // Optional at the boundary — createExercise derives from studentLevel
   // when absent so legacy demo/test scripts keep working.
   unit: UnitId.optional(),
-  language: z.string().default("python"),
+  language: z.string().default("c"),
   opusGeneratedDimensions: z.array(OpusGeneratedDimension),
   opusGeneratedDivergences: z.array(OpusGeneratedDivergence),
   opusGeneratedStudentLevel: StudentLevel,
