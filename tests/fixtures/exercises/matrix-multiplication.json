@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_3_6",
   "unit": "unit_3",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "multiplication_validation",
@@ -92,6 +93,5 @@
       "pattern": "Student prints the output in a single line or raw sequence instead of a formatted grid structure."
     }
   ],
-  "opusGeneratedStudentLevel": "week_3_6",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_3_6"
 }

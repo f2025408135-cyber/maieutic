@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_3_6",
   "unit": "unit_3",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "uniqueness_in_result",
@@ -92,6 +93,5 @@
       "pattern": "Student uses dynamic values for loop conditions without keeping them constant, leading to infinite loops or early terminations."
     }
   ],
-  "opusGeneratedStudentLevel": "week_3_6",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_3_6"
 }

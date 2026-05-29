@@ -62,9 +62,9 @@
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_1_2",
   "unit": "unit_2",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "input_type",
@@ -113,7 +113,5 @@
       "pattern": "Output format committed in spec (e.g. full sentence) but code prints the bare number, or vice versa"
     }
   ],
-  "opusGeneratedPhase2Required": true,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

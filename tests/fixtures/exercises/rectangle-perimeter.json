@@ -6,94 +6,92 @@
   "publishedAt": "2026-04-23T00:18:31.764Z",
   "specGateDimensions": [
     {
-      "id": "input_type",
-      "description": "Should width and height be read as integers or floats (i.e. are decimal dimensions like 3.5 allowed)?",
-      "rationale": "The casting choice (int vs float) is the one real decision in this exercise, and it determines what inputs the program accepts without crashing.",
+      "id": "input_data_type",
+      "description": "Will the width and height be whole numbers (integers) or can they be decimal numbers (floating-point)? This determines the appropriate variable type for storing them.",
+      "rationale": "Choosing the correct data type (`int`, `float`, or `double`) is a fundamental decision that affects how numbers are stored and processed, and directly impacts the required format specifiers for `scanf` and `printf`.",
       "source": "opus"
     },
     {
-      "id": "input_validity_assumption",
-      "description": "Does the program assume the user enters valid positive numbers, or does it need to handle non-numeric or negative input specially (e.g. via try/except)?",
-      "rationale": "Forcing the student to name the assumption — 'I assume valid positive input' is a fine commitment at unit_1 — prevents surprise when the program crashes on bad input.",
+      "id": "negative_zero_input",
+      "description": "What should the program do if the user enters zero or negative values for width or height? (Given the available tools, the formula '2 * width + 2 * height' will be applied directly to these values.)",
+      "rationale": "Since `if/else` statements are not yet available, the program cannot conditionally handle invalid inputs. This dimension forces the student to explicitly acknowledge this limitation and commit to the natural behavior of applying the formula, even if it yields non-physical results, making an implicit assumption explicit.",
       "source": "opus"
     },
     {
-      "id": "output_format",
-      "description": "What exactly does the printed output look like — just the number, or a labeled message like 'Perimeter: 20'?",
-      "rationale": "The prompt says 'prints its perimeter' without specifying format; committing to a concrete output shape makes the spec checkable.",
+      "id": "output_precision_format",
+      "description": "How should the calculated perimeter be displayed? Specifically, what level of precision (e.g., number of decimal places) is expected for the output?",
+      "rationale": "Students often overlook output formatting, especially for floating-point numbers. This dimension ensures they consider how to use `printf` format specifiers to control the presentation of the result.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to float input but code uses int(input(...)), silently rejecting decimal dimensions",
+      "pattern": "Student fails to include clear, descriptive prompts (e.g., 'Enter width:') before `scanf` calls, making the program's input requests unclear to the user.",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec promises a labeled output message but code prints only the bare number, or vice versa",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student forgets to cast input() and computes 2 * '5' + 2 * '3', producing '5555' + '33' style string concatenation instead of a number",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student computes width * height (area) instead of 2*width + 2*height (perimeter), confusing the two formulas",
+      "pattern": "Student only prints the numerical perimeter value without a descriptive label (e.g., just '10.0' instead of 'The perimeter is: 10.0').",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes computing 2*width + 2*height; code uses the equivalent 2 * (width + height) — coherent algebraic simplification",
+      "pattern": "Student uses the mathematically equivalent formula `2 * (width + height)` instead of `2 * width + 2 * height` for the perimeter calculation.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets the `&` (address-of) operator when passing variables to `scanf`, leading to incorrect input reading or a runtime crash.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses an incorrect format specifier (e.g., `%d` for a `float` or `%f` for an `int`) in either `scanf` or `printf`, leading to garbled output or incorrect values.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_1",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
-      "id": "input_type",
-      "description": "Should width and height be read as integers or floats (i.e. are decimal dimensions like 3.5 allowed)?",
-      "rationale": "The casting choice (int vs float) is the one real decision in this exercise, and it determines what inputs the program accepts without crashing."
+      "id": "input_data_type",
+      "description": "Will the width and height be whole numbers (integers) or can they be decimal numbers (floating-point)? This determines the appropriate variable type for storing them.",
+      "rationale": "Choosing the correct data type (`int`, `float`, or `double`) is a fundamental decision that affects how numbers are stored and processed, and directly impacts the required format specifiers for `scanf` and `printf`."
     },
     {
-      "id": "input_validity_assumption",
-      "description": "Does the program assume the user enters valid positive numbers, or does it need to handle non-numeric or negative input specially (e.g. via try/except)?",
-      "rationale": "Forcing the student to name the assumption — 'I assume valid positive input' is a fine commitment at unit_1 — prevents surprise when the program crashes on bad input."
+      "id": "negative_zero_input",
+      "description": "What should the program do if the user enters zero or negative values for width or height? (Given the available tools, the formula '2 * width + 2 * height' will be applied directly to these values.)",
+      "rationale": "Since `if/else` statements are not yet available, the program cannot conditionally handle invalid inputs. This dimension forces the student to explicitly acknowledge this limitation and commit to the natural behavior of applying the formula, even if it yields non-physical results, making an implicit assumption explicit."
     },
     {
-      "id": "output_format",
-      "description": "What exactly does the printed output look like — just the number, or a labeled message like 'Perimeter: 20'?",
-      "rationale": "The prompt says 'prints its perimeter' without specifying format; committing to a concrete output shape makes the spec checkable."
+      "id": "output_precision_format",
+      "description": "How should the calculated perimeter be displayed? Specifically, what level of precision (e.g., number of decimal places) is expected for the output?",
+      "rationale": "Students often overlook output formatting, especially for floating-point numbers. This dimension ensures they consider how to use `printf` format specifiers to control the presentation of the result."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to float input but code uses int(input(...)), silently rejecting decimal dimensions"
+      "pattern": "Student fails to include clear, descriptive prompts (e.g., 'Enter width:') before `scanf` calls, making the program's input requests unclear to the user."
     },
     {
       "category": "drift",
-      "pattern": "Spec promises a labeled output message but code prints only the bare number, or vice versa"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student forgets to cast input() and computes 2 * '5' + 2 * '3', producing '5555' + '33' style string concatenation instead of a number"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student computes width * height (area) instead of 2*width + 2*height (perimeter), confusing the two formulas"
+      "pattern": "Student only prints the numerical perimeter value without a descriptive label (e.g., just '10.0' instead of 'The perimeter is: 10.0')."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes computing 2*width + 2*height; code uses the equivalent 2 * (width + height) — coherent algebraic simplification"
+      "pattern": "Student uses the mathematically equivalent formula `2 * (width + height)` instead of `2 * width + 2 * height` for the perimeter calculation."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets the `&` (address-of) operator when passing variables to `scanf`, leading to incorrect input reading or a runtime crash."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses an incorrect format specifier (e.g., `%d` for a `float` or `%f` for an `int`) in either `scanf` or `printf`, leading to garbled output or incorrect values."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

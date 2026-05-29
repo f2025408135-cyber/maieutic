@@ -6,94 +6,92 @@
   "publishedAt": "2026-04-23T00:01:14.646Z",
   "specGateDimensions": [
     {
-      "id": "inclusive_endpoints",
-      "description": "Does the output include both n itself and 1, or does it stop before reaching one of them?",
-      "rationale": "Off-by-one at the endpoints is the canonical bug in counting loops; forcing an explicit commitment prevents range() confusion later.",
+      "id": "non_positive_n_input",
+      "description": "If the user enters zero or a negative number for N, what should the program do? Should it re-prompt for a valid input, print an error message and exit, or simply proceed (e.g., printing nothing for N=0 or N=-5)?",
+      "rationale": "The prompt explicitly states 'positive integer n'. Students need to commit to a strategy for handling input that violates this constraint, which involves using `if`/`else` and potentially a `while` loop for re-prompting, both available in Unit 2.",
       "source": "opus"
     },
     {
-      "id": "invalid_input_handling",
-      "description": "If the user enters 0, a negative number, or a non-integer, does the program crash, reprompt, print nothing, or assume input is always valid?",
-      "rationale": "The prompt says 'positive integer' but doesn't say whether the program must enforce that. At unit_2 the student has if/else and loops, so reprompting is feasible — but 'assume valid input' is also a legitimate commitment that must be named.",
+      "id": "non_numeric_input",
+      "description": "What should the program do if the user enters characters that are not digits (e.g., 'hello' or '5a') when prompted for N?",
+      "rationale": "Non-numeric input can cause `scanf` to fail, leaving invalid characters in the input buffer and potentially leading to an infinite loop if not handled. Committing to a response (e.g., error message, re-prompt) forces students to consider robust input validation using `scanf`'s return value, a common requirement in C programs.",
       "source": "opus"
     },
     {
-      "id": "output_format",
-      "description": "Is each number on its own line with nothing else, or is there additional text (e.g., 'Countdown: 5')?",
-      "rationale": "The prompt implies bare numbers, but students often embellish; committing to the exact format makes the Phase 4 diff clean.",
+      "id": "output_format_consistency",
+      "description": "Beyond printing 'one per line', should there be any specific introductory or concluding text, or any extra blank lines before or after the countdown sequence?",
+      "rationale": "While 'one per line' is clear for the numbers themselves, programs often have implicit expectations about surrounding output or user guidance. Clarifying this ensures the student produces exactly the desired output format, preventing minor but common discrepancies in interactive programs.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student writes `range(n, 1, -1)` and misses printing 1, or writes `range(n, 0)` forgetting the negative step entirely",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses a while loop with `while n > 0` but forgets to decrement n, producing an infinite loop",
+      "category": "drift",
+      "pattern": "Student's spec commits to validating 'n' for positivity, but the code only uses `scanf` and a loop, without an `if` condition to check `n > 0` or re-prompt for valid input.",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to rejecting non-positive input but code runs the loop anyway, producing no output for n=0 or n=-3 without any error message, and the student treats the empty output as 'working'",
+      "pattern": "Student's spec commits to handling non-numeric input, but the code only uses `scanf(\"%d\", &n)` without checking its return value. This typically leads to an infinite loop where `scanf` repeatedly fails, and the loop might execute with an uninitialized or default value of `n`.",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a while loop with manual decrement; code uses `for i in range(n, 0, -1)` — coherent simplification using the same unit_2 toolkit",
+      "pattern": "Spec implies using a `for` loop for the countdown; code uses a `while` loop instead (or vice versa) — a coherent alternative structure for iteration, both being valid for Unit 2.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student forgets to cast input() to int, so comparisons or range() fail with a TypeError",
+      "pattern": "Off-by-one error: the loop counts down to 0 instead of 1 (e.g., `i >= 0` instead of `i >= 1`), or starts from `n-1` instead of `n`.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Infinite loop: if `n` is negative and the loop condition is `i >= 1`, the loop might never execute, or if `n` starts at 0 or less and the loop condition is not properly designed (e.g., `i > 0` and `i` is never decremented, or `n` is less than 1), it might not terminate or never start.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_2",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
-      "id": "inclusive_endpoints",
-      "description": "Does the output include both n itself and 1, or does it stop before reaching one of them?",
-      "rationale": "Off-by-one at the endpoints is the canonical bug in counting loops; forcing an explicit commitment prevents range() confusion later."
+      "id": "non_positive_n_input",
+      "description": "If the user enters zero or a negative number for N, what should the program do? Should it re-prompt for a valid input, print an error message and exit, or simply proceed (e.g., printing nothing for N=0 or N=-5)?",
+      "rationale": "The prompt explicitly states 'positive integer n'. Students need to commit to a strategy for handling input that violates this constraint, which involves using `if`/`else` and potentially a `while` loop for re-prompting, both available in Unit 2."
     },
     {
-      "id": "invalid_input_handling",
-      "description": "If the user enters 0, a negative number, or a non-integer, does the program crash, reprompt, print nothing, or assume input is always valid?",
-      "rationale": "The prompt says 'positive integer' but doesn't say whether the program must enforce that. At unit_2 the student has if/else and loops, so reprompting is feasible — but 'assume valid input' is also a legitimate commitment that must be named."
+      "id": "non_numeric_input",
+      "description": "What should the program do if the user enters characters that are not digits (e.g., 'hello' or '5a') when prompted for N?",
+      "rationale": "Non-numeric input can cause `scanf` to fail, leaving invalid characters in the input buffer and potentially leading to an infinite loop if not handled. Committing to a response (e.g., error message, re-prompt) forces students to consider robust input validation using `scanf`'s return value, a common requirement in C programs."
     },
     {
-      "id": "output_format",
-      "description": "Is each number on its own line with nothing else, or is there additional text (e.g., 'Countdown: 5')?",
-      "rationale": "The prompt implies bare numbers, but students often embellish; committing to the exact format makes the Phase 4 diff clean."
+      "id": "output_format_consistency",
+      "description": "Beyond printing 'one per line', should there be any specific introductory or concluding text, or any extra blank lines before or after the countdown sequence?",
+      "rationale": "While 'one per line' is clear for the numbers themselves, programs often have implicit expectations about surrounding output or user guidance. Clarifying this ensures the student produces exactly the desired output format, preventing minor but common discrepancies in interactive programs."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student writes `range(n, 1, -1)` and misses printing 1, or writes `range(n, 0)` forgetting the negative step entirely"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses a while loop with `while n > 0` but forgets to decrement n, producing an infinite loop"
+      "category": "drift",
+      "pattern": "Student's spec commits to validating 'n' for positivity, but the code only uses `scanf` and a loop, without an `if` condition to check `n > 0` or re-prompt for valid input."
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to rejecting non-positive input but code runs the loop anyway, producing no output for n=0 or n=-3 without any error message, and the student treats the empty output as 'working'"
+      "pattern": "Student's spec commits to handling non-numeric input, but the code only uses `scanf(\"%d\", &n)` without checking its return value. This typically leads to an infinite loop where `scanf` repeatedly fails, and the loop might execute with an uninitialized or default value of `n`."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a while loop with manual decrement; code uses `for i in range(n, 0, -1)` — coherent simplification using the same unit_2 toolkit"
+      "pattern": "Spec implies using a `for` loop for the countdown; code uses a `while` loop instead (or vice versa) — a coherent alternative structure for iteration, both being valid for Unit 2."
     },
     {
       "category": "bug",
-      "pattern": "Student forgets to cast input() to int, so comparisons or range() fail with a TypeError"
+      "pattern": "Off-by-one error: the loop counts down to 0 instead of 1 (e.g., `i >= 0` instead of `i >= 1`), or starts from `n-1` instead of `n`."
+    },
+    {
+      "category": "bug",
+      "pattern": "Infinite loop: if `n` is negative and the loop condition is `i >= 1`, the loop might never execute, or if `n` starts at 0 or less and the loop condition is not properly designed (e.g., `i > 0` and `i` is never decremented, or `n` is less than 1), it might not terminate or never start."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

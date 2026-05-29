@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_5",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "allocation_validation",
@@ -92,6 +93,5 @@
       "pattern": "Student prints stats using a different output format than the one committed to in the spec."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

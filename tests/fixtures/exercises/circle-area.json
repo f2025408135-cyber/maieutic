@@ -6,94 +6,81 @@
   "publishedAt": "2026-04-23T00:18:23.621Z",
   "specGateDimensions": [
     {
-      "id": "input_type",
-      "description": "Should the radius be read as a float (to allow decimals like 2.5) or as an int? The formula works with either, but the student must commit.",
-      "rationale": "Type casting is a core unit_1 skill; forcing the student to pick int() vs float() surfaces whether they've thought about realistic radius values.",
+      "id": "radius_input_behavior",
+      "description": "Does the program assume the user will always enter a positive numeric value for the radius, or should it calculate the area correctly for zero or negative radii (resulting in zero or negative area)? What is the expected behavior if non-numeric input is provided?",
+      "rationale": "Without conditional statements (not yet introduced in Unit 1), the program cannot explicitly validate input or branch on its value. The student must explicitly state how the program should behave under these input conditions, even if it means assuming valid input or letting the mathematical formula produce non-standard results for negative inputs, or letting `scanf` handle non-numeric input's default behavior.",
       "source": "opus"
     },
     {
-      "id": "invalid_or_negative_input",
-      "description": "Does the program assume the user enters a positive number, or does it handle non-numeric input (via try/except) and/or zero/negative radius specially?",
-      "rationale": "At unit_1, 'assume valid positive input' is a legitimate commitment, but the student should name it rather than silently hope. try/except is in-curriculum if they want to handle bad input.",
-      "source": "opus"
-    },
-    {
-      "id": "output_format",
-      "description": "How should the area be displayed — as a raw number, rounded to some number of decimals, or with a label like 'Area: '?",
-      "rationale": "Output presentation is the most common place students drift from spec; committing up front makes Phase 4 comparison meaningful.",
+      "id": "output_precision",
+      "description": "To how many decimal places should the calculated area be displayed?",
+      "rationale": "The `printf` function allows specifying output precision for floating-point numbers. Students need to commit to a specific formatting requirement for the final output.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student forgets to cast input() to float/int and tries to multiply a string by 3.14159, causing a TypeError",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student writes 3.14159 * r * 2 instead of 3.14159 * r ** 2, computing circumference-like value instead of area",
+      "category": "drift",
+      "pattern": "Student uses an integer data type (`int`) for the radius or area variable, leading to loss of fractional precision in calculations or output.",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to a labeled or formatted output (e.g. 'Area: 12.57') but code prints the raw float with full precision",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Student uses an f-string for output where the plan described plain print() with concatenation — coherent Pythonic substitution",
+      "pattern": "Student uses incorrect format specifiers for `scanf()` or `printf()` (e.g., `%d` for a float/double), leading to incorrect input reading or garbage output.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student uses ^ instead of ** for exponentiation, getting a bitwise-XOR result instead of r squared",
+      "pattern": "Missing the address-of operator (`&`) before the variable in `scanf()`, causing a runtime error or undefined behavior.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Incorrectly calculates `r` squared (e.g., `radius * 2` instead of `radius * radius`).",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student defines PI as a `const float` or `const double` variable instead of directly using the literal `3.14159` in the calculation, which is a good practice for constants.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_1",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
-      "id": "input_type",
-      "description": "Should the radius be read as a float (to allow decimals like 2.5) or as an int? The formula works with either, but the student must commit.",
-      "rationale": "Type casting is a core unit_1 skill; forcing the student to pick int() vs float() surfaces whether they've thought about realistic radius values."
+      "id": "radius_input_behavior",
+      "description": "Does the program assume the user will always enter a positive numeric value for the radius, or should it calculate the area correctly for zero or negative radii (resulting in zero or negative area)? What is the expected behavior if non-numeric input is provided?",
+      "rationale": "Without conditional statements (not yet introduced in Unit 1), the program cannot explicitly validate input or branch on its value. The student must explicitly state how the program should behave under these input conditions, even if it means assuming valid input or letting the mathematical formula produce non-standard results for negative inputs, or letting `scanf` handle non-numeric input's default behavior."
     },
     {
-      "id": "invalid_or_negative_input",
-      "description": "Does the program assume the user enters a positive number, or does it handle non-numeric input (via try/except) and/or zero/negative radius specially?",
-      "rationale": "At unit_1, 'assume valid positive input' is a legitimate commitment, but the student should name it rather than silently hope. try/except is in-curriculum if they want to handle bad input."
-    },
-    {
-      "id": "output_format",
-      "description": "How should the area be displayed — as a raw number, rounded to some number of decimals, or with a label like 'Area: '?",
-      "rationale": "Output presentation is the most common place students drift from spec; committing up front makes Phase 4 comparison meaningful."
+      "id": "output_precision",
+      "description": "To how many decimal places should the calculated area be displayed?",
+      "rationale": "The `printf` function allows specifying output precision for floating-point numbers. Students need to commit to a specific formatting requirement for the final output."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "bug",
-      "pattern": "Student forgets to cast input() to float/int and tries to multiply a string by 3.14159, causing a TypeError"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student writes 3.14159 * r * 2 instead of 3.14159 * r ** 2, computing circumference-like value instead of area"
+      "category": "drift",
+      "pattern": "Student uses an integer data type (`int`) for the radius or area variable, leading to loss of fractional precision in calculations or output."
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to a labeled or formatted output (e.g. 'Area: 12.57') but code prints the raw float with full precision"
-    },
-    {
-      "category": "revision",
-      "pattern": "Student uses an f-string for output where the plan described plain print() with concatenation — coherent Pythonic substitution"
+      "pattern": "Student uses incorrect format specifiers for `scanf()` or `printf()` (e.g., `%d` for a float/double), leading to incorrect input reading or garbage output."
     },
     {
       "category": "bug",
-      "pattern": "Student uses ^ instead of ** for exponentiation, getting a bitwise-XOR result instead of r squared"
+      "pattern": "Missing the address-of operator (`&`) before the variable in `scanf()`, causing a runtime error or undefined behavior."
+    },
+    {
+      "category": "bug",
+      "pattern": "Incorrectly calculates `r` squared (e.g., `radius * 2` instead of `radius * radius`)."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student defines PI as a `const float` or `const double` variable instead of directly using the literal `3.14159` in the calculation, which is a good practice for constants."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

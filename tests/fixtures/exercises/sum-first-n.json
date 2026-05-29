@@ -6,123 +6,92 @@
   "publishedAt": "2026-04-23T00:01:24.744Z",
   "specGateDimensions": [
     {
-      "id": "inclusive_endpoints",
-      "description": "Does the sum include both 1 and n (i.e., 1+2+...+n), or does it stop before n?",
-      "rationale": "Off-by-one on the upper bound of a range is the canonical loop bug; committing to inclusivity in the spec prevents it.",
+      "id": "non_positive_n_handling",
+      "description": "What should the program do if the user enters a non-positive integer (zero or negative) for 'n'? Should it re-prompt for valid input, print an error message, or assume valid input and proceed?",
+      "rationale": "The prompt specifies a 'positive integer'. This dimension forces the student to commit to a strategy for handling invalid input, a key application of conditional statements learned in this unit.",
       "source": "opus"
     },
     {
-      "id": "n_equals_one",
-      "description": "What should the program print when the user enters 1?",
-      "rationale": "Boundary case for the loop; forces the student to verify their loop runs at least once and produces 1, not 0.",
+      "id": "output_format",
+      "description": "What exact message should be printed to the user, beyond just the numerical sum? For example, 'The sum is X', 'Sum: X', or just 'X'?",
+      "rationale": "Specifying the output format ensures consistent user experience and provides a clear target for automated testing, preventing minor presentation differences from being flagged as errors.",
       "source": "opus"
     },
     {
-      "id": "non_positive_input",
-      "description": "What does the program do if the user enters 0 or a negative integer — does it assume input is positive per the prompt, reject it with a message, or just print 0?",
-      "rationale": "The prompt says 'positive integer' but does not specify enforcement. The student must commit to either trusting the user or validating, since both are defensible at this unit level (if/else is available).",
-      "source": "opus"
-    },
-    {
-      "id": "non_integer_input",
-      "description": "Does the program assume the user types a valid integer, or does it handle non-numeric input (e.g., 'hello')?",
-      "rationale": "Forcing a commitment here surfaces whether the student plans to use try/except or explicitly assume well-formed input.",
+      "id": "integer_overflow_behavior",
+      "description": "What should the program do if the sum of integers from 1 to 'n' exceeds the maximum value an `int` can hold? Should it assume 'n' will always be small enough to avoid overflow, or should it use a larger data type (like `long long`)?",
+      "rationale": "Awareness of data type limits and potential overflow is crucial for robust programs. Students should consider this limitation even if the chosen solution is to assume 'n' is sufficiently small.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec says sum includes n, but code writes `for i in range(1, n)` and sums 1 to n-1",
+      "pattern": "Student does not implement input validation for 'n' being positive, despite the prompt's requirement and the availability of `if/else` statements in Unit 2.",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to rejecting non-positive input, but code omits the validation and just runs the loop (which prints 0 for n<=0)",
+      "pattern": "Code uses `int` for the sum variable, leading to integer overflow for relatively small 'n' values (e.g., n=50000) where the sum exceeds `INT_MAX`, even if 'n' itself fits in an `int`.",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan uses an accumulator with a for loop; code uses the closed-form formula n*(n+1)//2 — coherent but changes the implementation strategy",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan uses `for` loop; code uses `while` with a counter — coherent alternative",
+      "pattern": "Student calculates the sum using the arithmetic series formula `n * (n + 1) / 2` instead of an explicit loop. This is a mathematically correct and efficient alternative, though it bypasses the implied practice of loop constructs.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Accumulator initialized inside the loop, so each iteration resets the sum and the final result is just n",
+      "pattern": "Loop condition is incorrect, leading to an off-by-one error (e.g., summing from 0 to n-1, or 1 to n-1 instead of 1 to n).",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Forgets to convert input() to int, so the loop fails or string behavior occurs",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Uses `range(n)` instead of `range(1, n+1)`, summing 0 to n-1",
+      "pattern": "The variable used to accumulate the sum is not initialized to 0 before the loop begins, leading to an incorrect final sum.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_2",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
-      "id": "inclusive_endpoints",
-      "description": "Does the sum include both 1 and n (i.e., 1+2+...+n), or does it stop before n?",
-      "rationale": "Off-by-one on the upper bound of a range is the canonical loop bug; committing to inclusivity in the spec prevents it."
+      "id": "non_positive_n_handling",
+      "description": "What should the program do if the user enters a non-positive integer (zero or negative) for 'n'? Should it re-prompt for valid input, print an error message, or assume valid input and proceed?",
+      "rationale": "The prompt specifies a 'positive integer'. This dimension forces the student to commit to a strategy for handling invalid input, a key application of conditional statements learned in this unit."
     },
     {
-      "id": "n_equals_one",
-      "description": "What should the program print when the user enters 1?",
-      "rationale": "Boundary case for the loop; forces the student to verify their loop runs at least once and produces 1, not 0."
+      "id": "output_format",
+      "description": "What exact message should be printed to the user, beyond just the numerical sum? For example, 'The sum is X', 'Sum: X', or just 'X'?",
+      "rationale": "Specifying the output format ensures consistent user experience and provides a clear target for automated testing, preventing minor presentation differences from being flagged as errors."
     },
     {
-      "id": "non_positive_input",
-      "description": "What does the program do if the user enters 0 or a negative integer — does it assume input is positive per the prompt, reject it with a message, or just print 0?",
-      "rationale": "The prompt says 'positive integer' but does not specify enforcement. The student must commit to either trusting the user or validating, since both are defensible at this unit level (if/else is available)."
-    },
-    {
-      "id": "non_integer_input",
-      "description": "Does the program assume the user types a valid integer, or does it handle non-numeric input (e.g., 'hello')?",
-      "rationale": "Forcing a commitment here surfaces whether the student plans to use try/except or explicitly assume well-formed input."
+      "id": "integer_overflow_behavior",
+      "description": "What should the program do if the sum of integers from 1 to 'n' exceeds the maximum value an `int` can hold? Should it assume 'n' will always be small enough to avoid overflow, or should it use a larger data type (like `long long`)?",
+      "rationale": "Awareness of data type limits and potential overflow is crucial for robust programs. Students should consider this limitation even if the chosen solution is to assume 'n' is sufficiently small."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec says sum includes n, but code writes `for i in range(1, n)` and sums 1 to n-1"
+      "pattern": "Student does not implement input validation for 'n' being positive, despite the prompt's requirement and the availability of `if/else` statements in Unit 2."
     },
     {
       "category": "drift",
-      "pattern": "Spec commits to rejecting non-positive input, but code omits the validation and just runs the loop (which prints 0 for n<=0)"
+      "pattern": "Code uses `int` for the sum variable, leading to integer overflow for relatively small 'n' values (e.g., n=50000) where the sum exceeds `INT_MAX`, even if 'n' itself fits in an `int`."
     },
     {
       "category": "revision",
-      "pattern": "Plan uses an accumulator with a for loop; code uses the closed-form formula n*(n+1)//2 — coherent but changes the implementation strategy"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan uses `for` loop; code uses `while` with a counter — coherent alternative"
+      "pattern": "Student calculates the sum using the arithmetic series formula `n * (n + 1) / 2` instead of an explicit loop. This is a mathematically correct and efficient alternative, though it bypasses the implied practice of loop constructs."
     },
     {
       "category": "bug",
-      "pattern": "Accumulator initialized inside the loop, so each iteration resets the sum and the final result is just n"
+      "pattern": "Loop condition is incorrect, leading to an off-by-one error (e.g., summing from 0 to n-1, or 1 to n-1 instead of 1 to n)."
     },
     {
       "category": "bug",
-      "pattern": "Forgets to convert input() to int, so the loop fails or string behavior occurs"
-    },
-    {
-      "category": "bug",
-      "pattern": "Uses `range(n)` instead of `range(1, n+1)`, summing 0 to n-1"
+      "pattern": "The variable used to accumulate the sum is not initialized to 0 before the loop begins, leading to an incorrect final sum."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

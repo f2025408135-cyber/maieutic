@@ -6,105 +6,94 @@
   "publishedAt": "2026-04-22T21:51:15.394Z",
   "specGateDimensions": [
     {
-      "id": "vowel_set",
-      "description": "Which characters count as vowels — only a, e, i, o, u, or is y also included?",
-      "rationale": "There is no objectively correct answer, so the spec must commit. Students often leave this implicit and then their code silently disagrees with their intent.",
-      "source": "opus"
-    },
-    {
       "id": "case_sensitivity",
       "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?",
-      "rationale": "This is the canonical drift in string-counting: the spec says 'vowels' but the code only checks lowercase. Forcing the commitment up front makes the gap visible.",
+      "rationale": "Case handling is a common unstated assumption when processing character input; forcing a commitment ensures the student explicitly designs for it.",
       "source": "opus"
     },
     {
-      "id": "empty_or_no_vowels",
-      "description": "What should the program print if the string is empty or contains no vowels?",
-      "rationale": "Students often don't consider that 0 is a valid answer and may add special-case text. Committing to 'print 0' keeps the logic clean.",
+      "id": "y_as_vowel",
+      "description": "Does 'y' count as a vowel? For example, in words like 'rhythm' or 'sky'.",
+      "rationale": "The vowel status of 'y' is ambiguous in English; the spec must commit to one definition. This tests explicit handling of individual characters in a conditional.",
       "source": "opus"
     },
     {
-      "id": "output_format",
-      "description": "What exactly should be printed — just the number, or a sentence like 'Your string has 3 vowels'?",
-      "rationale": "Phase 4 diffs output against spec; without a committed output format, there is nothing to diff against.",
+      "id": "input_termination_method",
+      "description": "How does the user signal the end of their input? Will the program stop counting when the user presses Enter (newline character), or when a specific sentinel character (like '#') is typed?",
+      "rationale": "Since Unit 2 students cannot read an entire 'string' into an array, they must process characters one by one in a loop. Defining the loop's termination condition is a fundamental design decision for stream input.",
+      "source": "opus"
+    },
+    {
+      "id": "empty_input_behavior",
+      "description": "What should the program print if the user provides no characters before the input termination signal (e.g., just presses Enter immediately)?",
+      "rationale": "Handling an empty input stream (equivalent to an empty string in later units) is a critical edge case for loop-based character processing. It ensures the program correctly initializes and handles zero counts.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to counting both cases, but code writes `if c in 'aeiou'` without lowercasing the input or including uppercase letters",
+      "pattern": "Student's spec commits to counting uppercase vowels, but their code only checks for lowercase characters (e.g., `ch == 'a'`) and forgets to check uppercase equivalents (e.g., `ch == 'A'`).",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Spec includes 'y' as a vowel but the code's vowel string is 'aeiou'",
+      "category": "bug",
+      "pattern": "Incorrect loop condition or character consumption leading to an infinite loop (e.g., not advancing `getchar()` or not checking the termination character correctly) or missing the last character of input.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "The program might incorrectly count the input termination character itself (e.g., counting the newline character as a non-vowel or as a vowel if the logic is flawed).",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes an if/elif chain for each vowel; code uses `if c in 'aeiou'` membership test — coherent simplification within unit_2 toolkit",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Counter is initialized inside the loop instead of before it, so the final count is 0 or 1",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `if c == 'a' or 'e' or 'i' ...` which always evaluates truthy, inflating the count to the string length",
+      "pattern": "Spec implies a sequence of `if-else if` statements for vowel checking; code uses a `switch` statement instead for clarity or conciseness, which is a coherent alternative structure for character comparison.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_2",
+  "language": "c",
   "opusGeneratedDimensions": [
-    {
-      "id": "vowel_set",
-      "description": "Which characters count as vowels — only a, e, i, o, u, or is y also included?",
-      "rationale": "There is no objectively correct answer, so the spec must commit. Students often leave this implicit and then their code silently disagrees with their intent."
-    },
     {
       "id": "case_sensitivity",
       "description": "Does the program count uppercase vowels (A, E, I, O, U) in addition to lowercase, or only one case?",
-      "rationale": "This is the canonical drift in string-counting: the spec says 'vowels' but the code only checks lowercase. Forcing the commitment up front makes the gap visible."
+      "rationale": "Case handling is a common unstated assumption when processing character input; forcing a commitment ensures the student explicitly designs for it."
     },
     {
-      "id": "empty_or_no_vowels",
-      "description": "What should the program print if the string is empty or contains no vowels?",
-      "rationale": "Students often don't consider that 0 is a valid answer and may add special-case text. Committing to 'print 0' keeps the logic clean."
+      "id": "y_as_vowel",
+      "description": "Does 'y' count as a vowel? For example, in words like 'rhythm' or 'sky'.",
+      "rationale": "The vowel status of 'y' is ambiguous in English; the spec must commit to one definition. This tests explicit handling of individual characters in a conditional."
     },
     {
-      "id": "output_format",
-      "description": "What exactly should be printed — just the number, or a sentence like 'Your string has 3 vowels'?",
-      "rationale": "Phase 4 diffs output against spec; without a committed output format, there is nothing to diff against."
+      "id": "input_termination_method",
+      "description": "How does the user signal the end of their input? Will the program stop counting when the user presses Enter (newline character), or when a specific sentinel character (like '#') is typed?",
+      "rationale": "Since Unit 2 students cannot read an entire 'string' into an array, they must process characters one by one in a loop. Defining the loop's termination condition is a fundamental design decision for stream input."
+    },
+    {
+      "id": "empty_input_behavior",
+      "description": "What should the program print if the user provides no characters before the input termination signal (e.g., just presses Enter immediately)?",
+      "rationale": "Handling an empty input stream (equivalent to an empty string in later units) is a critical edge case for loop-based character processing. It ensures the program correctly initializes and handles zero counts."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to counting both cases, but code writes `if c in 'aeiou'` without lowercasing the input or including uppercase letters"
+      "pattern": "Student's spec commits to counting uppercase vowels, but their code only checks for lowercase characters (e.g., `ch == 'a'`) and forgets to check uppercase equivalents (e.g., `ch == 'A'`)."
     },
     {
-      "category": "drift",
-      "pattern": "Spec includes 'y' as a vowel but the code's vowel string is 'aeiou'"
+      "category": "bug",
+      "pattern": "Incorrect loop condition or character consumption leading to an infinite loop (e.g., not advancing `getchar()` or not checking the termination character correctly) or missing the last character of input."
+    },
+    {
+      "category": "bug",
+      "pattern": "The program might incorrectly count the input termination character itself (e.g., counting the newline character as a non-vowel or as a vowel if the logic is flawed)."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes an if/elif chain for each vowel; code uses `if c in 'aeiou'` membership test — coherent simplification within unit_2 toolkit"
-    },
-    {
-      "category": "bug",
-      "pattern": "Counter is initialized inside the loop instead of before it, so the final count is 0 or 1"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `if c == 'a' or 'e' or 'i' ...` which always evaluates truthy, inflating the count to the string length"
+      "pattern": "Spec implies a sequence of `if-else if` statements for vowel checking; code uses a `switch` statement instead for clarity or conciseness, which is a coherent alternative structure for character comparison."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

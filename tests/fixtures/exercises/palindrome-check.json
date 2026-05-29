@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_3_6",
   "unit": "unit_3",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "case_insensitivity",
@@ -92,6 +93,5 @@
       "pattern": "Student reverses the string into a temporary buffer using `strcpy` and loops to compare instead of comparing inward."
     }
   ],
-  "opusGeneratedStudentLevel": "week_3_6",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_3_6"
 }

@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_7",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "bitwise_addition",
@@ -92,6 +93,5 @@
       "pattern": "Student writes the removal operation as `n = n & ~mask` but gets the operator precedence wrong or forgets the bitwise NOT."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

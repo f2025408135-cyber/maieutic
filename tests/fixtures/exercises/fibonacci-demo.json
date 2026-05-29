@@ -62,9 +62,9 @@
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_3_6",
   "unit": "unit_3",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "base_case_values",
@@ -113,7 +113,5 @@
       "pattern": "Plan uses a while loop with a counter; code uses a for loop over range(n) — coherent restructure"
     }
   ],
-  "opusGeneratedPhase2Required": true,
-  "opusGeneratedStudentLevel": "week_3_6",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_3_6"
 }

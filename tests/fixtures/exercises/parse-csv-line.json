@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_4",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "quote_state",
@@ -92,6 +93,5 @@
       "pattern": "Student strips double quotes from the output fields even when the spec didn't request quote stripping."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

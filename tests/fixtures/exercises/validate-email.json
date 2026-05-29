@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_4",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "single_at_symbol",
@@ -92,6 +93,5 @@
       "pattern": "Student dereferences past the null terminator if they do not check bounds when scanning characters after the '@'."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

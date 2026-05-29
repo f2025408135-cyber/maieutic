@@ -6,105 +6,74 @@
   "publishedAt": "2026-04-23T00:01:34.653Z",
   "specGateDimensions": [
     {
-      "id": "zero_handling",
-      "description": "Is zero considered even, odd, or a special case that prints something else?",
-      "rationale": "Zero is mathematically even but novices frequently forget to test it or treat it as a separate category; forcing a commitment surfaces whether the student knows the convention.",
+      "id": "non_integer_input_handling",
+      "description": "How should the program behave if the user enters input that is not an integer (e.g., text, floating-point numbers, or multiple characters beyond just the number)? Does it assume valid input, print an error, or handle it otherwise?",
+      "rationale": "scanf's behavior with mismatched input is a common source of confusion and unexpected program states for novices; explicitly addressing it requires a commitment, even if the answer is 'assume valid input'.",
       "source": "opus"
     },
     {
-      "id": "negative_numbers",
-      "description": "Does the program handle negative integers correctly (e.g. -3 is odd, -4 is even), or does it assume non-negative input?",
-      "rationale": "Students often reason about evenness only for positive numbers; the modulo operator handles negatives fine in Python, but the spec should commit to whether negatives are in scope.",
+      "id": "negative_integer_classification",
+      "description": "How should the program classify negative integers (e.g., -2, -3)? Should -2 be 'even' and -3 be 'odd'?",
+      "rationale": "While the modulo operator in C handles negative numbers consistently (e.g., -2 % 2 is 0, -3 % 2 is -1), students may overlook this case, or their mental model of 'even/odd' might implicitly assume positive numbers. This forces them to consider all integer types.",
       "source": "opus"
     },
     {
-      "id": "invalid_input",
-      "description": "What should happen if the user types something that isn't an integer (e.g. 'hello' or '3.5')? Does the program assume valid input, crash naturally, or handle it with try/except?",
-      "rationale": "The unit 2 toolkit includes try/except from unit 1; 'assume valid input' is an acceptable commitment, but the student should name the choice rather than discover it via crash.",
-      "source": "opus"
-    },
-    {
-      "id": "output_format",
-      "description": "Should the output be exactly the lowercase word 'even' or 'odd' with no extra text, or is a fuller message like 'The number is even' acceptable?",
-      "rationale": "The prompt specifies exact strings in quotes; surfacing this prevents drift where the student prints a friendlier message that fails an exact-match test.",
+      "id": "zero_classification",
+      "description": "How should the program classify the integer zero? Should it be 'even' or 'odd'?",
+      "rationale": "Zero is often considered an edge case in numerical algorithms; clarifying its classification ensures the student considers this specific input.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student forgets to cast input() to int and compares the string to a number, e.g. `if input(...) % 2 == 0` — TypeError",
+      "pattern": "Student uses incorrect modulo arithmetic or makes a logical error in the 'if' condition (e.g., checks only for `number % 2 == 1` for odd, without considering negative numbers where `number % 2` can be `-1`).",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student's code works for negative numbers due to C's modulo behavior, but their spec or internal thought process only considered positive integers, missing an explicit commitment to this case.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative odd integers in some languages (works in Python but reveals fragile reasoning); or uses `== 2` instead of `== 0`",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec commits to printing exactly 'even'/'odd' but code prints 'Even' (capitalized) or 'The number is even'",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes if/else on `n % 2`; code uses a conditional expression like `print('even' if n % 2 == 0 else 'odd')` — coherent one-liner",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec commits to handling non-integer input with try/except, but code omits the try/except and lets int() crash",
+      "pattern": "Program enters an infinite loop or prints unexpected results because `scanf` fails to read an integer (e.g., due to non-numeric input) and `stdin` is not cleared, causing `scanf` to attempt to read the same invalid input repeatedly.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_2",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
-      "id": "zero_handling",
-      "description": "Is zero considered even, odd, or a special case that prints something else?",
-      "rationale": "Zero is mathematically even but novices frequently forget to test it or treat it as a separate category; forcing a commitment surfaces whether the student knows the convention."
+      "id": "non_integer_input_handling",
+      "description": "How should the program behave if the user enters input that is not an integer (e.g., text, floating-point numbers, or multiple characters beyond just the number)? Does it assume valid input, print an error, or handle it otherwise?",
+      "rationale": "scanf's behavior with mismatched input is a common source of confusion and unexpected program states for novices; explicitly addressing it requires a commitment, even if the answer is 'assume valid input'."
     },
     {
-      "id": "negative_numbers",
-      "description": "Does the program handle negative integers correctly (e.g. -3 is odd, -4 is even), or does it assume non-negative input?",
-      "rationale": "Students often reason about evenness only for positive numbers; the modulo operator handles negatives fine in Python, but the spec should commit to whether negatives are in scope."
+      "id": "negative_integer_classification",
+      "description": "How should the program classify negative integers (e.g., -2, -3)? Should -2 be 'even' and -3 be 'odd'?",
+      "rationale": "While the modulo operator in C handles negative numbers consistently (e.g., -2 % 2 is 0, -3 % 2 is -1), students may overlook this case, or their mental model of 'even/odd' might implicitly assume positive numbers. This forces them to consider all integer types."
     },
     {
-      "id": "invalid_input",
-      "description": "What should happen if the user types something that isn't an integer (e.g. 'hello' or '3.5')? Does the program assume valid input, crash naturally, or handle it with try/except?",
-      "rationale": "The unit 2 toolkit includes try/except from unit 1; 'assume valid input' is an acceptable commitment, but the student should name the choice rather than discover it via crash."
-    },
-    {
-      "id": "output_format",
-      "description": "Should the output be exactly the lowercase word 'even' or 'odd' with no extra text, or is a fuller message like 'The number is even' acceptable?",
-      "rationale": "The prompt specifies exact strings in quotes; surfacing this prevents drift where the student prints a friendlier message that fails an exact-match test."
+      "id": "zero_classification",
+      "description": "How should the program classify the integer zero? Should it be 'even' or 'odd'?",
+      "rationale": "Zero is often considered an edge case in numerical algorithms; clarifying its classification ensures the student considers this specific input."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student forgets to cast input() to int and compares the string to a number, e.g. `if input(...) % 2 == 0` — TypeError"
+      "pattern": "Student uses incorrect modulo arithmetic or makes a logical error in the 'if' condition (e.g., checks only for `number % 2 == 1` for odd, without considering negative numbers where `number % 2` can be `-1`)."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student's code works for negative numbers due to C's modulo behavior, but their spec or internal thought process only considered positive integers, missing an explicit commitment to this case."
     },
     {
       "category": "bug",
-      "pattern": "Student writes `if n % 2 == 1` to detect odd, which fails for negative odd integers in some languages (works in Python but reveals fragile reasoning); or uses `== 2` instead of `== 0`"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec commits to printing exactly 'even'/'odd' but code prints 'Even' (capitalized) or 'The number is even'"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes if/else on `n % 2`; code uses a conditional expression like `print('even' if n % 2 == 0 else 'odd')` — coherent one-liner"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec commits to handling non-integer input with try/except, but code omits the try/except and lets int() crash"
+      "pattern": "Program enters an infinite loop or prints unexpected results because `scanf` fails to read an integer (e.g., due to non-numeric input) and `stdin` is not cleared, causing `scanf` to attempt to read the same invalid input repeatedly."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

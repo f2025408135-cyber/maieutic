@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_6",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "stack_underflow",
@@ -92,6 +93,5 @@
       "pattern": "Student loses the reference to the next node when updating the top pointer, making subsequent pops fail."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

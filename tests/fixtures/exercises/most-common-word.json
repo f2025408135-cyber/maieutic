@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_3",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "word_tokenization",
@@ -92,6 +93,5 @@
       "pattern": "Student compares words case-sensitively, counting 'The' and 'the' as separate words."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

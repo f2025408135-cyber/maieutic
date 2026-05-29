@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_3_6",
   "unit": "unit_3",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "loop_bounds",
@@ -92,6 +93,5 @@
       "pattern": "Student prints extra explanatory prompts (e.g. 'The number is: Fizz') violating the exact output spec."
     }
   ],
-  "opusGeneratedStudentLevel": "week_3_6",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_3_6"
 }

@@ -6,85 +6,74 @@
   "publishedAt": "2026-04-23T00:18:14.490Z",
   "specGateDimensions": [
     {
-      "id": "greeting_format",
-      "description": "What exact text surrounds the name in the output — is it 'Hello, <name>!' with a comma and exclamation, or some other phrasing?",
-      "rationale": "The prompt says 'like Hello, Alice!' which is illustrative, not prescriptive. Forcing the student to commit to the exact string they will produce makes Phase 4 diffing possible.",
+      "id": "name_format_assumption",
+      "description": "Does the program assume the user will enter a single-word name (like 'Alice'), or is it expected to handle names containing spaces (like 'Mary Jane')?",
+      "rationale": "Using `scanf(\"%s\", ...)` (the primary string input method available in unit_1) stops reading at the first whitespace. This dimension forces the student to recognize this limitation and commit to an explicit assumption about input format, as they cannot yet implement more robust string input.",
       "source": "opus"
     },
     {
-      "id": "input_prompt_text",
-      "description": "What text does the program display when asking for the name (e.g. 'What is your name? ')?",
-      "rationale": "Students often leave input() empty and then can't tell if the program is hung. Committing to a prompt string is a small but real interface decision.",
+      "id": "max_name_length",
+      "description": "What is the maximum number of characters the program is designed to accept for a name without encountering problems?",
+      "rationale": "Students in unit_1 will likely use a fixed-size character array. This forces them to consider the practical limits of their chosen buffer size and the potential for buffer overflow, even if they cannot programmatically prevent it with conditionals yet.",
       "source": "opus"
     },
     {
-      "id": "empty_or_whitespace_input",
-      "description": "If the user just presses Enter or types spaces, does the program greet them anyway ('Hello, !') or is the program allowed to assume the user types a real name?",
-      "rationale": "At unit_1 the student has no if/else, so 'assume the user types a real name' is an acceptable commitment — but naming that assumption explicitly is the pedagogical point.",
+      "id": "empty_input_behavior",
+      "description": "What should the program do if the user presses Enter without typing any name, or types only whitespace characters?",
+      "rationale": "`scanf(\"%s\", ...)` has specific behavior with empty or whitespace-only input (it typically waits for valid non-whitespace input). This dimension ensures the student considers this interaction and commits to an expected (likely 'assume valid, non-empty input') behavior for simple I/O scenarios.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to the format 'Hello, <name>!' but code prints 'Hello <name>' (missing comma or exclamation) because the student eyeballed the example",
+      "pattern": "Student declares a `char` array for the name with an arbitrarily small size (e.g., `char name[10];`), failing to consider that longer names might exceed this buffer, even if their spec assumes single-word names.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student concatenates with + but forgets to include the space/comma, producing 'Hello,Alice!' or 'HelloAlice!'",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes string concatenation with +; code uses an f-string instead — coherent stylistic choice within unit_1 tooling",
+      "pattern": "Buffer overflow: inputting a name longer than the declared `char` array for the name. This is a classic issue when using `scanf(\"%s\", ...)` with fixed-size buffers without length checks (which are not possible in unit_1).",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student stores the name but prints a literal variable name or the raw input prompt return value without using it",
+      "pattern": "Forgetting to declare a character array for the name and attempting to `scanf` into an uninitialized pointer or scalar `char` variable, leading to a crash or undefined behavior.",
       "source": "opus"
     }
   ],
-  "phase2Required": false,
   "studentLevel": "week_1_2",
   "unit": "unit_1",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
-      "id": "greeting_format",
-      "description": "What exact text surrounds the name in the output — is it 'Hello, <name>!' with a comma and exclamation, or some other phrasing?",
-      "rationale": "The prompt says 'like Hello, Alice!' which is illustrative, not prescriptive. Forcing the student to commit to the exact string they will produce makes Phase 4 diffing possible."
+      "id": "name_format_assumption",
+      "description": "Does the program assume the user will enter a single-word name (like 'Alice'), or is it expected to handle names containing spaces (like 'Mary Jane')?",
+      "rationale": "Using `scanf(\"%s\", ...)` (the primary string input method available in unit_1) stops reading at the first whitespace. This dimension forces the student to recognize this limitation and commit to an explicit assumption about input format, as they cannot yet implement more robust string input."
     },
     {
-      "id": "input_prompt_text",
-      "description": "What text does the program display when asking for the name (e.g. 'What is your name? ')?",
-      "rationale": "Students often leave input() empty and then can't tell if the program is hung. Committing to a prompt string is a small but real interface decision."
+      "id": "max_name_length",
+      "description": "What is the maximum number of characters the program is designed to accept for a name without encountering problems?",
+      "rationale": "Students in unit_1 will likely use a fixed-size character array. This forces them to consider the practical limits of their chosen buffer size and the potential for buffer overflow, even if they cannot programmatically prevent it with conditionals yet."
     },
     {
-      "id": "empty_or_whitespace_input",
-      "description": "If the user just presses Enter or types spaces, does the program greet them anyway ('Hello, !') or is the program allowed to assume the user types a real name?",
-      "rationale": "At unit_1 the student has no if/else, so 'assume the user types a real name' is an acceptable commitment — but naming that assumption explicitly is the pedagogical point."
+      "id": "empty_input_behavior",
+      "description": "What should the program do if the user presses Enter without typing any name, or types only whitespace characters?",
+      "rationale": "`scanf(\"%s\", ...)` has specific behavior with empty or whitespace-only input (it typically waits for valid non-whitespace input). This dimension ensures the student considers this interaction and commits to an expected (likely 'assume valid, non-empty input') behavior for simple I/O scenarios."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "drift",
-      "pattern": "Spec commits to the format 'Hello, <name>!' but code prints 'Hello <name>' (missing comma or exclamation) because the student eyeballed the example"
+      "pattern": "Student declares a `char` array for the name with an arbitrarily small size (e.g., `char name[10];`), failing to consider that longer names might exceed this buffer, even if their spec assumes single-word names."
     },
     {
       "category": "bug",
-      "pattern": "Student concatenates with + but forgets to include the space/comma, producing 'Hello,Alice!' or 'HelloAlice!'"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes string concatenation with +; code uses an f-string instead — coherent stylistic choice within unit_1 tooling"
+      "pattern": "Buffer overflow: inputting a name longer than the declared `char` array for the name. This is a classic issue when using `scanf(\"%s\", ...)` with fixed-size buffers without length checks (which are not possible in unit_1)."
     },
     {
       "category": "bug",
-      "pattern": "Student stores the name but prints a literal variable name or the raw input prompt return value without using it"
+      "pattern": "Forgetting to declare a character array for the name and attempting to `scanf` into an uninitialized pointer or scalar `char` variable, leading to a crash or undefined behavior."
     }
   ],
-  "opusGeneratedPhase2Required": false,
-  "opusGeneratedStudentLevel": "week_1_2",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_1_2"
 }

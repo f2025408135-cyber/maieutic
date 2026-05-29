@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_6",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "node_structure",
@@ -92,6 +93,5 @@
       "pattern": "Student forgets to null-terminate the first node created (the list tail), causing infinite loop or crash during traversal."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

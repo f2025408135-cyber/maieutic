@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_6",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "bst_node_struct",
@@ -92,6 +93,5 @@
       "pattern": "Student fails to handle a NULL root check in `search()`, causing a segmentation fault when the key is not in the tree."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

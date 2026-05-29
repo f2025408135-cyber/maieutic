@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_5",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "double_pointer_allocation",
@@ -92,6 +93,5 @@
       "pattern": "Student forgets to validate if any `malloc` call inside the loop returns NULL."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

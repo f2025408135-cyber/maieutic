@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_5",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "callback_syntax",
@@ -92,6 +93,5 @@
       "pattern": "Student returns the original size of the source array instead of the number of elements that passed the filter."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

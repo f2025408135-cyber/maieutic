@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_5",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "pointer_arithmetic",
@@ -92,6 +93,5 @@
       "pattern": "Student incorrectly updates pointers or goes out of bounds by 1 due to an off-by-one error on the array size."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

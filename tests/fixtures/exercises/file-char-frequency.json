@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_7",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "file_pointer_validation",
@@ -92,6 +93,5 @@
       "pattern": "Student uses `fgets` or `fscanf` to read file contents in chunks rather than using `fgetc` char-by-char."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_5",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "pointer_navigation",
@@ -92,6 +93,5 @@
       "pattern": "Student dereferences `dest` or `src` without checking if they are NULL, risking segmentation fault."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }

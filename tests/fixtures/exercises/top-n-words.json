@@ -53,6 +53,7 @@
   ],
   "studentLevel": "week_7_plus",
   "unit": "unit_4",
+  "language": "c",
   "opusGeneratedDimensions": [
     {
       "id": "word_struct_grouping",
@@ -92,6 +93,5 @@
       "pattern": "Student accesses memory outside struct array bounds if the paragraph has more unique words than the array capacity."
     }
   ],
-  "opusGeneratedStudentLevel": "week_7_plus",
-  "language": "c"
+  "opusGeneratedStudentLevel": "week_7_plus"
 }
