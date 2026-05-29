@@ -1,150 +1,97 @@
 {
   "id": "parse-csv-line",
   "title": "Parse a CSV line",
-  "instructorPromptText": "Write a function that takes a CSV line and a list of column names, and returns a dictionary mapping column names to values. Handle quoted fields that may contain commas.",
-  "authoredAt": "2026-04-23T00:03:04.042Z",
-  "publishedAt": "2026-04-23T00:03:04.040Z",
+  "instructorPromptText": "Write a C function `int parse_csv(const char *line, char fields[][100], int max_fields)` that parses a single CSV line into a 2D character array of fields. The function must handle fields enclosed in double quotes that contain commas and return the total fields parsed.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "column_value_mismatch",
-      "description": "What should the function do if the number of parsed values does not match the number of column names (more values than names, or fewer)?",
-      "rationale": "Real CSV data is often malformed; the student must commit to a policy (truncate, pad with None, raise) rather than discover the mismatch at runtime.",
+      "id": "quote_state",
+      "description": "Does the program maintain a state variable (e.g. `in_quotes`) to track whether the current character is inside double quotes?",
+      "rationale": "Handling commas inside quotes requires a state machine approach. Simple tokenizers like `strtok` will fail.",
       "source": "opus"
     },
     {
-      "id": "quote_character_rules",
-      "description": "Which quote character(s) delimit a quoted field — only double quotes, only single, or both? And do quotes have to appear at the start/end of a field, or can they appear mid-field?",
-      "rationale": "The prompt says 'quoted fields' without specifying; parsing logic depends entirely on this commitment.",
+      "id": "field_null_termination",
+      "description": "Does the program explicitly null-terminate (`\\0`) each field copied into the 2D array?",
+      "rationale": "C strings must be null-terminated. Copying character-by-character without writing `\\0` leads to garbage printing or memory reads.",
       "source": "opus"
     },
     {
-      "id": "escaped_quotes_inside_field",
-      "description": "How should a literal quote character inside a quoted field be represented — doubled (\"\"), backslash-escaped (\\\"), or not supported at all?",
-      "rationale": "This is the classic CSV edge case; the spec should declare support or explicitly drop it, rather than have the student discover it via a broken test.",
-      "source": "opus"
-    },
-    {
-      "id": "whitespace_around_fields",
-      "description": "Should leading/trailing whitespace around fields (or around quoted fields) be stripped, preserved, or only stripped outside quotes?",
-      "rationale": "Whitespace handling is silent-failure territory; surfacing it forces the student to commit before writing the split logic.",
-      "source": "opus"
-    },
-    {
-      "id": "empty_fields",
-      "description": "How should empty fields (e.g. 'a,,c') be represented in the output dictionary — empty string, None, or omitted key?",
-      "rationale": "Empty-field representation is a common drift point and affects downstream consumers of the dictionary.",
-      "source": "opus"
-    },
-    {
-      "id": "value_types",
-      "description": "Are all values returned as strings, or should numeric-looking values be converted to int/float?",
-      "rationale": "The prompt says 'values' without specifying type; students often silently start coercing types and produce inconsistent outputs.",
+      "id": "boundary_limitations",
+      "description": "Does the function respect the `max_fields` and 100-character field size limits to prevent array index out of bounds?",
+      "rationale": "Verifies memory bounds checking, which is a crucial habit in C programming to prevent memory corruption.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Student uses `line.split(',')` and ignores the quoted-field requirement entirely, producing wrong output for any line containing quoted commas",
+      "category": "bug",
+      "pattern": "Student uses `strtok` with comma delimiter, which incorrectly splits fields containing commas inside double quotes.",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Student handles quoted fields correctly but forgets to strip the surrounding quote characters from the returned values",
+      "category": "bug",
+      "pattern": "Student forgets to null-terminate individual fields, leading to combined or garbage strings in output.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student overflows the `fields` array when the CSV line has more elements than `max_fields`.",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a manual character-by-character state machine; code imports `csv` module and uses `csv.reader` — coherent, arguably better, but bypasses the learning goal",
+      "pattern": "Student implements the parsing using a pointer `char *p` moving through the string instead of array indexing, which is standard C style.",
       "source": "opus"
     },
     {
-      "category": "revision",
-      "pattern": "Plan describes building the dict at the end via `zip(columns, values)`; code builds it incrementally inside the parse loop — equivalent result, different structure",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "State machine toggles an `in_quotes` flag but forgets to reset the current-field buffer when a comma is encountered outside quotes, producing concatenated values",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Off-by-one when the line ends without a trailing delimiter — final field is dropped or the final quote is included in the value",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `str.split(',')` then tries to 'fix up' quoted segments by re-joining, which fails on fields containing multiple commas",
+      "category": "drift",
+      "pattern": "Student strips double quotes from the output fields even when the spec didn't request quote stripping.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_7_plus",
   "unit": "unit_4",
   "opusGeneratedDimensions": [
     {
-      "id": "column_value_mismatch",
-      "description": "What should the function do if the number of parsed values does not match the number of column names (more values than names, or fewer)?",
-      "rationale": "Real CSV data is often malformed; the student must commit to a policy (truncate, pad with None, raise) rather than discover the mismatch at runtime."
+      "id": "quote_state",
+      "description": "Does the program maintain a state variable (e.g. `in_quotes`) to track whether the current character is inside double quotes?",
+      "rationale": "Handling commas inside quotes requires a state machine approach. Simple tokenizers like `strtok` will fail."
     },
     {
-      "id": "quote_character_rules",
-      "description": "Which quote character(s) delimit a quoted field — only double quotes, only single, or both? And do quotes have to appear at the start/end of a field, or can they appear mid-field?",
-      "rationale": "The prompt says 'quoted fields' without specifying; parsing logic depends entirely on this commitment."
+      "id": "field_null_termination",
+      "description": "Does the program explicitly null-terminate (`\\0`) each field copied into the 2D array?",
+      "rationale": "C strings must be null-terminated. Copying character-by-character without writing `\\0` leads to garbage printing or memory reads."
     },
     {
-      "id": "escaped_quotes_inside_field",
-      "description": "How should a literal quote character inside a quoted field be represented — doubled (\"\"), backslash-escaped (\\\"), or not supported at all?",
-      "rationale": "This is the classic CSV edge case; the spec should declare support or explicitly drop it, rather than have the student discover it via a broken test."
-    },
-    {
-      "id": "whitespace_around_fields",
-      "description": "Should leading/trailing whitespace around fields (or around quoted fields) be stripped, preserved, or only stripped outside quotes?",
-      "rationale": "Whitespace handling is silent-failure territory; surfacing it forces the student to commit before writing the split logic."
-    },
-    {
-      "id": "empty_fields",
-      "description": "How should empty fields (e.g. 'a,,c') be represented in the output dictionary — empty string, None, or omitted key?",
-      "rationale": "Empty-field representation is a common drift point and affects downstream consumers of the dictionary."
-    },
-    {
-      "id": "value_types",
-      "description": "Are all values returned as strings, or should numeric-looking values be converted to int/float?",
-      "rationale": "The prompt says 'values' without specifying type; students often silently start coercing types and produce inconsistent outputs."
+      "id": "boundary_limitations",
+      "description": "Does the function respect the `max_fields` and 100-character field size limits to prevent array index out of bounds?",
+      "rationale": "Verifies memory bounds checking, which is a crucial habit in C programming to prevent memory corruption."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Student uses `line.split(',')` and ignores the quoted-field requirement entirely, producing wrong output for any line containing quoted commas"
+      "category": "bug",
+      "pattern": "Student uses `strtok` with comma delimiter, which incorrectly splits fields containing commas inside double quotes."
     },
     {
-      "category": "drift",
-      "pattern": "Student handles quoted fields correctly but forgets to strip the surrounding quote characters from the returned values"
+      "category": "bug",
+      "pattern": "Student forgets to null-terminate individual fields, leading to combined or garbage strings in output."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student overflows the `fields` array when the CSV line has more elements than `max_fields`."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes a manual character-by-character state machine; code imports `csv` module and uses `csv.reader` — coherent, arguably better, but bypasses the learning goal"
+      "pattern": "Student implements the parsing using a pointer `char *p` moving through the string instead of array indexing, which is standard C style."
     },
     {
-      "category": "revision",
-      "pattern": "Plan describes building the dict at the end via `zip(columns, values)`; code builds it incrementally inside the parse loop — equivalent result, different structure"
-    },
-    {
-      "category": "bug",
-      "pattern": "State machine toggles an `in_quotes` flag but forgets to reset the current-field buffer when a comma is encountered outside quotes, producing concatenated values"
-    },
-    {
-      "category": "bug",
-      "pattern": "Off-by-one when the line ends without a trailing delimiter — final field is dropped or the final quote is included in the value"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student uses `str.split(',')` then tries to 'fix up' quoted segments by re-joining, which fails on fields containing multiple commas"
+      "category": "drift",
+      "pattern": "Student strips double quotes from the output fields even when the spec didn't request quote stripping."
     }
   ],
-  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_7_plus",
   "language": "c"
 }

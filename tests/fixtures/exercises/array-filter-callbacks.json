@@ -1,0 +1,97 @@
+{
+  "id": "array-filter-callbacks",
+  "title": "Array filtering with callbacks",
+  "instructorPromptText": "Write a C function `int filter_array(const int *src, int size, int *dest, int (*predicate)(int))` that filters elements of an array using a callback function pointer. Implement predicate functions like `is_even` and `is_positive` to test it.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "callback_syntax",
+      "description": "Does the program correctly declare and invoke the function pointer callback `int (*predicate)(int)`?",
+      "rationale": "Declaring and using function pointers (callbacks) is a high-level C skill that bridges basic functions and object-oriented style dispatching.",
+      "source": "opus"
+    },
+    {
+      "id": "index_tracking",
+      "description": "Does the filter function use a separate write pointer or index to write elements to the destination array sequentially?",
+      "rationale": "A common novice error is using the source array's index `src[i]` to write to `dest[i]`, leaving undefined gaps in the output array.",
+      "source": "opus"
+    },
+    {
+      "id": "null_callback_check",
+      "description": "Does the program defensively check if the callback function pointer is NULL before calling it?",
+      "rationale": "Calling a NULL function pointer causes an immediate crash. Checking this reinforces safety in systems programming.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student declares the parameter as `int *predicate(int)`, creating a function returning `int*` instead of a function pointer.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student indexes the destination array with the source loop variable `i`, leading to empty gaps in the destination array.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses pointer arithmetic (e.g. `*dest++ = *src`) to copy matching elements, showing advanced pointer syntax.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student hardcodes the filtering logic inside the filter function instead of invoking the callback parameter.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student returns the original size of the source array instead of the number of elements that passed the filter.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_5",
+  "opusGeneratedDimensions": [
+    {
+      "id": "callback_syntax",
+      "description": "Does the program correctly declare and invoke the function pointer callback `int (*predicate)(int)`?",
+      "rationale": "Declaring and using function pointers (callbacks) is a high-level C skill that bridges basic functions and object-oriented style dispatching."
+    },
+    {
+      "id": "index_tracking",
+      "description": "Does the filter function use a separate write pointer or index to write elements to the destination array sequentially?",
+      "rationale": "A common novice error is using the source array's index `src[i]` to write to `dest[i]`, leaving undefined gaps in the output array."
+    },
+    {
+      "id": "null_callback_check",
+      "description": "Does the program defensively check if the callback function pointer is NULL before calling it?",
+      "rationale": "Calling a NULL function pointer causes an immediate crash. Checking this reinforces safety in systems programming."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student declares the parameter as `int *predicate(int)`, creating a function returning `int*` instead of a function pointer."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student indexes the destination array with the source loop variable `i`, leading to empty gaps in the destination array."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses pointer arithmetic (e.g. `*dest++ = *src`) to copy matching elements, showing advanced pointer syntax."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student hardcodes the filtering logic inside the filter function instead of invoking the callback parameter."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student returns the original size of the source array instead of the number of elements that passed the filter."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

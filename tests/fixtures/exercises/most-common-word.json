@@ -1,139 +1,97 @@
 {
   "id": "most-common-word",
   "title": "Most common word",
-  "instructorPromptText": "Write a program that asks the user for a line of space-separated words, then prints the word that appears most often. If there is a tie, print the word that appears first in the input.",
-  "authoredAt": "2026-04-23T00:02:14.874Z",
-  "publishedAt": "2026-04-23T00:02:14.873Z",
+  "instructorPromptText": "Write a C function `void find_most_common_word(const char *text, char *result)` that finds the word that appears most frequently in a string of space-separated words, and copies it into the result buffer. Assume words are case-insensitive and ignore punctuation.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "case_sensitivity",
-      "description": "Are 'The' and 'the' treated as the same word or as different words?",
-      "rationale": "Case handling is the most common unstated assumption in word-counting problems; the student must commit before coding because it changes both the counting logic and the output.",
+      "id": "word_tokenization",
+      "description": "Does the program correctly parse and separate the text into individual words using loops or `strtok`?",
+      "rationale": "Tokenizing character buffers in C requires careful pointer management since C has no built-in string splitting methods.",
       "source": "opus"
     },
     {
-      "id": "punctuation_handling",
-      "description": "If the user types 'hello, hello world', does 'hello,' count as the same word as 'hello'? Or does the program assume input contains only letters and spaces?",
-      "rationale": "The prompt says 'space-separated words' but doesn't forbid punctuation. Forcing a commitment — even if it's 'assume no punctuation' — prevents silent drift when the tester types naturally.",
+      "id": "string_immutability",
+      "description": "Does the program avoid modifying the input string directly (which is `const char*` and may reside in read-only memory)?",
+      "rationale": "Modifying a string literal in C (e.g., using `strtok` on the original input without making a copy) results in a segmentation fault.",
       "source": "opus"
     },
     {
-      "id": "tie_first_in_input_definition",
-      "description": "When the prompt says 'the word that appears first in the input' on a tie, does 'first' mean the first occurrence among the tied words, considering all tied words' first positions? Confirm the tie-breaking rule in concrete terms.",
-      "rationale": "Students often conflate 'first in the input' with 'first alphabetically' or 'first one I happened to encounter while iterating a dict', which can differ depending on iteration order and data structure choice.",
-      "source": "opus"
-    },
-    {
-      "id": "empty_input",
-      "description": "What should the program do if the user enters an empty line or only whitespace? Print nothing, print a message, or assume the input always contains at least one word?",
-      "rationale": "Empty input is the canonical missed case; committing to 'assume at least one word' is acceptable but must be explicit so the student doesn't later call the crash a bug.",
-      "source": "opus"
-    },
-    {
-      "id": "single_word_input",
-      "description": "If the input contains only one word (or the same word repeated), is that word the answer?",
-      "rationale": "Trivially yes, but surfacing it forces the student to check their plan handles the degenerate case without a special branch.",
+      "id": "frequency_counting_ds",
+      "description": "How does the program count unique word occurrences? Does it declare a structure array or parallel arrays to store words and their counts?",
+      "rationale": "Without high-level dictionaries, C students must manage parallel arrays or struct arrays (e.g. struct { char word[50]; int count; }) to count frequencies.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to case-insensitive matching but code calls .split() without .lower(), so 'The the' is counted as two distinct words",
+      "category": "bug",
+      "pattern": "Student attempts to mutate the read-only input string directly, causing a segmentation fault.",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Spec commits to 'first-in-input' tie-breaking but code iterates a dict and returns max(counts, key=counts.get), which returns whichever key Python happened to see first — coincidentally correct on insertion-ordered dicts in modern Python but the student can't explain why",
+      "category": "bug",
+      "pattern": "Student does not copy the extracted word into a local writable buffer before tokenizing.",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a dict with a for loop and if/else to check membership; code uses dict.get(word, 0) + 1 — coherent Pythonic refactor",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes two passes (build counts, then scan input again to find earliest tied word); code does it in one pass by tracking max_count and max_word and only updating on strict > — coherent simplification that also happens to resolve ties correctly",
+      "pattern": "Student defines a `WordCount` struct to group each word with its integer frequency count, representing robust code architecture.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student uses max(counts.values()) to get the max count, then separately looks up which key has it, but scans the dict instead of the original word list, breaking the 'first in input' tie rule",
+      "pattern": "Student goes out of bounds on the structure array because they do not track the number of unique words found.",
       "source": "opus"
     },
     {
-      "category": "bug",
-      "pattern": "Student forgets to call .split() and iterates character-by-character, counting letter frequencies instead of word frequencies",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Off-by-one where the student initializes max_count to 0 and the update condition is count > max_count, which works, vs. initializing to -1 or mishandling the first word",
+      "category": "drift",
+      "pattern": "Student compares words case-sensitively, counting 'The' and 'the' as separate words.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
-  "studentLevel": "week_3_6",
+  "studentLevel": "week_7_plus",
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "case_sensitivity",
-      "description": "Are 'The' and 'the' treated as the same word or as different words?",
-      "rationale": "Case handling is the most common unstated assumption in word-counting problems; the student must commit before coding because it changes both the counting logic and the output."
+      "id": "word_tokenization",
+      "description": "Does the program correctly parse and separate the text into individual words using loops or `strtok`?",
+      "rationale": "Tokenizing character buffers in C requires careful pointer management since C has no built-in string splitting methods."
     },
     {
-      "id": "punctuation_handling",
-      "description": "If the user types 'hello, hello world', does 'hello,' count as the same word as 'hello'? Or does the program assume input contains only letters and spaces?",
-      "rationale": "The prompt says 'space-separated words' but doesn't forbid punctuation. Forcing a commitment — even if it's 'assume no punctuation' — prevents silent drift when the tester types naturally."
+      "id": "string_immutability",
+      "description": "Does the program avoid modifying the input string directly (which is `const char*` and may reside in read-only memory)?",
+      "rationale": "Modifying a string literal in C (e.g., using `strtok` on the original input without making a copy) results in a segmentation fault."
     },
     {
-      "id": "tie_first_in_input_definition",
-      "description": "When the prompt says 'the word that appears first in the input' on a tie, does 'first' mean the first occurrence among the tied words, considering all tied words' first positions? Confirm the tie-breaking rule in concrete terms.",
-      "rationale": "Students often conflate 'first in the input' with 'first alphabetically' or 'first one I happened to encounter while iterating a dict', which can differ depending on iteration order and data structure choice."
-    },
-    {
-      "id": "empty_input",
-      "description": "What should the program do if the user enters an empty line or only whitespace? Print nothing, print a message, or assume the input always contains at least one word?",
-      "rationale": "Empty input is the canonical missed case; committing to 'assume at least one word' is acceptable but must be explicit so the student doesn't later call the crash a bug."
-    },
-    {
-      "id": "single_word_input",
-      "description": "If the input contains only one word (or the same word repeated), is that word the answer?",
-      "rationale": "Trivially yes, but surfacing it forces the student to check their plan handles the degenerate case without a special branch."
+      "id": "frequency_counting_ds",
+      "description": "How does the program count unique word occurrences? Does it declare a structure array or parallel arrays to store words and their counts?",
+      "rationale": "Without high-level dictionaries, C students must manage parallel arrays or struct arrays (e.g. struct { char word[50]; int count; }) to count frequencies."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to case-insensitive matching but code calls .split() without .lower(), so 'The the' is counted as two distinct words"
+      "category": "bug",
+      "pattern": "Student attempts to mutate the read-only input string directly, causing a segmentation fault."
     },
     {
-      "category": "drift",
-      "pattern": "Spec commits to 'first-in-input' tie-breaking but code iterates a dict and returns max(counts, key=counts.get), which returns whichever key Python happened to see first — coincidentally correct on insertion-ordered dicts in modern Python but the student can't explain why"
+      "category": "bug",
+      "pattern": "Student does not copy the extracted word into a local writable buffer before tokenizing."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a dict with a for loop and if/else to check membership; code uses dict.get(word, 0) + 1 — coherent Pythonic refactor"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes two passes (build counts, then scan input again to find earliest tied word); code does it in one pass by tracking max_count and max_word and only updating on strict > — coherent simplification that also happens to resolve ties correctly"
+      "pattern": "Student defines a `WordCount` struct to group each word with its integer frequency count, representing robust code architecture."
     },
     {
       "category": "bug",
-      "pattern": "Student uses max(counts.values()) to get the max count, then separately looks up which key has it, but scans the dict instead of the original word list, breaking the 'first in input' tie rule"
+      "pattern": "Student goes out of bounds on the structure array because they do not track the number of unique words found."
     },
     {
-      "category": "bug",
-      "pattern": "Student forgets to call .split() and iterates character-by-character, counting letter frequencies instead of word frequencies"
-    },
-    {
-      "category": "bug",
-      "pattern": "Off-by-one where the student initializes max_count to 0 and the update condition is count > max_count, which works, vs. initializing to -1 or mishandling the first word"
+      "category": "drift",
+      "pattern": "Student compares words case-sensitively, counting 'The' and 'the' as separate words."
     }
   ],
-  "opusGeneratedPhase2Required": true,
-  "opusGeneratedStudentLevel": "week_3_6",
+  "opusGeneratedStudentLevel": "week_7_plus",
   "language": "c"
 }

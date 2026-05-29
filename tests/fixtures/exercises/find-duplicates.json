@@ -1,130 +1,97 @@
 {
   "id": "find-duplicates",
   "title": "Find duplicates in a list",
-  "instructorPromptText": "Write a program that asks the user for a comma-separated list of values, then prints each value that appears more than once. Each duplicate value should be printed only once.",
-  "authoredAt": "2026-04-23T00:02:30.473Z",
-  "publishedAt": "2026-04-23T00:02:30.472Z",
+  "instructorPromptText": "Write a C function `int find_duplicates(const int *arr, int size, int *duplicates)` that takes an integer array, finds all values that appear more than once, and stores them in the duplicates array. The function should return the number of duplicates found. Each duplicate should appear only once in the result array.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "whitespace_handling",
-      "description": "If the user types 'a, b , c,a', is the value ' b ' treated the same as 'b', or are leading/trailing spaces significant?",
-      "rationale": "comma-separated input almost always contains spaces after commas; the spec must commit to stripping or not, because it changes which items count as duplicates.",
+      "id": "uniqueness_in_result",
+      "description": "Does the program verify that an identified duplicate is not already present in the `duplicates` array before adding it?",
+      "rationale": "If a number appears three times (e.g. 5, 5, 5), the student must prevent '5' from being written twice to the result. This tests search-and-insert loop structures.",
       "source": "opus"
     },
     {
-      "id": "case_sensitivity",
-      "description": "Are 'Apple' and 'apple' considered the same value, or different values?",
-      "rationale": "String equality for duplicate detection forces a commitment; students often don't notice they've implicitly chosen case-sensitive until a test surprises them.",
+      "id": "index_management",
+      "description": "Does the function correctly manage and increment a separate index counter for the `duplicates` array, returning its final value?",
+      "rationale": "Keeps track of how many duplicates have been inserted, which matches standard array indexing rules in C.",
       "source": "opus"
     },
     {
-      "id": "output_order",
-      "description": "In what order should the duplicates be printed — order of first appearance in the input, sorted, or unspecified?",
-      "rationale": "Different data-structure choices (list vs. set vs. dict) produce different orders; forcing the commitment before coding ties the spec to the structural choice.",
-      "source": "opus"
-    },
-    {
-      "id": "no_duplicates_case",
-      "description": "What should the program do if no value appears more than once — print nothing, print a message, or something else?",
-      "rationale": "The empty-result case is almost always unstated in duplicate-finding problems and causes confused output during testing.",
-      "source": "opus"
-    },
-    {
-      "id": "empty_input",
-      "description": "What happens if the user enters an empty string or just whitespace? Does the program assume the input is non-empty, or handle it explicitly?",
-      "rationale": "Splitting an empty string yields [''], which the student may not anticipate; either handling or assuming is fine, but it must be named.",
+      "id": "nested_loop_indices",
+      "description": "Does the program implement a nested loop that compares `arr[i]` and `arr[j]` such that `i != j` to avoid comparing elements to themselves?",
+      "rationale": "Novices frequently write nested loops where `j` starts from 0 instead of `i + 1`, causing elements to match themselves if not filtered.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to stripping whitespace but code uses `input().split(',')` without calling .strip() on each element, so ' apple' and 'apple' register as different",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec says 'print each duplicate once' but code prints the duplicate every time it's encountered after the first (e.g. prints 'a' twice for input 'a,a,a')",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes nested loops comparing every pair; code uses a count dictionary or a seen-set + duplicates-set pair — coherent simplification using unit_3 tools",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan uses a dict mapping value to count; code uses two sets (seen, duplicates) — equivalent outcome, different structure",
+      "category": "bug",
+      "pattern": "Student writes duplicates multiple times to the result array if they occur three or more times in the source array.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student builds a count dict correctly but iterates the original list when printing, causing duplicates to print multiple times instead of once",
+      "pattern": "Student compares an element to itself because the nested loop indices are identical, reporting every element as a duplicate.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student sorts the input array first using `qsort` and checks adjacent elements, which simplifies the search to O(N log N) time.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student allocates a new array inside the function and returns its pointer, risking memory leaks if the caller doesn't free it.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Student uses `list.count(x) > 1` inside a loop over the list without tracking which values have already been printed, causing repeated output",
+      "pattern": "Student uses dynamic values for loop conditions without keeping them constant, leading to infinite loops or early terminations.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_3_6",
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "whitespace_handling",
-      "description": "If the user types 'a, b , c,a', is the value ' b ' treated the same as 'b', or are leading/trailing spaces significant?",
-      "rationale": "comma-separated input almost always contains spaces after commas; the spec must commit to stripping or not, because it changes which items count as duplicates."
+      "id": "uniqueness_in_result",
+      "description": "Does the program verify that an identified duplicate is not already present in the `duplicates` array before adding it?",
+      "rationale": "If a number appears three times (e.g. 5, 5, 5), the student must prevent '5' from being written twice to the result. This tests search-and-insert loop structures."
     },
     {
-      "id": "case_sensitivity",
-      "description": "Are 'Apple' and 'apple' considered the same value, or different values?",
-      "rationale": "String equality for duplicate detection forces a commitment; students often don't notice they've implicitly chosen case-sensitive until a test surprises them."
+      "id": "index_management",
+      "description": "Does the function correctly manage and increment a separate index counter for the `duplicates` array, returning its final value?",
+      "rationale": "Keeps track of how many duplicates have been inserted, which matches standard array indexing rules in C."
     },
     {
-      "id": "output_order",
-      "description": "In what order should the duplicates be printed — order of first appearance in the input, sorted, or unspecified?",
-      "rationale": "Different data-structure choices (list vs. set vs. dict) produce different orders; forcing the commitment before coding ties the spec to the structural choice."
-    },
-    {
-      "id": "no_duplicates_case",
-      "description": "What should the program do if no value appears more than once — print nothing, print a message, or something else?",
-      "rationale": "The empty-result case is almost always unstated in duplicate-finding problems and causes confused output during testing."
-    },
-    {
-      "id": "empty_input",
-      "description": "What happens if the user enters an empty string or just whitespace? Does the program assume the input is non-empty, or handle it explicitly?",
-      "rationale": "Splitting an empty string yields [''], which the student may not anticipate; either handling or assuming is fine, but it must be named."
+      "id": "nested_loop_indices",
+      "description": "Does the program implement a nested loop that compares `arr[i]` and `arr[j]` such that `i != j` to avoid comparing elements to themselves?",
+      "rationale": "Novices frequently write nested loops where `j` starts from 0 instead of `i + 1`, causing elements to match themselves if not filtered."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to stripping whitespace but code uses `input().split(',')` without calling .strip() on each element, so ' apple' and 'apple' register as different"
-    },
-    {
-      "category": "drift",
-      "pattern": "Spec says 'print each duplicate once' but code prints the duplicate every time it's encountered after the first (e.g. prints 'a' twice for input 'a,a,a')"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes nested loops comparing every pair; code uses a count dictionary or a seen-set + duplicates-set pair — coherent simplification using unit_3 tools"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan uses a dict mapping value to count; code uses two sets (seen, duplicates) — equivalent outcome, different structure"
+      "category": "bug",
+      "pattern": "Student writes duplicates multiple times to the result array if they occur three or more times in the source array."
     },
     {
       "category": "bug",
-      "pattern": "Student builds a count dict correctly but iterates the original list when printing, causing duplicates to print multiple times instead of once"
+      "pattern": "Student compares an element to itself because the nested loop indices are identical, reporting every element as a duplicate."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student sorts the input array first using `qsort` and checks adjacent elements, which simplifies the search to O(N log N) time."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student allocates a new array inside the function and returns its pointer, risking memory leaks if the caller doesn't free it."
     },
     {
       "category": "bug",
-      "pattern": "Student uses `list.count(x) > 1` inside a loop over the list without tracking which values have already been printed, causing repeated output"
+      "pattern": "Student uses dynamic values for loop conditions without keeping them constant, leading to infinite loops or early terminations."
     }
   ],
-  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_3_6",
   "language": "c"
 }

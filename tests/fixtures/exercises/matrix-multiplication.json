@@ -1,0 +1,97 @@
+{
+  "id": "matrix-multiplication",
+  "title": "Matrix multiplication",
+  "instructorPromptText": "Write a C program that reads the dimensions and elements of two matrices, verifies if multiplication is possible, computes the product matrix using nested loops, and prints the result.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "multiplication_validation",
+      "description": "Does the program verify that matrix multiplication is mathematically possible (the columns of Matrix A equal the rows of Matrix B) before computing?",
+      "rationale": "Verifies that students write safety validation logic before proceeding with complex mathematical algorithms.",
+      "source": "opus"
+    },
+    {
+      "id": "triple_nested_loop",
+      "description": "Does the program implement a triple-nested loop structure correctly to accumulate the sum of products?",
+      "rationale": "Matrix multiplication requires three loops (rows of A, columns of B, and common dimension). Tracking three indices (i, j, k) tests control flow mastery.",
+      "source": "opus"
+    },
+    {
+      "id": "accumulator_initialization",
+      "description": "Is the accumulator variable or the target matrix cell initialized to zero before running the dot product summation loop?",
+      "rationale": "Forgetting to initialize variables to 0 before accumulating sums is a classic C error due to garbage values in memory.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student forgets to initialize the product cell `C[i][j]` to zero before starting the summation loop.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses incorrect bounds or indexes in the innermost loop (e.g. using row size instead of common dimension size).",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student does not check if matrix dimensions are compatible, resulting in undefined behavior or heap buffer reading errors.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student allocates matrices dynamically using `malloc` rather than using static-size array buffers.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student prints the output in a single line or raw sequence instead of a formatted grid structure.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_3_6",
+  "unit": "unit_3",
+  "opusGeneratedDimensions": [
+    {
+      "id": "multiplication_validation",
+      "description": "Does the program verify that matrix multiplication is mathematically possible (the columns of Matrix A equal the rows of Matrix B) before computing?",
+      "rationale": "Verifies that students write safety validation logic before proceeding with complex mathematical algorithms."
+    },
+    {
+      "id": "triple_nested_loop",
+      "description": "Does the program implement a triple-nested loop structure correctly to accumulate the sum of products?",
+      "rationale": "Matrix multiplication requires three loops (rows of A, columns of B, and common dimension). Tracking three indices (i, j, k) tests control flow mastery."
+    },
+    {
+      "id": "accumulator_initialization",
+      "description": "Is the accumulator variable or the target matrix cell initialized to zero before running the dot product summation loop?",
+      "rationale": "Forgetting to initialize variables to 0 before accumulating sums is a classic C error due to garbage values in memory."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student forgets to initialize the product cell `C[i][j]` to zero before starting the summation loop."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses incorrect bounds or indexes in the innermost loop (e.g. using row size instead of common dimension size)."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student does not check if matrix dimensions are compatible, resulting in undefined behavior or heap buffer reading errors."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student allocates matrices dynamically using `malloc` rather than using static-size array buffers."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student prints the output in a single line or raw sequence instead of a formatted grid structure."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_3_6",
+  "language": "c"
+}

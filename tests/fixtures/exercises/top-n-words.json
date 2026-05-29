@@ -1,159 +1,97 @@
 {
   "id": "top-n-words",
   "title": "Top N most-frequent words",
-  "instructorPromptText": "Write a function that takes a paragraph of text and an integer n, and returns the n most-frequent words as a list. Words are case-insensitive. Break ties alphabetically.",
-  "authoredAt": "2026-04-23T00:03:23.266Z",
-  "publishedAt": "2026-04-23T00:03:23.265Z",
+  "instructorPromptText": "Write a C program that reads a paragraph of text, counts the occurrences of each unique word (case-insensitive), and prints the top N most frequent words in descending order of frequency. Break ties alphabetically.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "word_definition",
-      "description": "What counts as a 'word' — whitespace-separated tokens, or alphabetic sequences with punctuation stripped? Does \"don't\" count as one word or two?",
-      "rationale": "Tokenization is the hidden core of this problem; the student must commit before coding or they will silently conflate 'word.' and 'word' as distinct entries.",
+      "id": "word_struct_grouping",
+      "description": "Does the program define a structure to group words with their frequencies (e.g., `struct WordFreq`)?",
+      "rationale": "Without dynamic lists, grouping associated types in structures is the proper C methodology to keep records organized.",
       "source": "opus"
     },
     {
-      "id": "n_larger_than_vocab",
-      "description": "What should the function return if n exceeds the number of distinct words in the paragraph?",
-      "rationale": "This is the canonical boundary case for top-n problems; committing in the spec prevents an IndexError-or-not ambiguity.",
+      "id": "tie_breaker_sort",
+      "description": "Does the sorting algorithm correctly sort by count descending, and break ties by sorting alphabetically ascending?",
+      "rationale": "Verifies precise conditional control inside comparison algorithms, testing multi-criteria sorting logic.",
       "source": "opus"
     },
     {
-      "id": "n_zero_or_negative",
-      "description": "What should the function return when n is 0 or negative?",
-      "rationale": "The prompt assumes n is sensible; forcing a commitment surfaces whether the student will validate, return [], or let it crash.",
-      "source": "opus"
-    },
-    {
-      "id": "empty_paragraph",
-      "description": "What should the function return for an empty string or a string containing only whitespace/punctuation?",
-      "rationale": "Empty input is the most-missed case and interacts with the n-vs-vocab question.",
-      "source": "opus"
-    },
-    {
-      "id": "return_shape",
-      "description": "Is the returned list a list of words only, or a list of (word, count) pairs? In what case are the returned words (original casing or lowercased)?",
-      "rationale": "The prompt says 'list of words' but students often return tuples with counts; and case-insensitive counting does not specify case-insensitive output.",
-      "source": "opus"
-    },
-    {
-      "id": "tie_break_scope",
-      "description": "Does the alphabetical tie-break apply only among words with equal frequency, or is the full ordering frequency-then-alphabetical?",
-      "rationale": "Students often sort alphabetically first and then by frequency unstably, or vice versa, producing wrong results on ties.",
+      "id": "punctuation_removal",
+      "description": "Does the program strip punctuation marks (comma, period, exclamation) and convert words to lowercase before comparison?",
+      "rationale": "Standardizing string data is necessary before comparison. Students must filter characters inside a traversal loop.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Student's spec commits to stripping punctuation but code uses `text.split()` only, so 'word.' and 'word' are counted as different tokens",
+      "category": "bug",
+      "pattern": "Student fails to handle tied frequencies, printing them in arbitrary order instead of sorting alphabetically.",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Case-insensitivity is stated in spec but code forgets to lowercase before counting, or lowercases for counting but returns the original-case form inconsistently",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Alphabetical tie-break is specified but code uses `sorted(counts.items(), key=lambda x: -x[1])` without a secondary key, giving dict-insertion-order ties",
+      "category": "bug",
+      "pattern": "Student does not strip punctuation, leading to separate counts for 'hello,' and 'hello'.",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a dict manually with `if word in counts` branches; code uses `collections.Counter` and `.most_common()` — coherent stdlib substitution (but note: `.most_common()` does not alphabetize ties)",
+      "pattern": "Student utilizes `qsort` from `<stdlib.h>` with a custom compare function pointer instead of writing a manual Bubble Sort.",
       "source": "opus"
     },
     {
-      "category": "revision",
-      "pattern": "Plan sorts then slices; code uses a heap of size n — coherent optimization, valid if correctness is preserved",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Sort key negates frequency for descending order but leaves word ascending, which works, versus sorting twice and losing stability — subtle correctness bug on ties",
+      "category": "drift",
+      "pattern": "Student only prints the words, forgetting to print their corresponding frequency counts.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Uses `sort()` (returns None) where `sorted()` was intended, causing the function to return None",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Slices with `[:n]` without handling n > len, which happens to work in Python but the student's spec may have promised an error",
+      "pattern": "Student accesses memory outside struct array bounds if the paragraph has more unique words than the array capacity.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_7_plus",
   "unit": "unit_4",
   "opusGeneratedDimensions": [
     {
-      "id": "word_definition",
-      "description": "What counts as a 'word' — whitespace-separated tokens, or alphabetic sequences with punctuation stripped? Does \"don't\" count as one word or two?",
-      "rationale": "Tokenization is the hidden core of this problem; the student must commit before coding or they will silently conflate 'word.' and 'word' as distinct entries."
+      "id": "word_struct_grouping",
+      "description": "Does the program define a structure to group words with their frequencies (e.g., `struct WordFreq`)?",
+      "rationale": "Without dynamic lists, grouping associated types in structures is the proper C methodology to keep records organized."
     },
     {
-      "id": "n_larger_than_vocab",
-      "description": "What should the function return if n exceeds the number of distinct words in the paragraph?",
-      "rationale": "This is the canonical boundary case for top-n problems; committing in the spec prevents an IndexError-or-not ambiguity."
+      "id": "tie_breaker_sort",
+      "description": "Does the sorting algorithm correctly sort by count descending, and break ties by sorting alphabetically ascending?",
+      "rationale": "Verifies precise conditional control inside comparison algorithms, testing multi-criteria sorting logic."
     },
     {
-      "id": "n_zero_or_negative",
-      "description": "What should the function return when n is 0 or negative?",
-      "rationale": "The prompt assumes n is sensible; forcing a commitment surfaces whether the student will validate, return [], or let it crash."
-    },
-    {
-      "id": "empty_paragraph",
-      "description": "What should the function return for an empty string or a string containing only whitespace/punctuation?",
-      "rationale": "Empty input is the most-missed case and interacts with the n-vs-vocab question."
-    },
-    {
-      "id": "return_shape",
-      "description": "Is the returned list a list of words only, or a list of (word, count) pairs? In what case are the returned words (original casing or lowercased)?",
-      "rationale": "The prompt says 'list of words' but students often return tuples with counts; and case-insensitive counting does not specify case-insensitive output."
-    },
-    {
-      "id": "tie_break_scope",
-      "description": "Does the alphabetical tie-break apply only among words with equal frequency, or is the full ordering frequency-then-alphabetical?",
-      "rationale": "Students often sort alphabetically first and then by frequency unstably, or vice versa, producing wrong results on ties."
+      "id": "punctuation_removal",
+      "description": "Does the program strip punctuation marks (comma, period, exclamation) and convert words to lowercase before comparison?",
+      "rationale": "Standardizing string data is necessary before comparison. Students must filter characters inside a traversal loop."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Student's spec commits to stripping punctuation but code uses `text.split()` only, so 'word.' and 'word' are counted as different tokens"
+      "category": "bug",
+      "pattern": "Student fails to handle tied frequencies, printing them in arbitrary order instead of sorting alphabetically."
     },
     {
-      "category": "drift",
-      "pattern": "Case-insensitivity is stated in spec but code forgets to lowercase before counting, or lowercases for counting but returns the original-case form inconsistently"
-    },
-    {
-      "category": "drift",
-      "pattern": "Alphabetical tie-break is specified but code uses `sorted(counts.items(), key=lambda x: -x[1])` without a secondary key, giving dict-insertion-order ties"
+      "category": "bug",
+      "pattern": "Student does not strip punctuation, leading to separate counts for 'hello,' and 'hello'."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a dict manually with `if word in counts` branches; code uses `collections.Counter` and `.most_common()` — coherent stdlib substitution (but note: `.most_common()` does not alphabetize ties)"
+      "pattern": "Student utilizes `qsort` from `<stdlib.h>` with a custom compare function pointer instead of writing a manual Bubble Sort."
     },
     {
-      "category": "revision",
-      "pattern": "Plan sorts then slices; code uses a heap of size n — coherent optimization, valid if correctness is preserved"
-    },
-    {
-      "category": "bug",
-      "pattern": "Sort key negates frequency for descending order but leaves word ascending, which works, versus sorting twice and losing stability — subtle correctness bug on ties"
+      "category": "drift",
+      "pattern": "Student only prints the words, forgetting to print their corresponding frequency counts."
     },
     {
       "category": "bug",
-      "pattern": "Uses `sort()` (returns None) where `sorted()` was intended, causing the function to return None"
-    },
-    {
-      "category": "bug",
-      "pattern": "Slices with `[:n]` without handling n > len, which happens to work in Python but the student's spec may have promised an error"
+      "pattern": "Student accesses memory outside struct array bounds if the paragraph has more unique words than the array capacity."
     }
   ],
-  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_7_plus",
   "language": "c"
 }

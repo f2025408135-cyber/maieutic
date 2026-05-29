@@ -1,0 +1,97 @@
+{
+  "id": "dynamic-matrix-transpose",
+  "title": "Dynamic 2D matrix transpose",
+  "instructorPromptText": "Write a C program that dynamically allocates a 2D matrix of size R x C using pointer-to-pointer syntax (`int **matrix`). Read the matrix elements from the user, compute and print its transpose, and cleanly free all dynamically allocated memory.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "double_pointer_allocation",
+      "description": "Does the program correctly perform two-tier allocation (allocating the array of pointers `int**` and then looping to allocate each row `int*`)?",
+      "rationale": "Dynamic 2D array allocation using pointers-to-pointers is a critical test of dynamic memory layout understanding in C.",
+      "source": "opus"
+    },
+    {
+      "id": "nested_loop_deallocation",
+      "description": "Does the program free each individual row before freeing the main row-pointer array to avoid memory leaks?",
+      "rationale": "Freeing only the outer pointer leaks the memory of all rows. The student must cleanly deallocate in reverse order of allocation.",
+      "source": "opus"
+    },
+    {
+      "id": "dimension_swapping",
+      "description": "Are the dimensions correctly swapped for the transposed matrix (e.g. loops run up to C for rows and R for columns)?",
+      "rationale": "A common logical bug is keeping the original dimensions when printing or computing the transpose, resulting in buffer overflows.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student calls `free(matrix)` without freeing each row pointer first, causing memory leaks.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student allocates rows using R instead of C (or vice versa) for the transpose, causing segmentation faults on access.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student accesses `matrix[i][j]` when the indexes exceed boundaries due to dimension confusion.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student allocates a single flat array of size R * C and computes 2D offsets manually (e.g., `arr[i * C + j]`), which is an alternative layout.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to validate if any `malloc` call inside the loop returns NULL.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_5",
+  "opusGeneratedDimensions": [
+    {
+      "id": "double_pointer_allocation",
+      "description": "Does the program correctly perform two-tier allocation (allocating the array of pointers `int**` and then looping to allocate each row `int*`)?",
+      "rationale": "Dynamic 2D array allocation using pointers-to-pointers is a critical test of dynamic memory layout understanding in C."
+    },
+    {
+      "id": "nested_loop_deallocation",
+      "description": "Does the program free each individual row before freeing the main row-pointer array to avoid memory leaks?",
+      "rationale": "Freeing only the outer pointer leaks the memory of all rows. The student must cleanly deallocate in reverse order of allocation."
+    },
+    {
+      "id": "dimension_swapping",
+      "description": "Are the dimensions correctly swapped for the transposed matrix (e.g. loops run up to C for rows and R for columns)?",
+      "rationale": "A common logical bug is keeping the original dimensions when printing or computing the transpose, resulting in buffer overflows."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student calls `free(matrix)` without freeing each row pointer first, causing memory leaks."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student allocates rows using R instead of C (or vice versa) for the transpose, causing segmentation faults on access."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student accesses `matrix[i][j]` when the indexes exceed boundaries due to dimension confusion."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student allocates a single flat array of size R * C and computes 2D offsets manually (e.g., `arr[i * C + j]`), which is an alternative layout."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to validate if any `malloc` call inside the loop returns NULL."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

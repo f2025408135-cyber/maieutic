@@ -109,33 +109,46 @@ const SEEDS: Seed[] = [
     id: "palindrome-check",
     title: "Palindrome check",
     prompt:
-      "Write a function that returns True if a string is a palindrome, ignoring case and non-letter characters.",
+      "Write a C function `int is_palindrome(const char *str)` that returns 1 if a string is a palindrome, and 0 otherwise. The function should ignore case and skip non-alphanumeric characters.",
     level: "week_3_6",
     unit: "unit_3",
+    language: "c",
   },
   {
     id: "most-common-word",
     title: "Most common word",
     prompt:
-      "Write a function that takes a string of space-separated words and returns the word that appears most often. Break ties by returning the word that appears first.",
+      "Write a C function `void find_most_common_word(const char *text, char *result)` that finds the word that appears most frequently in a string of space-separated words, and copies it into the result buffer. Assume words are case-insensitive and ignore punctuation.",
     level: "week_3_6",
     unit: "unit_3",
+    language: "c",
   },
   {
     id: "find-duplicates",
     title: "Find duplicates in a list",
     prompt:
-      "Write a function that takes a list and returns a new list containing only the items that appear more than once. Each duplicate should appear only once in the result.",
+      "Write a C function `int find_duplicates(const int *arr, int size, int *duplicates)` that takes an integer array, finds all values that appear more than once, and stores them in the duplicates array. The function should return the number of duplicates found. Each duplicate should appear only once in the result array.",
     level: "week_3_6",
     unit: "unit_3",
+    language: "c",
   },
   {
     id: "fizzbuzz",
     title: "FizzBuzz",
     prompt:
-      "Write a function that takes a positive integer n and returns a list of strings for numbers 1 through n. For multiples of 3 use 'Fizz'. For multiples of 5 use 'Buzz'. For multiples of both use 'FizzBuzz'. For other numbers, use the number as a string.",
+      "Write a C program that asks the user for a positive integer N, then loops from 1 to N. For multiples of 3 print 'Fizz', for multiples of 5 print 'Buzz', for multiples of both print 'FizzBuzz', and for other numbers print the number itself.",
     level: "week_3_6",
     unit: "unit_3",
+    language: "c",
+  },
+  {
+    id: "matrix-multiplication",
+    title: "Matrix multiplication",
+    prompt:
+      "Write a C program that reads the dimensions and elements of two matrices, verifies if multiplication is possible, computes the product matrix using nested loops, and prints the result.",
+    level: "week_3_6",
+    unit: "unit_3",
+    language: "c",
   },
 
   // ── Unit IV · Functions ──────────────────────────────────────────────
@@ -143,38 +156,43 @@ const SEEDS: Seed[] = [
     id: "parse-csv-line",
     title: "Parse a CSV line",
     prompt:
-      "Write a function that takes a CSV line and a list of column names, and returns a dictionary mapping column names to values. Handle quoted fields that may contain commas.",
+      "Write a C function `int parse_csv(const char *line, char fields[][100], int max_fields)` that parses a single CSV line into a 2D character array of fields. The function must handle fields enclosed in double quotes that contain commas and return the total fields parsed.",
     level: "week_7_plus",
     unit: "unit_4",
+    language: "c",
     phase2Override: true,
   },
   {
     id: "top-n-words",
     title: "Top N most-frequent words",
     prompt:
-      "Write a function that takes a paragraph of text and an integer n, and returns the n most-frequent words as a list. Words are case-insensitive. Break ties alphabetically.",
+      "Write a C program that reads a paragraph of text, counts the occurrences of each unique word (case-insensitive), and prints the top N most frequent words in descending order of frequency. Break ties alphabetically.",
     level: "week_7_plus",
     unit: "unit_4",
+    language: "c",
     phase2Override: true,
   },
   {
     id: "validate-email",
     title: "Validate an email",
     prompt:
-      "Write a function that takes a string and returns True if it is a valid email address. A valid address has exactly one '@', at least one character before it, a domain with at least one '.', and no whitespace.",
+      "Write a C function `int validate_email(const char *email)` that checks if a string is a valid email address, returning 1 if valid, and 0 otherwise. A valid email has exactly one '@', at least one character before the '@', a domain with at least one '.' after the '@', and no whitespace.",
     level: "week_7_plus",
     unit: "unit_4",
+    language: "c",
     phase2Override: true,
   },
   {
     id: "merge-sorted-lists",
-    title: "Merge two sorted dict lists",
+    title: "Merge two sorted lists",
     prompt:
-      "Write a function that takes two lists of dictionaries, each already sorted by a 'timestamp' key, and returns a single merged list, sorted by 'timestamp'. Do not re-sort — merge in linear time.",
+      "Write a C function `void merge_sorted_arrays(const int *arr1, int size1, const int *arr2, int size2, int *merged)` that merges two sorted integer arrays into a single sorted array in linear O(N) time (do not merge and re-sort).",
     level: "week_7_plus",
     unit: "unit_4",
+    language: "c",
     phase2Override: true,
   },
+
   // ── Unit V · Pointers & Memory ────────────────────────────────────────
   {
     id: "reverse-array-pointers",
@@ -199,6 +217,24 @@ const SEEDS: Seed[] = [
     title: "Dynamic array statistics",
     prompt:
       "Write a C program that asks the user for a count N, dynamically allocates an integer array of size N using `malloc`, reads N integers from the user, and computes and prints the minimum, maximum, and average values. Free the memory before exit.",
+    level: "week_7_plus",
+    unit: "unit_5",
+    language: "c",
+  },
+  {
+    id: "dynamic-matrix-transpose",
+    title: "Dynamic 2D matrix transpose",
+    prompt:
+      "Write a C program that dynamically allocates a 2D matrix of size R x C using pointer-to-pointer syntax (`int **matrix`). Read the matrix elements from the user, compute and print its transpose, and cleanly free all dynamically allocated memory.",
+    level: "week_7_plus",
+    unit: "unit_5",
+    language: "c",
+  },
+  {
+    id: "array-filter-callbacks",
+    title: "Array filtering with callbacks",
+    prompt:
+      "Write a C function `int filter_array(const int *src, int size, int *dest, int (*predicate)(int))` that filters elements of an array using a callback function pointer. Implement predicate functions like `is_even` and `is_positive` to test it.",
     level: "week_7_plus",
     unit: "unit_5",
     language: "c",

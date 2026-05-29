@@ -1,139 +1,97 @@
 {
   "id": "validate-email",
   "title": "Validate an email",
-  "instructorPromptText": "Write a function that takes a string and returns True if it is a valid email address. A valid address has exactly one '@', at least one character before it, a domain with at least one '.', and no whitespace.",
-  "authoredAt": "2026-04-23T00:03:40.391Z",
-  "publishedAt": "2026-04-23T00:03:40.390Z",
+  "instructorPromptText": "Write a C function `int validate_email(const char *email)` that checks if a string is a valid email address, returning 1 if valid, and 0 otherwise. A valid email has exactly one '@', at least one character before the '@', a domain with at least one '.' after the '@', and no whitespace.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "domain_dot_position",
-      "description": "Where must the '.' in the domain appear — anywhere after the '@', strictly between two non-empty segments (so 'a@b.' and 'a@.b' are invalid), or is any '.' after the '@' sufficient?",
-      "rationale": "The prompt says 'a domain with at least one dot' but does not specify whether leading/trailing dots in the domain count. Forcing commitment here prevents a very common drift.",
+      "id": "single_at_symbol",
+      "description": "Does the program count occurrences of the '@' symbol to ensure there is exactly one?",
+      "rationale": "An email address cannot have multiple '@' symbols. Checking this requires walking the string and counting occurrences.",
       "source": "opus"
     },
     {
-      "id": "whitespace_definition",
-      "description": "Does 'no whitespace' mean only the space character, or all whitespace (tabs, newlines, etc.)?",
-      "rationale": "Students often check only ' ' in s and miss '\\t' or '\\n'; the spec should commit before coding.",
+      "id": "local_part_exists",
+      "description": "Does the program verify that the '@' is not the first character of the string (i.e. local part length >= 1)?",
+      "rationale": "Ensures that names like `@gmail.com` are correctly classified as invalid by checking indices or pointer offsets.",
       "source": "opus"
     },
     {
-      "id": "empty_string_and_non_string",
-      "description": "What should the function return for an empty string, and what should happen if the input is not a string at all?",
-      "rationale": "Empty input trivially fails every rule, but the student should commit to returning False rather than raising; non-string input forces a type contract.",
-      "source": "opus"
-    },
-    {
-      "id": "at_before_and_after",
-      "description": "The prompt requires 'at least one character before' the '@' — is there a symmetric requirement that the domain side be non-empty before the '.'?",
-      "rationale": "The prompt is asymmetric (explicit about local part, silent about domain part before the dot). The student must notice the asymmetry and commit to a reading.",
-      "source": "opus"
-    },
-    {
-      "id": "case_and_allowed_chars",
-      "description": "Are all characters other than whitespace and '@' acceptable on both sides, or is there an allowed-character restriction (letters, digits, dots, hyphens)?",
-      "rationale": "Real email validation restricts characters, but this prompt does not. Committing to 'any non-whitespace character is fine' prevents the student from silently over-engineering.",
+      "id": "domain_dot_validation",
+      "description": "Does the program verify that there is at least one '.' symbol in the domain portion (after the '@' symbol)?",
+      "rationale": "Ensures a domain structure exists, forcing the student to scan the suffix portion of the string.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Student checks for '@' with `'@' in s` instead of `s.count('@') == 1`, accepting 'a@@b.c' as valid",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Student checks that '.' is somewhere in the string rather than specifically in the domain portion, so 'a.b@c' passes",
-      "source": "opus"
-    },
-    {
-      "category": "drift",
-      "pattern": "Whitespace check uses `' ' in s` and misses tabs/newlines despite spec committing to 'all whitespace'",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes sequential if-checks with early False returns; code uses a single boolean `and`-chain — coherent restructure",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes manual scanning; code uses `s.split('@')` to destructure into local/domain parts — coherent simplification",
+      "category": "bug",
+      "pattern": "Student accepts emails without a dot in the domain name (e.g., `user@domain`).",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Code calls `s.split('@')` and indexes `[1]` without first confirming exactly one '@', causing IndexError on inputs with no '@'",
+      "pattern": "Student accepts emails starting directly with the `@` symbol.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses pointer navigation (`const char *p = email`) and helper functions like `strchr` instead of manual index loops.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Uses `s.index('.')` on the whole string rather than on the domain substring, so the dot requirement is satisfied by a dot in the local part",
+      "pattern": "Student does not check for spaces, accepting strings containing whitespace as valid emails.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student dereferences past the null terminator if they do not check bounds when scanning characters after the '@'.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_7_plus",
   "unit": "unit_4",
   "opusGeneratedDimensions": [
     {
-      "id": "domain_dot_position",
-      "description": "Where must the '.' in the domain appear — anywhere after the '@', strictly between two non-empty segments (so 'a@b.' and 'a@.b' are invalid), or is any '.' after the '@' sufficient?",
-      "rationale": "The prompt says 'a domain with at least one dot' but does not specify whether leading/trailing dots in the domain count. Forcing commitment here prevents a very common drift."
+      "id": "single_at_symbol",
+      "description": "Does the program count occurrences of the '@' symbol to ensure there is exactly one?",
+      "rationale": "An email address cannot have multiple '@' symbols. Checking this requires walking the string and counting occurrences."
     },
     {
-      "id": "whitespace_definition",
-      "description": "Does 'no whitespace' mean only the space character, or all whitespace (tabs, newlines, etc.)?",
-      "rationale": "Students often check only ' ' in s and miss '\\t' or '\\n'; the spec should commit before coding."
+      "id": "local_part_exists",
+      "description": "Does the program verify that the '@' is not the first character of the string (i.e. local part length >= 1)?",
+      "rationale": "Ensures that names like `@gmail.com` are correctly classified as invalid by checking indices or pointer offsets."
     },
     {
-      "id": "empty_string_and_non_string",
-      "description": "What should the function return for an empty string, and what should happen if the input is not a string at all?",
-      "rationale": "Empty input trivially fails every rule, but the student should commit to returning False rather than raising; non-string input forces a type contract."
-    },
-    {
-      "id": "at_before_and_after",
-      "description": "The prompt requires 'at least one character before' the '@' — is there a symmetric requirement that the domain side be non-empty before the '.'?",
-      "rationale": "The prompt is asymmetric (explicit about local part, silent about domain part before the dot). The student must notice the asymmetry and commit to a reading."
-    },
-    {
-      "id": "case_and_allowed_chars",
-      "description": "Are all characters other than whitespace and '@' acceptable on both sides, or is there an allowed-character restriction (letters, digits, dots, hyphens)?",
-      "rationale": "Real email validation restricts characters, but this prompt does not. Committing to 'any non-whitespace character is fine' prevents the student from silently over-engineering."
+      "id": "domain_dot_validation",
+      "description": "Does the program verify that there is at least one '.' symbol in the domain portion (after the '@' symbol)?",
+      "rationale": "Ensures a domain structure exists, forcing the student to scan the suffix portion of the string."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Student checks for '@' with `'@' in s` instead of `s.count('@') == 1`, accepting 'a@@b.c' as valid"
-    },
-    {
-      "category": "drift",
-      "pattern": "Student checks that '.' is somewhere in the string rather than specifically in the domain portion, so 'a.b@c' passes"
-    },
-    {
-      "category": "drift",
-      "pattern": "Whitespace check uses `' ' in s` and misses tabs/newlines despite spec committing to 'all whitespace'"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes sequential if-checks with early False returns; code uses a single boolean `and`-chain — coherent restructure"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes manual scanning; code uses `s.split('@')` to destructure into local/domain parts — coherent simplification"
+      "category": "bug",
+      "pattern": "Student accepts emails without a dot in the domain name (e.g., `user@domain`)."
     },
     {
       "category": "bug",
-      "pattern": "Code calls `s.split('@')` and indexes `[1]` without first confirming exactly one '@', causing IndexError on inputs with no '@'"
+      "pattern": "Student accepts emails starting directly with the `@` symbol."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses pointer navigation (`const char *p = email`) and helper functions like `strchr` instead of manual index loops."
     },
     {
       "category": "bug",
-      "pattern": "Uses `s.index('.')` on the whole string rather than on the domain substring, so the dot requirement is satisfied by a dot in the local part"
+      "pattern": "Student does not check for spaces, accepting strings containing whitespace as valid emails."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student dereferences past the null terminator if they do not check bounds when scanning characters after the '@'."
     }
   ],
-  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_7_plus",
   "language": "c"
 }

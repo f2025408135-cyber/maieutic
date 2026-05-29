@@ -1,128 +1,97 @@
 {
   "id": "palindrome-check",
   "title": "Palindrome check",
-  "instructorPromptText": "Write a program that asks the user for a string, then prints True if it's a palindrome (ignoring case and non-letter characters) and False otherwise.",
-  "authoredAt": "2026-04-23T00:02:01.747Z",
-  "publishedAt": "2026-04-23T00:02:01.745Z",
+  "instructorPromptText": "Write a C function `int is_palindrome(const char *str)` that returns 1 if a string is a palindrome, and 0 otherwise. The function should ignore case and skip non-alphanumeric characters.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "non_letter_definition",
-      "description": "What counts as a 'non-letter character' to ignore — only punctuation and spaces, or also digits? For example, is '1A2A1' a palindrome?",
-      "rationale": "The prompt says 'non-letter' but students often conflate this with 'non-alphanumeric'; committing in the spec prevents silent disagreement with test cases.",
+      "id": "case_insensitivity",
+      "description": "Does the program compare characters case-insensitively (e.g., treating 'A' and 'a' as equal)?",
+      "rationale": "Novices frequently forget to convert characters to lowercase/uppercase before comparison, causing valid palindromes like 'Racecar' to fail.",
       "source": "opus"
     },
     {
-      "id": "empty_and_single_char",
-      "description": "What should the program print for an empty string, or for a string that becomes empty after stripping non-letters (e.g. '123!@#')? What about a single character?",
-      "rationale": "Degenerate inputs are the canonical missed cases in palindrome problems; the vacuous-truth question (is '' a palindrome?) has no default answer.",
+      "id": "skipping_non_alphanumeric",
+      "description": "Does the program correctly ignore spaces and punctuation (e.g. so 'A man, a plan, a canal: Panama' passes)?",
+      "rationale": "Skipping characters requires a conditional pointer/index update inside the comparison loop, which is a major loop control structure test.",
       "source": "opus"
     },
     {
-      "id": "case_normalization_scope",
-      "description": "Does the program normalize case only for the comparison, or also reflect normalized form in any output? Since only True/False is printed, confirm the original string is not echoed.",
-      "rationale": "Forces the student to distinguish internal processing from output — a common source of scope confusion.",
-      "source": "opus"
-    },
-    {
-      "id": "comparison_strategy",
-      "description": "Will the cleaned string be compared to its reverse as a whole, or by walking inward from both ends? Either is valid but the spec should name one.",
-      "rationale": "Unit 3 gives the student both slicing (s == s[::-1]) and index-based iteration; naming the approach before coding prevents a half-built hybrid.",
+      "id": "comparison_logic",
+      "description": "Does the program use two indices or pointers starting at opposite ends and moving inward to compare characters?",
+      "rationale": "Validating two-pointer logic or index matching ensures the student understands how to traverse strings in C without copying memory.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to ignoring non-letters, but code only lowercases and checks `s == s[::-1]`, leaving spaces and punctuation in the comparison so 'A man a plan a canal Panama' returns False",
+      "category": "bug",
+      "pattern": "Student does not ignore case, causing comparison of uppercase and lowercase versions of the same letter to fail.",
       "source": "opus"
     },
     {
-      "category": "drift",
-      "pattern": "Spec says ignore non-letters (excluding digits), but code uses `c.isalnum()` and accidentally keeps digits",
+      "category": "bug",
+      "pattern": "Student does not skip non-alphanumeric characters, failing on strings with spaces or commas.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student reads past the bounds of the string by going beyond the null terminator or using incorrect indices.",
       "source": "opus"
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a cleaned list by iterating and appending letters; code uses a list comprehension or generator with ''.join(...) — coherent simplification",
+      "pattern": "Student implements the check recursively (passing pointers and a length) rather than iteratively, which is a valid alternative.",
       "source": "opus"
     },
     {
-      "category": "revision",
-      "pattern": "Plan describes comparing the cleaned string to its reverse via slicing; code uses a two-pointer while-loop walking inward — coherent alternative",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student reverses the string with `s.reverse()` (a list method) on a string and gets an AttributeError",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student prints 'True' or 'False' as strings via an if/else when they could just print the boolean expression, then misaligns a branch and prints the wrong literal",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "Case-normalizes one side of the comparison but not the other (e.g. compares `s.lower()` to `s[::-1]`)",
+      "category": "drift",
+      "pattern": "Student reverses the string into a temporary buffer using `strcpy` and loops to compare instead of comparing inward.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_3_6",
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "non_letter_definition",
-      "description": "What counts as a 'non-letter character' to ignore — only punctuation and spaces, or also digits? For example, is '1A2A1' a palindrome?",
-      "rationale": "The prompt says 'non-letter' but students often conflate this with 'non-alphanumeric'; committing in the spec prevents silent disagreement with test cases."
+      "id": "case_insensitivity",
+      "description": "Does the program compare characters case-insensitively (e.g., treating 'A' and 'a' as equal)?",
+      "rationale": "Novices frequently forget to convert characters to lowercase/uppercase before comparison, causing valid palindromes like 'Racecar' to fail."
     },
     {
-      "id": "empty_and_single_char",
-      "description": "What should the program print for an empty string, or for a string that becomes empty after stripping non-letters (e.g. '123!@#')? What about a single character?",
-      "rationale": "Degenerate inputs are the canonical missed cases in palindrome problems; the vacuous-truth question (is '' a palindrome?) has no default answer."
+      "id": "skipping_non_alphanumeric",
+      "description": "Does the program correctly ignore spaces and punctuation (e.g. so 'A man, a plan, a canal: Panama' passes)?",
+      "rationale": "Skipping characters requires a conditional pointer/index update inside the comparison loop, which is a major loop control structure test."
     },
     {
-      "id": "case_normalization_scope",
-      "description": "Does the program normalize case only for the comparison, or also reflect normalized form in any output? Since only True/False is printed, confirm the original string is not echoed.",
-      "rationale": "Forces the student to distinguish internal processing from output — a common source of scope confusion."
-    },
-    {
-      "id": "comparison_strategy",
-      "description": "Will the cleaned string be compared to its reverse as a whole, or by walking inward from both ends? Either is valid but the spec should name one.",
-      "rationale": "Unit 3 gives the student both slicing (s == s[::-1]) and index-based iteration; naming the approach before coding prevents a half-built hybrid."
+      "id": "comparison_logic",
+      "description": "Does the program use two indices or pointers starting at opposite ends and moving inward to compare characters?",
+      "rationale": "Validating two-pointer logic or index matching ensures the student understands how to traverse strings in C without copying memory."
     }
   ],
   "opusGeneratedDivergences": [
     {
-      "category": "drift",
-      "pattern": "Spec commits to ignoring non-letters, but code only lowercases and checks `s == s[::-1]`, leaving spaces and punctuation in the comparison so 'A man a plan a canal Panama' returns False"
+      "category": "bug",
+      "pattern": "Student does not ignore case, causing comparison of uppercase and lowercase versions of the same letter to fail."
     },
     {
-      "category": "drift",
-      "pattern": "Spec says ignore non-letters (excluding digits), but code uses `c.isalnum()` and accidentally keeps digits"
+      "category": "bug",
+      "pattern": "Student does not skip non-alphanumeric characters, failing on strings with spaces or commas."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student reads past the bounds of the string by going beyond the null terminator or using incorrect indices."
     },
     {
       "category": "revision",
-      "pattern": "Plan describes building a cleaned list by iterating and appending letters; code uses a list comprehension or generator with ''.join(...) — coherent simplification"
+      "pattern": "Student implements the check recursively (passing pointers and a length) rather than iteratively, which is a valid alternative."
     },
     {
-      "category": "revision",
-      "pattern": "Plan describes comparing the cleaned string to its reverse via slicing; code uses a two-pointer while-loop walking inward — coherent alternative"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student reverses the string with `s.reverse()` (a list method) on a string and gets an AttributeError"
-    },
-    {
-      "category": "bug",
-      "pattern": "Student prints 'True' or 'False' as strings via an if/else when they could just print the boolean expression, then misaligns a branch and prints the wrong literal"
-    },
-    {
-      "category": "bug",
-      "pattern": "Case-normalizes one side of the comparison but not the other (e.g. compares `s.lower()` to `s[::-1]`)"
+      "category": "drift",
+      "pattern": "Student reverses the string into a temporary buffer using `strcpy` and loops to compare instead of comparing inward."
     }
   ],
-  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_3_6",
   "language": "c"
 }

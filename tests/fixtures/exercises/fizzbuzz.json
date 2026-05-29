@@ -1,128 +1,97 @@
 {
   "id": "fizzbuzz",
   "title": "FizzBuzz",
-  "instructorPromptText": "Write a program that asks the user for a positive integer n, then prints one line per number from 1 through n. For multiples of 3 print 'Fizz'. For multiples of 5 print 'Buzz'. For multiples of both print 'FizzBuzz'. For other numbers, print the number.",
-  "authoredAt": "2026-04-23T00:02:46.784Z",
-  "publishedAt": "2026-04-23T00:02:46.782Z",
+  "instructorPromptText": "Write a C program that asks the user for a positive integer N, then loops from 1 to N. For multiples of 3 print 'Fizz', for multiples of 5 print 'Buzz', for multiples of both print 'FizzBuzz', and for other numbers print the number itself.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
   "specGateDimensions": [
     {
-      "id": "both_multiples_precedence",
-      "description": "How does the program decide between 'Fizz', 'Buzz', and 'FizzBuzz' — does it check the combined (multiple of 15) case first, or does it check 3 and 5 separately and combine the results?",
-      "rationale": "This is the canonical FizzBuzz pitfall: checking 3 before 15 causes 'FizzBuzz' numbers to print as 'Fizz'. Committing to an ordering or a combining strategy in the spec prevents the bug.",
+      "id": "loop_bounds",
+      "description": "Does the program loop from 1 up to and including N?",
+      "rationale": "Verifies correct loop boundary conditions (using `<=` instead of `<`), preventing off-by-one errors.",
       "source": "opus"
     },
     {
-      "id": "invalid_input_handling",
-      "description": "What should happen if the user enters zero, a negative number, or something that isn't an integer at all? Does the program assume valid input, reject it, reprompt, or crash naturally?",
-      "rationale": "The prompt says 'positive integer' but does not specify enforcement. The student must commit to a stance — 'assume valid' is acceptable, but it must be named.",
+      "id": "conditional_precedence",
+      "description": "Does the program check the double divisor condition (3 and 5) first, before checking individual divisors?",
+      "rationale": "Checking `n % 3 == 0` first will intercept multiples of 15, printing 'Fizz' instead of 'FizzBuzz'. Logical ordering is a core control structure skill.",
       "source": "opus"
     },
     {
-      "id": "n_inclusive",
-      "description": "Does the output include the number n itself, or stop at n-1?",
-      "rationale": "'From 1 through n' is usually inclusive, but range(1, n) is a common off-by-one trap. Forcing the student to state 'includes n' makes the range bounds decision explicit.",
-      "source": "opus"
-    },
-    {
-      "id": "output_format",
-      "description": "Is each of the n results printed on its own line as it is computed, or collected (e.g. in a list) and printed at the end? If collected, is the final output one-per-line or something else?",
-      "rationale": "In unit_3 the student has lists available and may be tempted to build one. Either strategy is valid, but the spec should commit so Phase 4 can diff intent against output.",
+      "id": "fizzbuzz_printf_logic",
+      "description": "Does the program print each string or number on a new line (e.g. using `\\n` in `printf`)?",
+      "rationale": "Output formatting ensures readable console streams and allows automation parsers to check correctness.",
       "source": "opus"
     }
   ],
   "expectedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student checks `n % 3 == 0` before `n % 15 == 0`, so numbers like 15 and 30 print as 'Fizz' instead of 'FizzBuzz'",
+      "pattern": "Student checks single divisibility first, resulting in multiples of 15 printing 'Fizz' or 'Buzz' instead of 'FizzBuzz'.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Uses range(1, n) instead of range(1, n+1), printing only 1 through n-1",
+      "pattern": "Student writes loop condition `i < n` instead of `i <= n`, omitting the final number.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student prints 'Fizz' (without newline) followed conditionally by 'Buzz' (without newline), then falling back to number if neither printed — a clever conditional assembly.",
       "source": "opus"
     },
     {
       "category": "bug",
-      "pattern": "Prints the integer via print(i) alongside string branches, causing inconsistent types in output when student expected a list — or forgets to convert i to str when concatenating",
+      "pattern": "Student uses logical OR `||` instead of AND `&&` to check if a number is a multiple of both 3 and 5.",
       "source": "opus"
     },
     {
       "category": "drift",
-      "pattern": "Spec promises to handle non-positive input but code calls int(input(...)) and proceeds unconditionally, crashing or silently printing nothing for n <= 0",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes nested if/elif branches; code builds the output string by concatenating 'Fizz' if divisible by 3 and 'Buzz' if divisible by 5, falling back to str(i) if the string is empty — coherent alternative strategy",
-      "source": "opus"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan prints inside the loop; code appends to a list and prints with '\\n'.join at the end — coherent given unit_3 list tools",
-      "source": "opus"
-    },
-    {
-      "category": "bug",
-      "pattern": "try/except around int(input(...)) swallows the error but then proceeds into the loop with n undefined, causing a NameError later",
+      "pattern": "Student prints extra explanatory prompts (e.g. 'The number is: Fizz') violating the exact output spec.",
       "source": "opus"
     }
   ],
-  "phase2Required": true,
   "studentLevel": "week_3_6",
   "unit": "unit_3",
   "opusGeneratedDimensions": [
     {
-      "id": "both_multiples_precedence",
-      "description": "How does the program decide between 'Fizz', 'Buzz', and 'FizzBuzz' — does it check the combined (multiple of 15) case first, or does it check 3 and 5 separately and combine the results?",
-      "rationale": "This is the canonical FizzBuzz pitfall: checking 3 before 15 causes 'FizzBuzz' numbers to print as 'Fizz'. Committing to an ordering or a combining strategy in the spec prevents the bug."
+      "id": "loop_bounds",
+      "description": "Does the program loop from 1 up to and including N?",
+      "rationale": "Verifies correct loop boundary conditions (using `<=` instead of `<`), preventing off-by-one errors."
     },
     {
-      "id": "invalid_input_handling",
-      "description": "What should happen if the user enters zero, a negative number, or something that isn't an integer at all? Does the program assume valid input, reject it, reprompt, or crash naturally?",
-      "rationale": "The prompt says 'positive integer' but does not specify enforcement. The student must commit to a stance — 'assume valid' is acceptable, but it must be named."
+      "id": "conditional_precedence",
+      "description": "Does the program check the double divisor condition (3 and 5) first, before checking individual divisors?",
+      "rationale": "Checking `n % 3 == 0` first will intercept multiples of 15, printing 'Fizz' instead of 'FizzBuzz'. Logical ordering is a core control structure skill."
     },
     {
-      "id": "n_inclusive",
-      "description": "Does the output include the number n itself, or stop at n-1?",
-      "rationale": "'From 1 through n' is usually inclusive, but range(1, n) is a common off-by-one trap. Forcing the student to state 'includes n' makes the range bounds decision explicit."
-    },
-    {
-      "id": "output_format",
-      "description": "Is each of the n results printed on its own line as it is computed, or collected (e.g. in a list) and printed at the end? If collected, is the final output one-per-line or something else?",
-      "rationale": "In unit_3 the student has lists available and may be tempted to build one. Either strategy is valid, but the spec should commit so Phase 4 can diff intent against output."
+      "id": "fizzbuzz_printf_logic",
+      "description": "Does the program print each string or number on a new line (e.g. using `\\n` in `printf`)?",
+      "rationale": "Output formatting ensures readable console streams and allows automation parsers to check correctness."
     }
   ],
   "opusGeneratedDivergences": [
     {
       "category": "bug",
-      "pattern": "Student checks `n % 3 == 0` before `n % 15 == 0`, so numbers like 15 and 30 print as 'Fizz' instead of 'FizzBuzz'"
+      "pattern": "Student checks single divisibility first, resulting in multiples of 15 printing 'Fizz' or 'Buzz' instead of 'FizzBuzz'."
     },
     {
       "category": "bug",
-      "pattern": "Uses range(1, n) instead of range(1, n+1), printing only 1 through n-1"
+      "pattern": "Student writes loop condition `i < n` instead of `i <= n`, omitting the final number."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student prints 'Fizz' (without newline) followed conditionally by 'Buzz' (without newline), then falling back to number if neither printed — a clever conditional assembly."
     },
     {
       "category": "bug",
-      "pattern": "Prints the integer via print(i) alongside string branches, causing inconsistent types in output when student expected a list — or forgets to convert i to str when concatenating"
+      "pattern": "Student uses logical OR `||` instead of AND `&&` to check if a number is a multiple of both 3 and 5."
     },
     {
       "category": "drift",
-      "pattern": "Spec promises to handle non-positive input but code calls int(input(...)) and proceeds unconditionally, crashing or silently printing nothing for n <= 0"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan describes nested if/elif branches; code builds the output string by concatenating 'Fizz' if divisible by 3 and 'Buzz' if divisible by 5, falling back to str(i) if the string is empty — coherent alternative strategy"
-    },
-    {
-      "category": "revision",
-      "pattern": "Plan prints inside the loop; code appends to a list and prints with '\\n'.join at the end — coherent given unit_3 list tools"
-    },
-    {
-      "category": "bug",
-      "pattern": "try/except around int(input(...)) swallows the error but then proceeds into the loop with n undefined, causing a NameError later"
+      "pattern": "Student prints extra explanatory prompts (e.g. 'The number is: Fizz') violating the exact output spec."
     }
   ],
-  "opusGeneratedPhase2Required": true,
   "opusGeneratedStudentLevel": "week_3_6",
   "language": "c"
 }
