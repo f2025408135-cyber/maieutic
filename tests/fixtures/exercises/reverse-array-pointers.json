@@ -1,0 +1,97 @@
+{
+  "id": "reverse-array-pointers",
+  "title": "Reverse array using pointers",
+  "instructorPromptText": "Write a function `void reverse_array(int *arr, int size)` that reverses the elements of an integer array in place using pointer arithmetic (no array indexing like `arr[i]`).",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "pointer_arithmetic",
+      "description": "Does the program strictly use pointer arithmetic (e.g., `*(arr + i)` or incrementing pointers) instead of array indexing syntax (`arr[i]`)?",
+      "rationale": "Forcing pointer usage directly tests the student's understanding of pointers as memory addresses rather than just array aliases.",
+      "source": "opus"
+    },
+    {
+      "id": "in_place_swap",
+      "description": "Is the reversal performed in-place (with O(1) auxiliary space) using a temporary swap variable, or does it allocate memory?",
+      "rationale": "Memory efficiency is a core reason to use pointers in C; identifying whether the student avoids extra allocations is a key learning indicator.",
+      "source": "opus"
+    },
+    {
+      "id": "null_and_empty_checks",
+      "description": "Does the function check for a NULL pointer or a size <= 0 to prevent segmentation faults?",
+      "rationale": "Robust systems programming in C requires defensive programming against NULL pointers and invalid boundaries.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses square bracket array indexing (e.g., `arr[i]`) in their code, violating the explicit constraint.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student fails to check for a NULL pointer before dereferencing, potentially causing a crash.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student allocates a new array using `malloc` to store the reversed elements instead of swapping in-place.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student implements the reversal using two pointers (a `start` pointer and an `end` pointer) incrementing/decrementing them until they meet.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student incorrectly updates pointers or goes out of bounds by 1 due to an off-by-one error on the array size.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_5",
+  "opusGeneratedDimensions": [
+    {
+      "id": "pointer_arithmetic",
+      "description": "Does the program strictly use pointer arithmetic (e.g., `*(arr + i)` or incrementing pointers) instead of array indexing syntax (`arr[i]`)?",
+      "rationale": "Forcing pointer usage directly tests the student's understanding of pointers as memory addresses rather than just array aliases."
+    },
+    {
+      "id": "in_place_swap",
+      "description": "Is the reversal performed in-place (with O(1) auxiliary space) using a temporary swap variable, or does it allocate memory?",
+      "rationale": "Memory efficiency is a core reason to use pointers in C; identifying whether the student avoids extra allocations is a key learning indicator."
+    },
+    {
+      "id": "null_and_empty_checks",
+      "description": "Does the function check for a NULL pointer or a size <= 0 to prevent segmentation faults?",
+      "rationale": "Robust systems programming in C requires defensive programming against NULL pointers and invalid boundaries."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses square bracket array indexing (e.g., `arr[i]`) in their code, violating the explicit constraint."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student fails to check for a NULL pointer before dereferencing, potentially causing a crash."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student allocates a new array using `malloc` to store the reversed elements instead of swapping in-place."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student implements the reversal using two pointers (a `start` pointer and an `end` pointer) incrementing/decrementing them until they meet."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student incorrectly updates pointers or goes out of bounds by 1 due to an off-by-one error on the array size."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

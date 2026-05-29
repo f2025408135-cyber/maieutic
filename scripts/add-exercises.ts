@@ -175,6 +175,92 @@ const SEEDS: Seed[] = [
     unit: "unit_4",
     phase2Override: true,
   },
+  // ── Unit V · Pointers & Memory ────────────────────────────────────────
+  {
+    id: "reverse-array-pointers",
+    title: "Reverse array using pointers",
+    prompt:
+      "Write a function `void reverse_array(int *arr, int size)` that reverses the elements of an integer array in place using pointer arithmetic (no array indexing like `arr[i]`).",
+    level: "week_7_plus",
+    unit: "unit_5",
+    language: "c",
+  },
+  {
+    id: "custom-string-concat",
+    title: "Custom string concatenation",
+    prompt:
+      "Write a C function `void custom_strcat(char *dest, const char *src)` that appends the source string to the destination string using pointers. Do not use any `<string.h>` library functions.",
+    level: "week_7_plus",
+    unit: "unit_5",
+    language: "c",
+  },
+  {
+    id: "dynamic-array-stats",
+    title: "Dynamic array statistics",
+    prompt:
+      "Write a C program that asks the user for a count N, dynamically allocates an integer array of size N using `malloc`, reads N integers from the user, and computes and prints the minimum, maximum, and average values. Free the memory before exit.",
+    level: "week_7_plus",
+    unit: "unit_5",
+    language: "c",
+  },
+
+  // ── Unit VI · Dynamic Data Structures ─────────────────────────────────
+  {
+    id: "singly-linked-list-ops",
+    title: "Singly linked list operations",
+    prompt:
+      "Write a C program that defines a singly linked list node structure. Implement functions to insert a node at the beginning and print all nodes. The program should read integers from the user until -1 is entered, build the list, print it, and free all nodes.",
+    level: "week_7_plus",
+    unit: "unit_6",
+    language: "c",
+  },
+  {
+    id: "stack-push-pop",
+    title: "Stack push and pop",
+    prompt:
+      "Write a C program that implements a Stack data structure using a linked list. Implement `push` and `pop` functions. The program should push 3 integers onto the stack and pop them one by one, printing each popped value.",
+    level: "week_7_plus",
+    unit: "unit_6",
+    language: "c",
+  },
+  {
+    id: "binary-search-tree-check",
+    title: "Binary search tree search",
+    prompt:
+      "Write a C program that builds a Binary Search Tree (BST) from user input and implements a recursive function `int search(Node* root, int key)` that returns 1 if the key is found, and 0 otherwise.",
+    level: "week_7_plus",
+    unit: "unit_6",
+    language: "c",
+  },
+
+  // ── Unit VII · Advanced Systems & Bitwise ─────────────────────────────
+  {
+    id: "bitwise-bit-count",
+    title: "Count set bits",
+    prompt:
+      "Write a C function `int count_set_bits(unsigned int n)` that counts and returns the number of set bits (1s) in its binary representation using bitwise operators (`&`, `>>`).",
+    level: "week_7_plus",
+    unit: "unit_7",
+    language: "c",
+  },
+  {
+    id: "file-char-frequency",
+    title: "File character frequency",
+    prompt:
+      "Write a C program that opens a file named `input.txt` for reading, counts the total occurrences of a specific character (e.g. 'e'), and prints the result. Handle file open failures.",
+    level: "week_7_plus",
+    unit: "unit_7",
+    language: "c",
+  },
+  {
+    id: "bitwise-permissions",
+    title: "Bitwise file permissions",
+    prompt:
+      "Write a C program that simulates UNIX-style file permissions (Read=4, Write=2, Execute=1) using bitwise flags. Implement functions to add a permission, remove a permission, and check if a permission is set using bitwise operators (`|`, `&`, `~`).",
+    level: "week_7_plus",
+    unit: "unit_7",
+    language: "c",
+  },
 ];
 
 const FIXTURE_DIR = path.join(process.cwd(), "tests", "fixtures");

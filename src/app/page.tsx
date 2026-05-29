@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CodeFrame, Comment, SYNTAX } from "@/components/editor/CodeFrame";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ApiKeySettings } from "@/components/student/ApiKeySettings";
 import { prisma } from "@/lib/db";
 import { getDict } from "@/lib/i18n/server";
 
@@ -32,8 +33,9 @@ export default async function Home() {
       banner={
         <div className="flex items-end justify-between gap-4">
           <Brand />
-          <div className="pb-3">
+          <div className="pb-3 flex items-center gap-3">
             <LanguageSwitcher />
+            <ApiKeySettings />
           </div>
         </div>
       }

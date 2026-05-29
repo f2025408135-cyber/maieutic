@@ -50,6 +50,15 @@ that toolkit:
   parameters, arguments, return, scope), pointers (address-of &, dereferencing *),
   simple dynamic memory allocation (malloc, free), basic file operations.
 
+- unit_5 · Pointers & Memory
+  All of unit_4 plus: advanced pointer arithmetic, double pointers, dynamic 1D/2D arrays, memory allocation validation, and memory cleanup (free).
+
+- unit_6 · Dynamic Data Structures
+  All of unit_5 plus: self-referential structures, singly linked lists (insertion, traversal, deletion), stacks, queues, and binary search trees.
+
+- unit_7 · Advanced Systems & Bitwise
+  All of unit_6 plus: bitwise operators (&, |, ^, ~, <<, >>), bitmasks, and advanced file operations (fopen, fclose, fgetc, fgets, fprintf, fscanf).
+
 HOW UNIT AFFECTS DIMENSIONS
 
 - Do NOT include dimensions whose only defensible answer requires tools
@@ -162,7 +171,7 @@ OUTPUT:
 export function buildScaffoldingUserMessage(
   promptText: string,
   title: string,
-  targetUnit?: "unit_1" | "unit_2" | "unit_3" | "unit_4",
+  targetUnit?: "unit_1" | "unit_2" | "unit_3" | "unit_4" | "unit_5" | "unit_6" | "unit_7",
 ): string {
   const unitBlock = targetUnit
     ? `\nTARGET UNIT: ${targetUnit}\n` +

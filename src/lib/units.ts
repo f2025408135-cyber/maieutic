@@ -4,7 +4,7 @@
 
 import type { StudentLevel } from "@/lib/opus/schemas";
 
-export const UNIT_IDS = ["unit_1", "unit_2", "unit_3", "unit_4"] as const;
+export const UNIT_IDS = ["unit_1", "unit_2", "unit_3", "unit_4", "unit_5", "unit_6", "unit_7"] as const;
 export type Unit = (typeof UNIT_IDS)[number];
 
 export const UNIT_TITLE: Record<Unit, string> = {
@@ -12,6 +12,9 @@ export const UNIT_TITLE: Record<Unit, string> = {
   unit_2: "Control Structures",
   unit_3: "Data Structures",
   unit_4: "Functions",
+  unit_5: "Pointers & Memory",
+  unit_6: "Dynamic Data Structures",
+  unit_7: "Advanced Systems & Bitwise",
 };
 
 export const UNIT_ROMAN: Record<Unit, string> = {
@@ -19,6 +22,9 @@ export const UNIT_ROMAN: Record<Unit, string> = {
   unit_2: "II",
   unit_3: "III",
   unit_4: "IV",
+  unit_5: "V",
+  unit_6: "VI",
+  unit_7: "VII",
 };
 
 // Full label used on the /exercises group headers and the student exercise
@@ -30,7 +36,7 @@ export function unitLabel(unit: Unit): string {
 // Unit → student_level mapping per Paula's curriculum:
 //   Units I–II → week_1_2
 //   Unit III  → week_3_6
-//   Unit IV   → week_7_plus
+//   Unit IV-VII   → week_7_plus
 export function levelForUnit(unit: Unit): StudentLevel {
   switch (unit) {
     case "unit_1":
@@ -39,6 +45,9 @@ export function levelForUnit(unit: Unit): StudentLevel {
     case "unit_3":
       return "week_3_6";
     case "unit_4":
+    case "unit_5":
+    case "unit_6":
+    case "unit_7":
       return "week_7_plus";
   }
 }

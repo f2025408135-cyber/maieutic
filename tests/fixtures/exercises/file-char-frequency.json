@@ -1,0 +1,97 @@
+{
+  "id": "file-char-frequency",
+  "title": "File character frequency",
+  "instructorPromptText": "Write a C program that opens a file named `input.txt` for reading, counts the total occurrences of a specific character (e.g. 'e'), and prints the result. Handle file open failures.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "file_pointer_validation",
+      "description": "Does the program verify that `fopen` successfully opened the file (i.e. did not return `NULL`) before attempting to read?",
+      "rationale": "Attempting to read from a NULL file stream causes an immediate segmentation fault in C.",
+      "source": "opus"
+    },
+    {
+      "id": "file_closing",
+      "description": "Does the program call `fclose` to release the file handle, even when file processing completes or errors occur?",
+      "rationale": "Failing to close files causes file descriptor leaks. In long-running processes, this eventually exhausts available OS handles.",
+      "source": "opus"
+    },
+    {
+      "id": "eof_type_safety",
+      "description": "Is the variable storing the character read from the file declared as `int` rather than `char` to ensure `EOF` is detected correctly?",
+      "rationale": "In C, `fgetc` returns an `int` so it can represent all valid char values plus `EOF` (-1). Using a `char` type can lead to early termination or infinite loops.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student reads from the file pointer without checking if it is NULL.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student leaks file handles by not calling `fclose` before exiting.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student stores the result of `fgetc` in a variable of type `char`, risking failure to detect EOF properly.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student counts case-insensitively (e.g. counting both 'e' and 'E') when the spec only specifies character 'e'.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses `fgets` or `fscanf` to read file contents in chunks rather than using `fgetc` char-by-char.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_7",
+  "opusGeneratedDimensions": [
+    {
+      "id": "file_pointer_validation",
+      "description": "Does the program verify that `fopen` successfully opened the file (i.e. did not return `NULL`) before attempting to read?",
+      "rationale": "Attempting to read from a NULL file stream causes an immediate segmentation fault in C."
+    },
+    {
+      "id": "file_closing",
+      "description": "Does the program call `fclose` to release the file handle, even when file processing completes or errors occur?",
+      "rationale": "Failing to close files causes file descriptor leaks. In long-running processes, this eventually exhausts available OS handles."
+    },
+    {
+      "id": "eof_type_safety",
+      "description": "Is the variable storing the character read from the file declared as `int` rather than `char` to ensure `EOF` is detected correctly?",
+      "rationale": "In C, `fgetc` returns an `int` so it can represent all valid char values plus `EOF` (-1). Using a `char` type can lead to early termination or infinite loops."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student reads from the file pointer without checking if it is NULL."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student leaks file handles by not calling `fclose` before exiting."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student stores the result of `fgetc` in a variable of type `char`, risking failure to detect EOF properly."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student counts case-insensitively (e.g. counting both 'e' and 'E') when the spec only specifies character 'e'."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses `fgets` or `fscanf` to read file contents in chunks rather than using `fgetc` char-by-char."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

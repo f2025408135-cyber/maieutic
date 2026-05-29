@@ -1,0 +1,97 @@
+{
+  "id": "custom-string-concat",
+  "title": "Custom string concatenation",
+  "instructorPromptText": "Write a C function `void custom_strcat(char *dest, const char *src)` that appends the source string to the destination string using pointers. Do not use any `<string.h>` library functions.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "pointer_navigation",
+      "description": "Does the program correctly traverse to the end of the destination string (`\\0`) before starting the copy?",
+      "rationale": "To concatenate, the writer must understand how C strings are null-terminated and how to advance pointers to that position.",
+      "source": "opus"
+    },
+    {
+      "id": "no_string_h",
+      "description": "Does the code strictly avoid using functions from `<string.h>` (like `strcat`, `strcpy`, or `strlen`)?",
+      "rationale": "Writing manual string operations reinforces character-by-character pointer arithmetic and dereferencing.",
+      "source": "opus"
+    },
+    {
+      "id": "null_termination",
+      "description": "Does the function explicitly place a null terminator (`\\0`) at the final position of the destination string?",
+      "rationale": "Forgetting the null terminator is a classic C bug that leads to garbage printing or memory access bugs.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student includes `<string.h>` and calls standard library functions like `strcat`.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to null-terminate the final combined string in the destination buffer.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student overwrites the destination string from the beginning instead of finding the end first.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses a single compact while loop expression like `while (*dest++);` and needs to adjust for overshoot.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student dereferences `dest` or `src` without checking if they are NULL, risking segmentation fault.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_5",
+  "opusGeneratedDimensions": [
+    {
+      "id": "pointer_navigation",
+      "description": "Does the program correctly traverse to the end of the destination string (`\\0`) before starting the copy?",
+      "rationale": "To concatenate, the writer must understand how C strings are null-terminated and how to advance pointers to that position."
+    },
+    {
+      "id": "no_string_h",
+      "description": "Does the code strictly avoid using functions from `<string.h>` (like `strcat`, `strcpy`, or `strlen`)?",
+      "rationale": "Writing manual string operations reinforces character-by-character pointer arithmetic and dereferencing."
+    },
+    {
+      "id": "null_termination",
+      "description": "Does the function explicitly place a null terminator (`\\0`) at the final position of the destination string?",
+      "rationale": "Forgetting the null terminator is a classic C bug that leads to garbage printing or memory access bugs."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student includes `<string.h>` and calls standard library functions like `strcat`."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to null-terminate the final combined string in the destination buffer."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student overwrites the destination string from the beginning instead of finding the end first."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses a single compact while loop expression like `while (*dest++);` and needs to adjust for overshoot."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student dereferences `dest` or `src` without checking if they are NULL, risking segmentation fault."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

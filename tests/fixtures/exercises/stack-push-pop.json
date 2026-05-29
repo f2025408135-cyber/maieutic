@@ -1,0 +1,97 @@
+{
+  "id": "stack-push-pop",
+  "title": "Stack push and pop",
+  "instructorPromptText": "Write a C program that implements a Stack data structure using a linked list. Implement `push` and `pop` functions. The program should push 3 integers onto the stack and pop them one by one, printing each popped value.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "stack_underflow",
+      "description": "Does the `pop` function handle stack underflow (empty stack) gracefully by returning a sentinel value or printing an error, instead of crashing?",
+      "rationale": "Underflow condition checks are critical when popping or removing elements from any dynamic data structure.",
+      "source": "opus"
+    },
+    {
+      "id": "push_pop_pointers",
+      "description": "Are pointers properly reassigned inside `push` and `pop` to ensure the stack top changes correctly?",
+      "rationale": "Verifies that the student correctly links and unlinks nodes, which tests their manipulation of pointer references.",
+      "source": "opus"
+    },
+    {
+      "id": "memory_freeing",
+      "description": "Does `pop` call `free` on the node being removed after extracting its data?",
+      "rationale": "Unlike print-only operations, popping elements requires deallocating that specific node's memory to avoid accumulation leaks.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student forgets to call `free` on the popped node inside the `pop` function.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student dereferences the top pointer when it is NULL in `pop`, leading to a segmentation fault.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student implements stack using a fixed-size array instead of the requested linked list structure.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student creates a helper struct `Stack` containing the top pointer to bundle state, rather than using a naked `Node*` pointer.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student loses the reference to the next node when updating the top pointer, making subsequent pops fail.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_6",
+  "opusGeneratedDimensions": [
+    {
+      "id": "stack_underflow",
+      "description": "Does the `pop` function handle stack underflow (empty stack) gracefully by returning a sentinel value or printing an error, instead of crashing?",
+      "rationale": "Underflow condition checks are critical when popping or removing elements from any dynamic data structure."
+    },
+    {
+      "id": "push_pop_pointers",
+      "description": "Are pointers properly reassigned inside `push` and `pop` to ensure the stack top changes correctly?",
+      "rationale": "Verifies that the student correctly links and unlinks nodes, which tests their manipulation of pointer references."
+    },
+    {
+      "id": "memory_freeing",
+      "description": "Does `pop` call `free` on the node being removed after extracting its data?",
+      "rationale": "Unlike print-only operations, popping elements requires deallocating that specific node's memory to avoid accumulation leaks."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student forgets to call `free` on the popped node inside the `pop` function."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student dereferences the top pointer when it is NULL in `pop`, leading to a segmentation fault."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student implements stack using a fixed-size array instead of the requested linked list structure."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student creates a helper struct `Stack` containing the top pointer to bundle state, rather than using a naked `Node*` pointer."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student loses the reference to the next node when updating the top pointer, making subsequent pops fail."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

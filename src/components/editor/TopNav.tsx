@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import * as React from "react";
+import { ApiKeySettings } from "@/components/student/ApiKeySettings";
 
 export function TopNav({
   back,
@@ -63,7 +64,10 @@ export function TopNav({
             {left}
           </>
         )}
-        {right && <div className="ml-auto">{right}</div>}
+        <div className="ml-auto flex items-center gap-3">
+          {right}
+          <ApiKeySettings />
+        </div>
       </div>
     </header>
   );

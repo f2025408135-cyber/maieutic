@@ -15,7 +15,7 @@ export type StudentLevel = z.infer<typeof StudentLevel>;
 
 // Curriculum unit — independent of StudentLevel. See src/lib/units.ts for
 // the unit-to-level mapping.
-export const UnitId = z.enum(["unit_1", "unit_2", "unit_3", "unit_4"]);
+export const UnitId = z.enum(["unit_1", "unit_2", "unit_3", "unit_4", "unit_5", "unit_6", "unit_7"]);
 export type UnitId = z.infer<typeof UnitId>;
 
 export const DivergenceCategory = z.enum(["drift", "revision", "bug"]);

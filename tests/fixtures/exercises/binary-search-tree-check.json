@@ -1,0 +1,97 @@
+{
+  "id": "binary-search-tree-check",
+  "title": "Binary search tree search",
+  "instructorPromptText": "Write a C program that builds a Binary Search Tree (BST) from user input and implements a recursive function `int search(Node* root, int key)` that returns 1 if the key is found, and 0 otherwise.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "bst_node_struct",
+      "description": "Does the program define a binary tree node struct containing a value field and two child pointers (`left` and `right`)?",
+      "rationale": "Binary structures require two separate child references for branching traversal.",
+      "source": "opus"
+    },
+    {
+      "id": "insertion_recursion",
+      "description": "Is recursive BST insertion implemented correctly, maintaining the BST property (left child <= parent < right child)?",
+      "rationale": "Verifies that elements are placed such that the tree maintains sorted search properties.",
+      "source": "opus"
+    },
+    {
+      "id": "search_efficiency",
+      "description": "Does the search function exploit BST properties (binary search traversal) rather than performing a full linear traversal?",
+      "rationale": "A correct BST search runs in O(log N) average complexity; walking both children regardless of key value defeats the purpose of a BST.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student traverses both left and right branches unconditionally during search, resulting in O(N) traversal.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student inserts smaller elements on the right or larger elements on the left, violating the BST property.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student implements the search function iteratively using a `while` loop rather than recursively.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student hardcodes the tree values instead of building the BST dynamically from user input.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student fails to handle a NULL root check in `search()`, causing a segmentation fault when the key is not in the tree.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_6",
+  "opusGeneratedDimensions": [
+    {
+      "id": "bst_node_struct",
+      "description": "Does the program define a binary tree node struct containing a value field and two child pointers (`left` and `right`)?",
+      "rationale": "Binary structures require two separate child references for branching traversal."
+    },
+    {
+      "id": "insertion_recursion",
+      "description": "Is recursive BST insertion implemented correctly, maintaining the BST property (left child <= parent < right child)?",
+      "rationale": "Verifies that elements are placed such that the tree maintains sorted search properties."
+    },
+    {
+      "id": "search_efficiency",
+      "description": "Does the search function exploit BST properties (binary search traversal) rather than performing a full linear traversal?",
+      "rationale": "A correct BST search runs in O(log N) average complexity; walking both children regardless of key value defeats the purpose of a BST."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student traverses both left and right branches unconditionally during search, resulting in O(N) traversal."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student inserts smaller elements on the right or larger elements on the left, violating the BST property."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student implements the search function iteratively using a `while` loop rather than recursively."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student hardcodes the tree values instead of building the BST dynamically from user input."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student fails to handle a NULL root check in `search()`, causing a segmentation fault when the key is not in the tree."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

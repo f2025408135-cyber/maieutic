@@ -34,12 +34,23 @@ function stripFences(s: string): string {
     .trim();
 }
 
+import { cookies } from "next/headers";
+
+async function getCookieKey(name: string): Promise<string | undefined> {
+  try {
+    const cookieStore = await cookies();
+    return cookieStore.get(name)?.value;
+  } catch {
+    return undefined;
+  }
+}
+
 // Helper to get all configured LLM providers in fallback order
-function getTargets(): LlmTarget[] {
+async function getTargets(): Promise<LlmTarget[]> {
   const targets: LlmTarget[] = [];
 
   // 1. Anthropic (Paid/Existing option)
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const anthropicKey = (await getCookieKey("anthropic_api_key")) || process.env.ANTHROPIC_API_KEY;
   if (anthropicKey && !anthropicKey.includes("your-key-here") && anthropicKey.trim() !== "") {
     targets.push({
       name: "Anthropic",
@@ -50,7 +61,7 @@ function getTargets(): LlmTarget[] {
   }
 
   // 2. Google Gemini (Native Free tier option)
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiKey = (await getCookieKey("gemini_api_key")) || process.env.GEMINI_API_KEY;
   if (geminiKey && geminiKey.trim() !== "") {
     targets.push({
       name: "Google Gemini",
@@ -61,7 +72,7 @@ function getTargets(): LlmTarget[] {
   }
 
   // 3. OpenRouter (Free models chain option)
-  const openrouterKey = process.env.OPENROUTER_API_KEY;
+  const openrouterKey = (await getCookieKey("openrouter_api_key")) || process.env.OPENROUTER_API_KEY;
   if (openrouterKey && openrouterKey.trim() !== "") {
     const freeModels = [
       "google/gemini-2.5-flash:free",
@@ -224,7 +235,7 @@ async function callTarget(target: LlmTarget, args: CallOpusArgs): Promise<string
 }
 
 export async function callOpus(args: CallOpusArgs): Promise<string> {
-  const targets = getTargets();
+  const targets = await getTargets();
   if (targets.length === 0) {
     throw new Error(
       "No LLM providers configured. Please set ANTHROPIC_API_KEY, GEMINI_API_KEY, or OPENROUTER_API_KEY in your environment variables."

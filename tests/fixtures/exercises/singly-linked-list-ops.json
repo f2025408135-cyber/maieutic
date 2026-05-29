@@ -1,0 +1,97 @@
+{
+  "id": "singly-linked-list-ops",
+  "title": "Singly linked list operations",
+  "instructorPromptText": "Write a C program that defines a singly linked list node structure. Implement functions to insert a node at the beginning and print all nodes. The program should read integers from the user until -1 is entered, build the list, print it, and free all nodes.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "node_structure",
+      "description": "Does the program define a node struct containing both an integer data field and a self-referential struct pointer to the next node?",
+      "rationale": "Self-referential structs are the foundation of linked lists and other dynamic structures in C.",
+      "source": "opus"
+    },
+    {
+      "id": "insertion_logic",
+      "description": "Is insertion at the beginning implemented correctly (new node's next pointer points to the old head, and head is updated to the new node)?",
+      "rationale": "Verifies understanding of pointer assignment order; doing this incorrectly leads to disconnected nodes or losing the list.",
+      "source": "opus"
+    },
+    {
+      "id": "memory_deallocation",
+      "description": "Does the program safely traverse and free all nodes in the list at the end without using a node after it has been freed?",
+      "rationale": "Freeing nodes in C requires holding a reference to the next node before freeing the current node. Otherwise, it is a use-after-free bug.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student frees node `current` and then accesses `current->next` to move to the next item (use-after-free).",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student fails to initialize the list head pointer to NULL, resulting in undefined behavior or a crash on traversal.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student implements insertion at the tail instead of insertion at the head (beginning), changing the output order.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student passes a double pointer `Node** head` to the insert function to update head inside the function, rather than returning the new head.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to null-terminate the first node created (the list tail), causing infinite loop or crash during traversal.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_6",
+  "opusGeneratedDimensions": [
+    {
+      "id": "node_structure",
+      "description": "Does the program define a node struct containing both an integer data field and a self-referential struct pointer to the next node?",
+      "rationale": "Self-referential structs are the foundation of linked lists and other dynamic structures in C."
+    },
+    {
+      "id": "insertion_logic",
+      "description": "Is insertion at the beginning implemented correctly (new node's next pointer points to the old head, and head is updated to the new node)?",
+      "rationale": "Verifies understanding of pointer assignment order; doing this incorrectly leads to disconnected nodes or losing the list."
+    },
+    {
+      "id": "memory_deallocation",
+      "description": "Does the program safely traverse and free all nodes in the list at the end without using a node after it has been freed?",
+      "rationale": "Freeing nodes in C requires holding a reference to the next node before freeing the current node. Otherwise, it is a use-after-free bug."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student frees node `current` and then accesses `current->next` to move to the next item (use-after-free)."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student fails to initialize the list head pointer to NULL, resulting in undefined behavior or a crash on traversal."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student implements insertion at the tail instead of insertion at the head (beginning), changing the output order."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student passes a double pointer `Node** head` to the insert function to update head inside the function, rather than returning the new head."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student forgets to null-terminate the first node created (the list tail), causing infinite loop or crash during traversal."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

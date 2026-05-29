@@ -1,0 +1,97 @@
+{
+  "id": "dynamic-array-stats",
+  "title": "Dynamic array statistics",
+  "instructorPromptText": "Write a C program that asks the user for a count N, dynamically allocates an integer array of size N using `malloc`, reads N integers from the user, and computes and prints the minimum, maximum, and average values. Free the memory before exit.",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "allocation_validation",
+      "description": "Does the program verify that `malloc` (or `calloc`) successfully allocated memory (i.e. did not return `NULL`) before accessing the array?",
+      "rationale": "Memory allocation validation is a core safety standard in C; accessing a NULL pointer will cause a crash/segfault.",
+      "source": "opus"
+    },
+    {
+      "id": "memory_freeing",
+      "description": "Does the program invoke `free` on the allocated pointer before exiting to prevent memory leaks?",
+      "rationale": "Resource cleanup is critical in languages without automatic garbage collection, highlighting the manual lifecycle management of C.",
+      "source": "opus"
+    },
+    {
+      "id": "precision_average",
+      "description": "Does the average calculation handle floating-point conversion to avoid truncation from integer division?",
+      "rationale": "Dividing two integers in C performs truncating division. Students must cast at least one operand to `double` or `float`.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student calls `malloc` but does not check if the returned pointer is NULL.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student leaks memory by forgetting to call `free` on the allocated pointer.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student divides `sum` by `N` as integers, causing the average to lose its decimal part.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses `calloc` instead of `malloc` to allocate and zero-initialize memory, which is a safe alternative.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student prints stats using a different output format than the one committed to in the spec.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_5",
+  "opusGeneratedDimensions": [
+    {
+      "id": "allocation_validation",
+      "description": "Does the program verify that `malloc` (or `calloc`) successfully allocated memory (i.e. did not return `NULL`) before accessing the array?",
+      "rationale": "Memory allocation validation is a core safety standard in C; accessing a NULL pointer will cause a crash/segfault."
+    },
+    {
+      "id": "memory_freeing",
+      "description": "Does the program invoke `free` on the allocated pointer before exiting to prevent memory leaks?",
+      "rationale": "Resource cleanup is critical in languages without automatic garbage collection, highlighting the manual lifecycle management of C."
+    },
+    {
+      "id": "precision_average",
+      "description": "Does the average calculation handle floating-point conversion to avoid truncation from integer division?",
+      "rationale": "Dividing two integers in C performs truncating division. Students must cast at least one operand to `double` or `float`."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student calls `malloc` but does not check if the returned pointer is NULL."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student leaks memory by forgetting to call `free` on the allocated pointer."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student divides `sum` by `N` as integers, causing the average to lose its decimal part."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student uses `calloc` instead of `malloc` to allocate and zero-initialize memory, which is a safe alternative."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student prints stats using a different output format than the one committed to in the spec."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

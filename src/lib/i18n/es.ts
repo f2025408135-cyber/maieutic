@@ -174,5 +174,8 @@ export const es = {
     unit_2: "Estructuras de Control",
     unit_3: "Estructuras de Datos",
     unit_4: "Funciones",
+    unit_5: "Punteros y Memoria",
+    unit_6: "Estructuras de Datos Dinámicas",
+    unit_7: "Sistemas Avanzados y Operaciones de Bits",
   },
 } satisfies Dict;

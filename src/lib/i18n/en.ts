@@ -172,6 +172,9 @@ export const en = {
     unit_2: "Control Structures",
     unit_3: "Data Structures",
     unit_4: "Functions",
+    unit_5: "Pointers & Memory",
+    unit_6: "Dynamic Data Structures",
+    unit_7: "Advanced Systems & Bitwise",
   },
 };
 

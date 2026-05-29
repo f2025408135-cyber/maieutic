@@ -1,0 +1,97 @@
+{
+  "id": "bitwise-bit-count",
+  "title": "Count set bits",
+  "instructorPromptText": "Write a C function `int count_set_bits(unsigned int n)` that counts and returns the number of set bits (1s) in its binary representation using bitwise operators (`&`, `>>`).",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "bitwise_operators",
+      "description": "Does the function strictly use bitwise operators (like `& 1` and `>>= 1`) instead of arithmetic operations (like `% 2` and `/ 2`)?",
+      "rationale": "Forces direct bit-level manipulation, reinforcing low-level processor execution models.",
+      "source": "opus"
+    },
+    {
+      "id": "unsigned_type",
+      "description": "Does the function signature match `unsigned int` to ensure shift operations behave as logical shifts rather than arithmetic shifts?",
+      "rationale": "Signed integer shifts carry sign bit extensions, which can cause infinite loops or incorrect bit counts for negative values.",
+      "source": "opus"
+    },
+    {
+      "id": "loop_termination",
+      "description": "Does the counting loop terminate correctly when the value reaches zero?",
+      "rationale": "Terminating early when no more bits are set is more efficient than always iterating 32 times, though both are technically correct.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses arithmetic modulo `% 2` and division `/ 2` to count bits, bypassing bitwise operators.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses a signed integer `int` parameter, risking infinite loop with negative values if shifted arithmetically.",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student implements Brian Kernighan's algorithm (`n &= (n - 1)`) to clear the lowest set bit, reducing time complexity.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student prints the bit count inside the function instead of returning it to the caller.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses logical AND `&&` instead of bitwise AND `&` to mask bits, producing incorrect counts.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_7",
+  "opusGeneratedDimensions": [
+    {
+      "id": "bitwise_operators",
+      "description": "Does the function strictly use bitwise operators (like `& 1` and `>>= 1`) instead of arithmetic operations (like `% 2` and `/ 2`)?",
+      "rationale": "Forces direct bit-level manipulation, reinforcing low-level processor execution models."
+    },
+    {
+      "id": "unsigned_type",
+      "description": "Does the function signature match `unsigned int` to ensure shift operations behave as logical shifts rather than arithmetic shifts?",
+      "rationale": "Signed integer shifts carry sign bit extensions, which can cause infinite loops or incorrect bit counts for negative values."
+    },
+    {
+      "id": "loop_termination",
+      "description": "Does the counting loop terminate correctly when the value reaches zero?",
+      "rationale": "Terminating early when no more bits are set is more efficient than always iterating 32 times, though both are technically correct."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses arithmetic modulo `% 2` and division `/ 2` to count bits, bypassing bitwise operators."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses a signed integer `int` parameter, risking infinite loop with negative values if shifted arithmetically."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student implements Brian Kernighan's algorithm (`n &= (n - 1)`) to clear the lowest set bit, reducing time complexity."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student prints the bit count inside the function instead of returning it to the caller."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses logical AND `&&` instead of bitwise AND `&` to mask bits, producing incorrect counts."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}

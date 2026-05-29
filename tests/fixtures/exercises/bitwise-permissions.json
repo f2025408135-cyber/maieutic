@@ -1,0 +1,97 @@
+{
+  "id": "bitwise-permissions",
+  "title": "Bitwise file permissions",
+  "instructorPromptText": "Write a C program that simulates UNIX-style file permissions (Read=4, Write=2, Execute=1) using bitwise flags. Implement functions to add a permission, remove a permission, and check if a permission is set using bitwise operators (`|`, `&`, `~`).",
+  "authoredAt": "2026-05-30T00:00:00.000Z",
+  "publishedAt": "2026-05-30T00:00:00.000Z",
+  "specGateDimensions": [
+    {
+      "id": "bitwise_addition",
+      "description": "Does the program correctly use bitwise OR (`|`) to add/grant permissions without affecting other flags?",
+      "rationale": "Using `|` ensures that adding an already existing permission is idempotent, whereas arithmetic `+` would corrupt the bitmask.",
+      "source": "opus"
+    },
+    {
+      "id": "bitwise_removal",
+      "description": "Does the program correctly use bitwise AND with NOT (`& ~`) to remove/revoke permissions?",
+      "rationale": "Revoking a permission requires masking with the inverse flag; using arithmetic `-` would fail if the permission was not already set.",
+      "source": "opus"
+    },
+    {
+      "id": "bitwise_checking",
+      "description": "Does the program use bitwise AND (`&`) to check if a specific permission bit is set?",
+      "rationale": "Verifies that checking permissions isolates the target bit rather than checking if any permission is set.",
+      "source": "opus"
+    }
+  ],
+  "expectedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses arithmetic addition `+` to add a permission or subtraction `-` to remove it.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses logical operators (`||`, `&&`, `!`) instead of bitwise ones (`|`, `&`, `~`).",
+      "source": "opus"
+    },
+    {
+      "category": "revision",
+      "pattern": "Student defines permissions using an `enum` or `#define` macros (e.g. `READ = 4`) rather than raw magic numbers.",
+      "source": "opus"
+    },
+    {
+      "category": "drift",
+      "pattern": "Student uses different function names or parameters than the ones committed in their specification.",
+      "source": "opus"
+    },
+    {
+      "category": "bug",
+      "pattern": "Student writes the removal operation as `n = n & ~mask` but gets the operator precedence wrong or forgets the bitwise NOT.",
+      "source": "opus"
+    }
+  ],
+  "studentLevel": "week_7_plus",
+  "unit": "unit_7",
+  "opusGeneratedDimensions": [
+    {
+      "id": "bitwise_addition",
+      "description": "Does the program correctly use bitwise OR (`|`) to add/grant permissions without affecting other flags?",
+      "rationale": "Using `|` ensures that adding an already existing permission is idempotent, whereas arithmetic `+` would corrupt the bitmask."
+    },
+    {
+      "id": "bitwise_removal",
+      "description": "Does the program correctly use bitwise AND with NOT (`& ~`) to remove/revoke permissions?",
+      "rationale": "Revoking a permission requires masking with the inverse flag; using arithmetic `-` would fail if the permission was not already set."
+    },
+    {
+      "id": "bitwise_checking",
+      "description": "Does the program use bitwise AND (`&`) to check if a specific permission bit is set?",
+      "rationale": "Verifies that checking permissions isolates the target bit rather than checking if any permission is set."
+    }
+  ],
+  "opusGeneratedDivergences": [
+    {
+      "category": "bug",
+      "pattern": "Student uses arithmetic addition `+` to add a permission or subtraction `-` to remove it."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student uses logical operators (`||`, `&&`, `!`) instead of bitwise ones (`|`, `&`, `~`)."
+    },
+    {
+      "category": "revision",
+      "pattern": "Student defines permissions using an `enum` or `#define` macros (e.g. `READ = 4`) rather than raw magic numbers."
+    },
+    {
+      "category": "drift",
+      "pattern": "Student uses different function names or parameters than the ones committed in their specification."
+    },
+    {
+      "category": "bug",
+      "pattern": "Student writes the removal operation as `n = n & ~mask` but gets the operator precedence wrong or forgets the bitwise NOT."
+    }
+  ],
+  "opusGeneratedStudentLevel": "week_7_plus",
+  "language": "c"
+}
