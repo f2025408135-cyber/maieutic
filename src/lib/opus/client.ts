@@ -74,13 +74,15 @@ async function getTargets(): Promise<LlmTarget[]> {
   // 3. OpenRouter (Free models chain option)
   const openrouterKey = (await getCookieKey("openrouter_api_key")) || process.env.OPENROUTER_API_KEY;
   if (openrouterKey && openrouterKey.trim() !== "") {
-    const freeModels = [
-      "google/gemini-2.5-flash:free",
-      "deepseek/deepseek-chat:free",
-      "meta-llama/llama-3-8b-instruct:free",
-      "qwen/qwen-2.5-72b-instruct:free",
+    const openrouterModels = [
+      "google/gemini-2.5-flash",
+      "deepseek/deepseek-chat",
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "qwen/qwen3-coder:free",
+      "deepseek/deepseek-v4-flash:free",
+      "meta-llama/llama-3.2-3b-instruct:free",
     ];
-    for (const model of freeModels) {
+    for (const model of openrouterModels) {
       targets.push({
         name: `OpenRouter (${model})`,
         provider: "openrouter",
