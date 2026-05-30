@@ -5,6 +5,26 @@
 
 ---
 
+## ⚡ One-Click Quick Start (Windows)
+
+We have provided a robust script to automate the entire environment setup and start process on Windows.
+
+1. Double-click the **`start.bat`** file in the root of this project.
+2. The script will automatically:
+   - Check if **Git**, **Node.js (v20+)**, and **pnpm** are installed. If any are missing, it will automatically install them using Windows Package Manager (`winget`) or `npm`.
+   - Copy `.env.example` to `.env.local` if it doesn't exist.
+   - Detect if you have no active API keys, and prompt you directly in the console to paste your **Gemini API Key** (you can get one for free at [Google AI Studio](https://aistudio.google.com/app/apikey)).
+   - Install all Node dependencies.
+   - Run database migrations (`pnpm prisma db push`) and seed default student/classroom data.
+   - Open your web browser to **`http://localhost:3000`** and start the development server.
+3. Keep the command prompt window open while using the application. To stop the server, simply close the window or press `Ctrl + C` in it.
+
+> [!NOTE]
+> If any installation step fails due to system privileges, try right-clicking `start.bat` and choosing **"Run as administrator"**.
+
+---
+
+
 ## Step 1 — Install Prerequisites
 
 You need these installed **once** on your PC:

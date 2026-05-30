@@ -91,6 +91,20 @@ hand in a lab with forty students.
 
 ## Quick start
 
+### ⚡ Windows (Automated One-Click Setup)
+Simply double-click the **`start.bat`** file in the root of the project. The script will automatically:
+1. Verify and install **Git**, **Node.js (v20+)**, and **pnpm** (via `winget` or `npm`).
+2. Set up your `.env.local` file and prompt you to input your **Gemini API Key** directly in the console if none is set.
+3. Install project dependencies and prepare your local SQLite database (`dev.db`).
+4. Seed demo fixtures (Ana, Beto, Carmen).
+5. Open your browser to `http://localhost:3000` and start the Next.js server.
+
+*(Note: If any install fails, try right-clicking `start.bat` and choosing **"Run as administrator"**).*
+
+---
+
+### 💻 Manual Setup (Mac / Linux / Windows Manual)
+
 Prerequisites: Node 20+. You need **at least one** of the following API keys:
 
 | Provider | Free tier | Get key |
@@ -102,25 +116,26 @@ Prerequisites: Node 20+. You need **at least one** of the following API keys:
 The system tries all configured providers in order and automatically falls back if one hits a rate limit.
 
 ```bash
-# Install
-npm install
+# 1. Install dependencies
+pnpm install
 
-# Copy the env template and fill in at least one LLM key
-copy .env.example .env.local      # Windows
-# cp .env.example .env.local      # Mac/Linux
+# 2. Copy the env template and fill in at least one LLM key
+copy .env.example .env.local      # Windows CMD
+# cp .env.example .env.local      # Mac/Linux / Git Bash
 # Then edit .env.local and set GEMINI_API_KEY= or OPENROUTER_API_KEY=
 
-# Apply schema and generate the Prisma client
-npx prisma db push
+# 3. Apply schema and generate the Prisma client
+pnpm prisma db push
 
-# Seed the demo fixtures (Ana/Beto/Carmen + cohort sessions)
-npm run reset-demo
+# 4. Seed the demo fixtures (Ana/Beto/Carmen + cohort sessions)
+pnpm reset-demo
 
-# Start dev server
-npm run dev
+# 5. Start dev server
+pnpm dev
 
-# Open http://localhost:3000
+# 6. Open http://localhost:3000
 ```
+
 
 The landing page asks the visitor whether they're a student or a teacher and
 routes accordingly — no login. Students land on an exercise list grouped by
